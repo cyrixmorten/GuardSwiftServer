@@ -1,7 +1,21 @@
+require("dotenv").config({ path: 'local.env' });
+var requireEnv = require("require-environment-variables");
+requireEnv([
+  'APP_ID',
+  'FILE_KEY',
+  'MASTER_KEY',
+  'SERVER_URL',
+  'MONGODB_URI',
+  'S3_KEY',
+  'S3_SECRET',
+  'GOOGLE_GEOCODE_API_KEY'
+]);
+
 // Example express application adding the parse-server module to expose Parse
 // compatible API routes.
 
 var express = require('express');
+var S3Adapter = require('parse-server').S3Adapter;
 var ParseServer = require('parse-server').ParseServer;
 var path = require('path');
 
@@ -12,14 +26,21 @@ if (!databaseUri) {
 }
 
 var api = new ParseServer({
-  databaseURI: databaseUri || 'mongodb://localhost:27017/dev',
-  cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
-  appId: process.env.APP_ID || 'myAppId',
-  masterKey: process.env.MASTER_KEY || '', //Add your master key here. Keep it secret!
-  serverURL: process.env.SERVER_URL || 'http://localhost:1337/parse',  // Don't forget to change to https if needed
+  databaseURI: databaseUri, //'mongodb://localhost:27017/dev',
+  cloud: './cloud/main.js',
+  appId: process.env.APP_ID || 'guardswift',
+  fileKey: process.env.FILE_KEY,
+  masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
+  serverURL: process.env.SERVER_URL, // Don't forget to change to https if needed
   liveQuery: {
     classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
-  }
+  },
+  filesAdapter: new S3Adapter(
+      process.env.S3_KEY,
+      process.env.S3_SECRET,
+      process.env.S3_BUCKET || 'guardswift',
+      { directAccess: true }
+  )
 });
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
 // If you wish you require them, you can set them as options in the initialization above:
