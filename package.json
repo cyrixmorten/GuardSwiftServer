@@ -12,6 +12,8 @@
     "dotenv": "^2.0.0",
     "express": "~4.11.x",
     "kerberos": "~0.0.x",
+    "lodash": "^4.16.4",
+    "moment-timezone-all": "^0.5.5",
     "parse": "~1.8.0",
     "parse-server": "*",
     "require-environment-variables": "^1.1.2"
