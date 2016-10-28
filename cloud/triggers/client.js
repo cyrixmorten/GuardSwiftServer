@@ -1,5 +1,5 @@
 var GeoCode = require('../utils/geocode.js');
-var _ = require('underscore');
+var _ = require('lodash');
 
 
 /*
