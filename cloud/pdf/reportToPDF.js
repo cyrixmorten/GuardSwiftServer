@@ -16,7 +16,7 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
 
     reportUtils.fetchReport(request.params.reportId).then(function (report) {
 
-        console.log('fetchReport success');
+        console.log('fetchReport success', report);
         
         reportObject = report;
 
@@ -34,9 +34,10 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
             })
             .then(reportUtils.generatePDF)
             .fail(function(error) {
-                console.error('Error during PDF creation');
-
-                return error;
+                return new Parse.Promise.error({
+                    message: 'Error during PDF creation',
+                    error: error
+                });
             });
         }
 
@@ -52,19 +53,25 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
         if (createdPDF) {
 
             var saveFileToReport = function (report, file) {
+
+                console.log('saveFileToReport', report);
+                
                 report.set('pdfCreatedAt', new Date());
                 report.set('pdf', file);
 
-                return report.save();
+                return report.save(null, { useMasterKey: true });
             };
 
             promise = reportUtils.generatePDFParseFile(httpResponse).then(function (file) {
-                return saveFileToReport(reportObject, file).then(httpResponsePromise);
+                console.log('successfully saved pdf');
+                return saveFileToReport(reportObject, file)
+                        .then(httpResponsePromise);
             })
             .fail(function (error) {
-                console.error('Error saving PDF report');
-
-                return error;
+                return new Parse.Promise.error({
+                    message: 'Error saving PDF report',
+                    error: error
+                });
             });
         }
 
@@ -72,7 +79,7 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
 
     }).then(function (httpResponse) {
         console.log('success');
-        
+
         response.success({
             httpResponse: httpResponse,
             pdfUrl: reportUtils.getPDFUrl(reportObject)
@@ -80,8 +87,6 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
 
     }).fail(function (error) {
 
-        console.error(JSON.stringify(error));
-        
         response.error(error);
 
     });

@@ -8,6 +8,9 @@ exports.fetchUser = function (report) {
 };
 
 exports.fetchReport = function (reportId) {
+
+    console.log('fetchReport');
+    
     var query = new Parse.Query('Report');
     query.equalTo('objectId', reportId);
 
