@@ -30,10 +30,9 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
             })
             .then(reportUtils.generatePDF)
             .fail(function(error) {
-                console.error({
-                    message: 'Error during PDF creation',
-                    error: error
-                });
+                console.error('Error during PDF creation');
+
+                return error;
             });
         }
 
@@ -59,12 +58,9 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
                 return saveFileToReport(reportObject, file).then(httpResponsePromise);
             })
             .fail(function (error) {
-                console.error(
-                    {
-                        message: 'Error saving PDF report',
-                        error: error
-                    }
-                )
+                console.error('Error saving PDF report');
+
+                return error;
             });
         }
 
@@ -78,6 +74,8 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
 
     }).fail(function (error) {
 
+        console.error(JSON.stringify(error));
+        
         response.error(error);
 
     });
