@@ -244,7 +244,7 @@
 //	query.each(function(object) {
 //		var days = object.get('days');
 //		var decrementedDays = [];
-//		if (!_.contains(decrementedDays, -1)) {
+//		if (!_.includes(decrementedDays, -1)) {
 //			days.forEach(function(day) {
 //				decrementedDays.push((day - 1));
 //			});
@@ -252,7 +252,7 @@
 //		}
 //
 //		var incrementedDays = [];
-//		if (_.contains(decrementedDays, -1)) {
+//		if (_.includes(decrementedDays, -1)) {
 //			days.forEach(function(day) {
 //				incrementedDays.push((day + 1));
 //			});

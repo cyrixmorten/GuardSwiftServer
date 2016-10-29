@@ -126,7 +126,7 @@ var manageCircuits = function(now_dayOfWeek, now_hour, forceUpdate) {
 
 									var days = circuit.get('days');
 									// if run today
-									if (_.contains(days, now_dayOfWeek)) {
+									if (_.includes(days, now_dayOfWeek)) {
 										// adjust time according to timeZone
 										var timeResetDate = circuit.get('timeResetDate');
 										var timeEnd = timeResetDate.getHours();
@@ -259,7 +259,7 @@ var manageDistrictWatches = function(now_dayOfWeek, now_hour, forceUpdate) {
 
 									var days = districtWatch.get('days');
 									// if run today
-									if (_.contains(days, now_dayOfWeek)) {
+									if (_.includes(days, now_dayOfWeek)) {
 										// adjust time according to timeZone
 
 										var timeResetDate = districtWatch.get('timeResetDate');
