@@ -4,10 +4,10 @@ var moment = require('moment-timezone-all');
 var Global = require("../global.js");
 
 exports.fetchUser = function (report) {
-    return report.get('owner').fetch();
+    return report.get('owner').fetch({ useMasterKey: true });
 };
 
-exports.fetcReport = function (reportId) {
+exports.fetchReport = function (reportId) {
     var query = new Parse.Query('Report');
     query.equalTo('objectId', reportId);
 
@@ -19,7 +19,7 @@ exports.fetcReport = function (reportId) {
     query.include('circuitStarted');
     query.include('districtWatchStarted');
     
-    return query.first();
+    return query.first({ useMasterKey: true });
 };
 
 
@@ -38,6 +38,9 @@ exports.hasExistingPDF = function (report) {
 };
 
 exports.readExistingPDF = function (report) {
+    
+    console.log('readExistingPDF');
+
     return Parse.Cloud.httpRequest({
         method: 'GET',
         url: exports.getPDFUrl(report),
@@ -49,6 +52,8 @@ exports.readExistingPDF = function (report) {
 
 exports.deleteExistingPDF = function (report) {
 
+    console.log('deleteExistingPDF');
+
     var promise = new Parse.Promise.as();
 
     if (report.has('pdf')) {
@@ -59,10 +64,9 @@ exports.deleteExistingPDF = function (report) {
     }
 
     promise.fail(function (error) {
-        console.error({
-            message: 'Error deleting report',
-            error: error
-        });
+        console.error('Error deleting report');
+
+        return error;
     });
 
     return promise;
@@ -70,6 +74,9 @@ exports.deleteExistingPDF = function (report) {
 
 
 exports.generatePDF = function (docDefinition) {
+
+    console.log('generatePDF');
+
     return Parse.Cloud.httpRequest({
         method: 'POST',
         url: 'http://www.guardswift.com/api/pdfmake',
@@ -81,6 +88,8 @@ exports.generatePDF = function (docDefinition) {
 };
 
 exports.generatePDFParseFile = function (httpResponse) {
+
+    console.log('generatePDFParseFile');
 
     var file = new Parse.File("report.pdf", {
         base64: httpResponse.buffer.toString('base64', 0, httpResponse.buffer.length)

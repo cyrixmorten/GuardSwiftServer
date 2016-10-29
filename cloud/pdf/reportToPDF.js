@@ -3,6 +3,8 @@ var reportUtils = require('./reportUtils.js');
 
 Parse.Cloud.define("reportToPDF", function (request, response) {
 
+    console.log('reportToPDF');
+    
     if (!request.params.reportId) {
         response.error('missing reportId');
         return;
@@ -12,8 +14,10 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
     var reportObject = {};
 
 
-    reportUtils.fetcReport(request.params.reportId).then(function (report) {
+    reportUtils.fetchReport(request.params.reportId).then(function (report) {
 
+        console.log('fetchReport success');
+        
         reportObject = report;
 
         if (reportUtils.hasExistingPDF(report)) {
@@ -67,6 +71,8 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
         return promise;
 
     }).then(function (httpResponse) {
+        console.log('success');
+        
         response.success({
             httpResponse: httpResponse,
             pdfUrl: reportUtils.getPDFUrl(reportObject)

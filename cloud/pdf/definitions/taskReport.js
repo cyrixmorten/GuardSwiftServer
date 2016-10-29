@@ -31,7 +31,7 @@ var fetchReportSettings = function (report) {
         }
 
         return reportUtils.fetchUser(report).then(function (user) {
-            return user.get(settingsCol).fetch();
+            return user.get(settingsCol).fetch({ useMasterKey: true });
         });
     };
 

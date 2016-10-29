@@ -71,7 +71,7 @@ Parse.Cloud.define("sendReport", function (request, response) {
         errors: false
     };
 
-    reportUtils.fetcReport(request.params.reportId).then(function (report) {
+    reportUtils.fetchReport(request.params.reportId).then(function (report) {
         _report = report;
 
         var contacts = _.filter(
