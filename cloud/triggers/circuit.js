@@ -10,7 +10,8 @@ Parse.Cloud.afterSave("Circuit", function (request) {
 });
 
 Parse.Cloud.afterDelete("Circuit", function(request) {
-  query = new Parse.Query("CircuitStarted");
+  var CircuitStarted = Parse.Object.extend('CircuitStarted');
+  var query = new Parse.Query(CircuitStarted);
   query.equalTo("circuit", request.object);
   query.doesNotExist('timeEnded');
   query.find({ useMasterKey: true }).then(function(circuitsStarted) {

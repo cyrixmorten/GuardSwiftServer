@@ -10,7 +10,8 @@ Parse.Cloud.afterSave("DistrictWatch", function (request) {
 });
 
 Parse.Cloud.afterDelete("DistrictWatch", function(request) {
-  query = new Parse.Query("DistrictWatchStarted");
+  var DistrictWatchStarted = Parse.Object.extend('DistrictWatchStarted');
+  var query = new Parse.Query(DistrictWatchStarted);
   query.equalTo("districtWatch", request.object);
   query.doesNotExist('timeEnded');
   query.find({ useMasterKey: true }).then(function(districtWatchesStarted) {

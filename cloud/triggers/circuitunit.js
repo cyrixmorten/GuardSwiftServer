@@ -22,7 +22,8 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
 
         console.log('clientPointer: ', clientPointer);
 
-        var query = new Parse.Query('Client');
+        var Client = Parse.Object.extend('Client');
+        var query = new Parse.Query(Client);
         query.equalTo('objectId', clientPointer.id);
         query.first({ useMasterKey: true }).then(function (client) {
             console.log('client: ', client);
