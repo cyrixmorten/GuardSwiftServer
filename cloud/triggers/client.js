@@ -1,6 +1,6 @@
 var GeoCode = require('../utils/geocode.js');
 var _ = require('lodash');
-
+var moment = require('moment');
 
 /*
  * Sanity check and obtain a GPS position for Client
@@ -16,7 +16,6 @@ Parse.Cloud.beforeSave("Client", function (request, response) {
         var dirtyValue = dirtyKeys[dirtyKey];
         if (_.includes(addressKeys, dirtyValue)) {
             lookupAddress = true;
-            console.log(dirtyValue + ": " + lookupAddress);
         }
     }
 
@@ -28,6 +27,19 @@ Parse.Cloud.beforeSave("Client", function (request, response) {
         response.success();
     }
 
+});
+
+Parse.Cloud.afterSave("Client", function (request) {
+
+    var Client = request.object;
+
+    var positionUpdated = Client.get('positionUpdated');
+
+    var isNewPosition = positionUpdated ? Math.abs(moment(positionUpdated).diff(moment(), 'seconds')) < 10 : false;
+    if (isNewPosition) {
+        console.log('New position!!!');
+    }
+    
 });
 
 var addAddressToClient = function (Client, response) {
@@ -56,6 +68,7 @@ var addAddressToClient = function (Client, response) {
             console.log('setting new position:');
             console.log(point);
 
+            Client.set('positionUpdated', new Date());
             response.success();
         }, function (error) {
             response.error("Address not found: " + searchAddress);
