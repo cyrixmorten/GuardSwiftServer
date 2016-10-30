@@ -37,7 +37,7 @@ Parse.Cloud.afterSave("Client", function (request) {
 
 var sendToCircuitUnits = function(client) {
     var CircuitUnit = Parse.Object.extend('CircuitUnit');
-    var query = Parse.Query(CircuitUnit);
+    var query = new Parse.Query(CircuitUnit);
     query.equalTo('client', client);
     query.each(function(circuitUnit) {
         circuitUnit.set('clientId', client.get('clientId'));
