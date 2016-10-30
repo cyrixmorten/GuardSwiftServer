@@ -31,19 +31,21 @@ Parse.Cloud.beforeSave("Client", function (request, response) {
 
 Parse.Cloud.afterSave("Client", function (request) {
 
-    var Client = request.object;
+    sendToCircuitUnits(request.object);
 
-    var positionUpdated = Client.get('positionUpdated');
-
-    var isNewPosition = positionUpdated ? Math.abs(moment(positionUpdated).diff(moment(), 'seconds')) < 10 : false;
-    if (isNewPosition) {
-        console.log('New position!!!');
-    }
-    if (positionUpdated) {
-        console.log('Diff: ' +  Math.abs(moment(positionUpdated).diff(moment(), 'seconds')));
-    }
-    
 });
+
+var sendToCircuitUnits = function(client) {
+    var CircuitUnit = Parse.Object.extend('CircuitUnit');
+    var query = Parse.Query(CircuitUnit);
+    query.equalTo('client', client);
+    query.each(function(circuitUnit) {
+        circuitUnit.set('clientId', client.get('clientId'));
+        circuitUnit.set('clientName', client.get('name'));
+        circuitUnit.set('clientPosition', client.get('position'));
+        circuitUnit.save({useMasterKey: true});
+    },{useMasterKey: true})
+};
 
 var addAddressToClient = function (Client, response) {
 
