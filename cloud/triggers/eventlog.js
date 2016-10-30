@@ -22,7 +22,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
     if (eventCode == 200 || eventCode == 201) {
 
         Parse.Session.current().fetch().then(function(session) {
-            let guard = (eventCode == 200) ? EventLog.get('guard') || undefined;
+            var guard = (eventCode == 200) ? EventLog.get('guard') : undefined;
             session.set('guard', guard);
             session.save();
         });
