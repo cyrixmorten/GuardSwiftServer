@@ -18,6 +18,18 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
     var EventLog = request.object;
 
+    var eventCode = EventLog.get('eventCode');
+    if (eventCode == 200 || eventCode == 201) {
+
+        Parse.Session.current().fetch().then(function(session) {
+            let guard = (eventCode == 200) ? EventLog.get('guard') || undefined;
+            session.set('guard', guard);
+            session.save();
+        });
+
+        return;
+    }
+
     var appVersion = EventLog.get('gsVersion');
     if (appVersion < 318) {
         console.log('App version too low for cloud code report handling', 'version:' + appVersion, 'expected: >=318');
@@ -41,14 +53,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
     };
 
 
-    var findReport = function () {
-        var reportId = getReportId();
-
-
-        if (!reportId) {
-            console.log('Not a report event');
-            return Parse.Promise.as('Not a report event');
-        }
+    var findReport = function (reportId) {
 
         var Report = Parse.Object.extend('Report');
         var query = new Parse.Query(Report);
@@ -91,7 +96,9 @@ Parse.Cloud.afterSave("EventLog", function (request) {
         return report.save(null, { useMasterKey: true });
     };
 
-    if (!EventLog.get('reported')) {
+    var reportId = getReportId();
+
+    if (reportId && !EventLog.get('reported')) {
         findReport()
             .then(writeEvent)
             .fail(function (error) {
@@ -106,7 +113,11 @@ Parse.Cloud.afterSave("EventLog", function (request) {
                 return new Parse.Promise.as('Not a report event');
             })
     } else {
-        console.log('Already written to report');
+        if (reportId) {
+            console.log('Already written to report');
+        } else {
+            console.log('Not a report event');
+        }
     }
 
 });
