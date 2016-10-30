@@ -18,7 +18,7 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
     // inherit client position
     var clientPointer = CircuitUnit.get('client');
     if (clientPointer) {
-        clientPointer.fetch().then(function (client) {
+        clientPointer.fetch({ useMasterKey: true }).then(function (client) {
             CircuitUnit.set('clientId', client.get('clientId'));
             CircuitUnit.set('clientName', client.get('name'));
             CircuitUnit.set('clientPosition', client.get('position'));
