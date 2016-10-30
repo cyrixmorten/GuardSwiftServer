@@ -25,12 +25,14 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
         var query = new Parse.Query('Client');
         query.equalTo('objectId', clientPointer.id);
         query.first({ useMasterKey: true }).then(function (client) {
+            console.log('client: ', client);
             CircuitUnit.set('clientId', client.get('clientId'));
             CircuitUnit.set('clientName', client.get('name'));
             CircuitUnit.set('clientPosition', client.get('position'));
             response.success();
         }, function (error) {
-            console.error("error at clientPointer " + error.message);
+            console.error("error at clientPointer ");
+            console.error(JSON.stringify(error));
             response.success();
         });
     } else {
