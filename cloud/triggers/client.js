@@ -39,12 +39,19 @@ var sendToCircuitUnits = function(client) {
     var CircuitUnit = Parse.Object.extend('CircuitUnit');
     var query = new Parse.Query(CircuitUnit);
     query.equalTo('client', client);
-    query.each(function(circuitUnit) {
-        circuitUnit.set('clientId', client.get('clientId'));
-        circuitUnit.set('clientName', client.get('name'));
-        circuitUnit.set('clientPosition', client.get('position'));
-        circuitUnit.save({useMasterKey: true});
-    },{useMasterKey: true})
+    query.find({useMasterKey: true}).then(function(circuitUnits) {
+        console.log('Updating circuitUnits: ' + circuitUnits.length);
+
+        _.forEach(circuitUnits, function(circuitUnit) {
+            circuitUnit.set('clientId', client.get('clientId'));
+            circuitUnit.set('clientName', client.get('name'));
+            circuitUnit.set('clientPosition', client.get('position'));
+            circuitUnit.save({useMasterKey: true});
+        });
+
+    }).fail(function(error) {
+        console.error('error: ', error);
+    })
 };
 
 var addAddressToClient = function (Client, response) {
