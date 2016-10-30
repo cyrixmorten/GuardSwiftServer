@@ -36,8 +36,7 @@ Parse.Cloud.afterSave("Client", function (request) {
 });
 
 var sendToCircuitUnits = function(client) {
-    var CircuitUnit = Parse.Object.extend('CircuitUnit');
-    var query = new Parse.Query(CircuitUnit);
+    var query = new Parse.Query('CircuitUnit');
     query.equalTo('client', client);
     query.find({useMasterKey: true}).then(function(circuitUnits) {
         console.log('Updating circuitUnits: ' + circuitUnits.length);
