@@ -22,7 +22,7 @@ Parse.Cloud.beforeSave(
 
         var DistrictWatch = unit.get('districtWatch');
 
-        DistrictWatch.fetch().then(
+        DistrictWatch.fetch({ useMasterKey: true }).then(
             function (districtWatch) {
 
                 var zipcode = districtWatch.get("zipcode");
@@ -87,7 +87,6 @@ Parse.Cloud.beforeSave(
  * Get positions for all addressNumbers and place in DistrictWatchGeoPoint
  */
 Parse.Cloud.afterSave("DistrictWatchUnit", function (request) {
-    Parse.Cloud.useMasterKey();
 
     var districtWatchUnit = request.object;
     var user = districtWatchUnit.get('owner');
@@ -101,7 +100,7 @@ Parse.Cloud.afterSave("DistrictWatchUnit", function (request) {
     // look up addresses
     var Client = districtWatchUnit.get('client');
 
-    Client.fetch().then(
+    Client.fetch({ useMasterKey: true }).then(
         function (client) {
 
 //				var zipcode = districtWatch.get("zipcode");
@@ -151,6 +150,6 @@ var createDistrictWatchClient = function (addressName, addressNumber, client, di
     districtWatchClient.set("ACL", ACL);
     districtWatchClient.set('owner', user);
 
-    return districtWatchClient.save();
+    return districtWatchClient.save(null, { useMasterKey: true });
 
 };

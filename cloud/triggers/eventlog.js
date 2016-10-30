@@ -53,7 +53,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
         var query = new Parse.Query(Report);
         query.equalTo('reportId', reportId);
 
-        return query.first().then(function (report) {
+        return query.first({ useMasterKey: true }).then(function (report) {
             console.log('found report: ' + JSON.stringify(report));
             return (report) ? report : Parse.Promise.error(reportNotFoundError);
         });
@@ -72,7 +72,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
         report.addUnique('eventLogs', EventLog);
         report.increment('eventCount');
 
-        return report.save();
+        return report.save(null, { useMasterKey: true });
     };
 
     var createReport = function () {
@@ -87,7 +87,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
 
 
-        return report.save();
+        return report.save(null, { useMasterKey: true });
     };
 
     if (!EventLog.get('reported')) {

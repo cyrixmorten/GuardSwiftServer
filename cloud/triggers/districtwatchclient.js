@@ -8,7 +8,7 @@ Parse.Cloud.beforeSave(
 
         var DistrictWatchUnit = DistrictWatchClient.get('districtWatchUnit');
 
-        DistrictWatchUnit.fetch().then(
+        DistrictWatchUnit.fetch({ useMasterKey: true }).then(
             function (districtWatchUnit) {
 
                 DistrictWatchClient.set('supervisions', districtWatchUnit.get('supervisions'));
@@ -61,7 +61,7 @@ Parse.Cloud.beforeSave(
                 }
             }, function (error) {
                 console.error('missing districtWatchUnit');
-                DistrictWatchClient.destroy();
+                DistrictWatchClient.destroy(null, { useMasterKey: true });
                 response.success();
             });
 

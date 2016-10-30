@@ -6,8 +6,7 @@ var _ = require('lodash');
  * Sanity check and obtain a GPS position for Client
  */
 Parse.Cloud.beforeSave("Client", function (request, response) {
-    Parse.Cloud.useMasterKey();
-
+    
     var Client = request.object;
 
     var dirtyKeys = Client.dirtyKeys();

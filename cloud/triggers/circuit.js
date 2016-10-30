@@ -13,11 +13,11 @@ Parse.Cloud.afterDelete("Circuit", function(request) {
   query = new Parse.Query("CircuitStarted");
   query.equalTo("circuit", request.object);
   query.doesNotExist('timeEnded');
-  query.find().then(function(circuitsStarted) {
+  query.find({ useMasterKey: true }).then(function(circuitsStarted) {
   		var now = new Date();
   		circuitsStarted.forEach(function(circuitStarted) {
   			circuitStarted.set('timeEnded', now);
-  			circuitStarted.save();
+  			circuitStarted.save(null, { useMasterKey: true });
   		});
   }, function(error) {
   		console.error("Error finding CircuitStarted " + error.code + ": " + error.message);
