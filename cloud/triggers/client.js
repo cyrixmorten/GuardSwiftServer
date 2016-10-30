@@ -38,6 +38,8 @@ Parse.Cloud.afterSave("Client", function (request) {
     var isNewPosition = positionUpdated ? Math.abs(moment(positionUpdated).diff(moment(), 'seconds')) < 10 : false;
     if (isNewPosition) {
         console.log('New position!!!');
+    }
+    if (positionUpdated) {
         console.log('Diff: ' +  Math.abs(moment(positionUpdated).diff(moment(), 'seconds')));
     }
     
