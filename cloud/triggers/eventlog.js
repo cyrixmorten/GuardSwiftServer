@@ -46,6 +46,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
 
         if (!reportId) {
+            console.log('Not a report event');
             return Parse.Promise.as('Not a report event');
         }
 
