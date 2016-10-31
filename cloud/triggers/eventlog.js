@@ -18,22 +18,35 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
     var EventLog = request.object;
 
+    wrieEventToSession(EventLog);
+    writeEventToReport(EventLog);
+
+
+});
+
+var wrieEventToSession = function(EventLog) {
     var eventCode = EventLog.get('eventCode');
     if (eventCode == 200 || eventCode == 201) {
 
         Parse.Session.current().then(function(session) {
-            var guard = (eventCode == 200) ? EventLog.get('guard') : undefined;
+            var guard = undefined;
+            if (eventCode == 200) {
+                guard = EventLog.get('guard');
+                console.log('Adding guard to session: ' + EventLog.get('guard'));
+            } else {
+                console.log('Removing guard from session ' + EventLog.get('guard'));
+            }
             session.set('guard', guard);
             session.save();
         });
-
-        return;
     }
+};
+
+var writeEventToReport = function(EventLog) {
 
     var appVersion = EventLog.get('gsVersion');
     if (appVersion < 318) {
         console.log('App version too low for cloud code report handling', 'version:' + appVersion, 'expected: >=318');
-        response.success();
         return;
     }
 
@@ -55,12 +68,12 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
     var findReport = function (reportId) {
 
-        var Report = Parse.Object.extend('Report');
-        var query = new Parse.Query(Report);
+        // var Report = Parse.Object.extend('Report');
+        var query = new Parse.Query('Report');
         query.equalTo('reportId', reportId);
 
         return query.first({ useMasterKey: true }).then(function (report) {
-            console.log('found report: ' + JSON.stringify(report));
+            console.log('found report: ' + report.id);
             return (report) ? report : Parse.Promise.error(reportNotFoundError);
         });
     };
@@ -88,6 +101,7 @@ Parse.Cloud.afterSave("EventLog", function (request) {
         var report = new Report();
 
         Object.keys(EventLog.attributes).forEach(function (fieldName) {
+            console.log(fieldName + ': ' + EventLog.get(fieldName));
             report.set(fieldName, EventLog.get(fieldName));
         });
 
@@ -100,18 +114,19 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
     if (reportId && !EventLog.get('reported')) {
         findReport()
-            .then(writeEvent)
-            .fail(function (error) {
-                if (error === reportNotFoundError) {
-                    return createReport()
-                        .then(writeEvent)
-                        .fail(function(error) {
-                            console.error('Error while creating report: ' + JSON.stringify(error))
-                            return error;
-                        });
-                }
-                return new Parse.Promise.as('Not a report event');
-            })
+        .then(writeEvent)
+        .fail(function (error) {
+            if (error === reportNotFoundError) {
+                return createReport()
+                .then(writeEvent)
+                .fail(function(error) {
+                    console.error('Error while creating report: ' + JSON.stringify(error))
+                    return error;
+                });
+            } else {
+                console.error('Unhandled error: ' + JSON.stringify(error));
+            }
+        })
     } else {
         if (reportId) {
             console.log('Already written to report');
@@ -120,4 +135,4 @@ Parse.Cloud.afterSave("EventLog", function (request) {
         }
     }
 
-});
+};

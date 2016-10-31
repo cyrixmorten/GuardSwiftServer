@@ -31,7 +31,7 @@ Parse.Cloud.beforeSave("Client", function (request, response) {
 
 Parse.Cloud.afterSave("Client", function (request) {
 
-    sendToCircuitUnits(request.object);
+    // sendToCircuitUnits(request.object);
 
 });
 
