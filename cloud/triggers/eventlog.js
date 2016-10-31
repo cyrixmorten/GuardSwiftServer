@@ -113,7 +113,7 @@ var writeEventToReport = function(EventLog) {
         return report.save(null, { useMasterKey: true });
     };
 
-    var reportId = Eventlog.get('reportId');
+    var reportId = EventLog.get('reportId');
 
     if (reportId && !EventLog.get('reported')) {
         findReport()
