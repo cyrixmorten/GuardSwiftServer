@@ -99,7 +99,6 @@ var writeEventToReport = function(EventLog) {
         var report = new Report();
 
         Object.keys(EventLog.attributes).forEach(function (fieldName) {
-            console.log(fieldName + ': ' + EventLog.get(fieldName));
             report.set(fieldName, EventLog.get(fieldName));
         });
 
