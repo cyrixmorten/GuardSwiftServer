@@ -116,7 +116,7 @@ var writeEventToReport = function(EventLog) {
     var reportId = EventLog.get('reportId');
 
     if (reportId && !EventLog.get('reported')) {
-        findReport()
+        findReport(reportId)
         .then(writeEvent)
         .fail(function (error) {
             if (error === reportNotFoundError) {
