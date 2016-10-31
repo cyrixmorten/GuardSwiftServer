@@ -52,28 +52,31 @@ var writeEventToReport = function(EventLog) {
 
     var reportNotFoundError = new Error('Report not found');
 
-    var getReportId = function () {
-        if (EventLog.has('staticTask')) {
-            return EventLog.get('client').id + EventLog.get('staticTask').id
-        }
-        if (EventLog.has('circuitUnit')) {
-            return EventLog.get('circuitStarted').id + EventLog.get('circuitUnit').id
-        }
-        if (EventLog.has('districtWatchClient')) {
-            // combine all district watch events for a group
-            return EventLog.get('districtWatchStarted').id
-        }
-    };
+    // var getReportId = function () {
+    //     if (EventLog.has('staticTask')) {
+    //         return EventLog.get('client').id + EventLog.get('staticTask').id
+    //     }
+    //     if (EventLog.has('circuitUnit')) {
+    //         return EventLog.get('circuitStarted').id + EventLog.get('circuitUnit').id
+    //     }
+    //     if (EventLog.has('districtWatchClient')) {
+    //         // combine all district watch events for a group
+    //         return EventLog.get('districtWatchStarted').id
+    //     }
+    // };
 
 
     var findReport = function (reportId) {
 
-        // var Report = Parse.Object.extend('Report');
+        console.log('findReport reportId: ' + reportId);
+
         var query = new Parse.Query('Report');
         query.equalTo('reportId', reportId);
 
         return query.first({ useMasterKey: true }).then(function (report) {
-            console.log('found report: ' + report.id);
+
+            console.log('found report: ' + (report) ? report.id : 'no report');
+
             return (report) ? report : Parse.Promise.error(reportNotFoundError);
         });
     };
@@ -110,7 +113,7 @@ var writeEventToReport = function(EventLog) {
         return report.save(null, { useMasterKey: true });
     };
 
-    var reportId = getReportId();
+    var reportId = Eventlog.get('reportId');
 
     if (reportId && !EventLog.get('reported')) {
         findReport()
