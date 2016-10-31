@@ -73,12 +73,7 @@ var writeEventToReport = function(EventLog) {
         var query = new Parse.Query('Report');
         query.equalTo('reportId', reportId);
 
-        return query.first({ useMasterKey: true }).then(function (report) {
-
-            console.log('found report: ' + (report) ? report.id : 'no report');
-
-            return (report) ? report : Parse.Promise.error(reportNotFoundError);
-        });
+        return query.first({ useMasterKey: true });
     };
 
     var writeEvent = function (report) {
@@ -117,7 +112,16 @@ var writeEventToReport = function(EventLog) {
 
     if (reportId && !EventLog.get('reported')) {
         findReport(reportId)
-        .then(writeEvent)
+        .then(function(report) {
+            if (report) {
+                console.log('Found report: ' + report.id );
+                return writeEvent(report);
+            }
+
+            console.log('No report found');
+
+            return Parse.Promise.error(reportNotFoundError);
+        })
         .fail(function (error) {
             if (error === reportNotFoundError) {
                 return createReport()
