@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var Global = require('../global.js');
 
 /**
  * Returns {lat: latitude, lng: longitude} object
@@ -13,7 +12,7 @@ exports.lookupAddress = function (searchAddress) {
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {
             address: searchAddress,
-            key: Global.GOOGLE_GEOCODE_API_KEY
+            key: process.env.GOOGLE_GEOCODE_API_KEY
         },
         success: function (httpResponse) {
             var data = httpResponse.data;
@@ -70,7 +69,7 @@ exports.lookupPlaceObject = function (searchAddress) {
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {
             address: searchAddress,
-            key: Global.GOOGLE_GEOCODE_API_KEY
+            key: process.env.GOOGLE_GEOCODE_API_KEY
         },
         success: function (httpResponse) {
             var data = httpResponse.data;

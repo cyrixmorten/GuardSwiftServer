@@ -2,6 +2,7 @@ require("dotenv").config({ path: 'local.env' });
 var requireEnv = require("require-environment-variables");
 requireEnv([
   'APP_ID',
+  'APP_URL',
   'FILE_KEY',
   'MASTER_KEY',
   'SERVER_URL',
@@ -65,6 +66,19 @@ app.get('/', function(req, res) {
 app.get('/test', function(req, res) {
   res.sendFile(path.join(__dirname, '/public/test.html'));
 });
+
+
+// API
+var apiRouter = express.Router();
+var bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+apiRouter.route('/pdfmake').post(require('./api/pdfMake'));
+
+app.use('/api', apiRouter);
+
 
 var port = process.env.PORT || 1337;
 var httpServer = require('http').createServer(app);

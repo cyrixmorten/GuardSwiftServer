@@ -68,31 +68,42 @@ exports.createDoc = function (report, settings, timeZone) {
     };
 
 
+    var reportContent = function() {
+        var content = [];
+
+        // client info
+        var header = docDefaults.contentHeader(report, backgroundHeaderImage);
+        var arrivalAndReportId = pdfUtils.leftRightAlignedContent({
+            textLeft: ['Vægter var ved adressen kl: ', {text: arrivalTimestamps(), bold: true}],
+            textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
+            margin: [0, 10],
+            style: {bold: true}
+        });
+        var writtenEvents = uniqueEvents();
+        var reportedEvents = pdfUtils.tableBorderedWithHeader({
+            widths: ['*', 50, '*', '*', '*'],
+            header: ['Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
+            content: uniqueEvents()
+        });
+        
+        // todo: make part of report settings
+        var noEventsText = {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [ 0, 10, 0, 0 ]};
+        
+        content.push(header);
+        content.push(arrivalAndReportId);
+        if (!_.isEmpty(writtenEvents)) {
+            content.push(reportedEvents);
+        } else {
+            content.push(noEventsText);
+        }
+        
+        return content;
+    };
     return _.extend(docDefaults.doc(report, timeZone), {
-
         background: backgroundHeaderImage,
-
         header: docDefaults.header(report, timeZone),
-
-        content: [
-            docDefaults.contentHeader(report, backgroundHeaderImage),
-            pdfUtils.leftRightAlignedContent({
-                textLeft: ['Vægter var ved adressen kl: ', {text: arrivalTimestamps(), bold: true}],
-                textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
-                margin: [0, 10],
-                style: {bold: true}
-            }),
-            pdfUtils.tableBorderedWithHeader({
-                widths: ['*', 50, '*', '*', '*'],
-                header: ['Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
-                content: uniqueEvents()
-            })
-        ],
-
+        content: reportContent(),
         footer: docDefaults.footer(report),
-
-
         styles: docDefaults.styles()
-
     });
 };

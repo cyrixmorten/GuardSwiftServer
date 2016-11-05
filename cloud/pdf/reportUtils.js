@@ -1,8 +1,6 @@
 var _ = require('lodash');
 var moment = require('moment-timezone-all');
 
-var Global = require("../global.js");
-
 exports.fetchUser = function (report) {
     return report.get('owner').fetch({ useMasterKey: true });
 };
@@ -35,9 +33,9 @@ exports.hasExistingPDF = function (report) {
     var hasPdf = report.has('pdf');
     var pdfCreatedAt = report.get('pdfCreatedAt');
     var updatedAt = report.get('updatedAt');
-    var missingOrUpdated = pdfCreatedAt ? Math.abs(moment(pdfCreatedAt).diff(moment(updatedAt), 'seconds')) < 10 : true;
-    
-    return !Global.isDev() && hasPdf && missingOrUpdated;
+    var pdfOutdated = pdfCreatedAt ? Math.abs(moment(pdfCreatedAt).diff(moment(updatedAt), 'seconds')) > 5 : true;
+
+    return hasPdf && !pdfOutdated;
 };
 
 exports.readExistingPDF = function (report) {
@@ -79,10 +77,9 @@ exports.deleteExistingPDF = function (report) {
 exports.generatePDF = function (docDefinition) {
 
     console.log('generatePDF');
-
     return Parse.Cloud.httpRequest({
         method: 'POST',
-        url: 'http://www.guardswift.com/api/pdfmake',
+        url: process.env.APP_URL + '/api/pdfmake',
         headers: {
             'Content-Type': 'application/json;charset=utf-8'
         },

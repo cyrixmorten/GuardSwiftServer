@@ -1,5 +1,3 @@
-require("./global.js");
-
 require("./file/fileDelete.js");
 require("./file/fileToDatauri.js");
 
@@ -12,7 +10,7 @@ require("./pdf/reportToPDF.js");
 require("./pdf/reportUtils.js");
 
 // require("./scheduled/dailyMailReports.js");
-// require("./scheduled/dailyTasksReset.js");
+require("./scheduled/dailyTasksReset.js");
 
 require("./triggers/client.js");
 require("./triggers/circuit.js");
