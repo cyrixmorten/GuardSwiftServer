@@ -9,15 +9,18 @@
   },
   "license": "MIT",
   "dependencies": {
+    "cron": "^1.1.1",
     "dotenv": "^2.0.0",
     "express": "~4.11.x",
+    "http-request": "^0.7.0",
     "kerberos": "~0.0.x",
     "lodash": "^4.16.4",
     "moment-timezone-all": "^0.5.5",
     "parse": "~1.8.0",
     "parse-server": "*",
     "pdfmake": "^0.1.18",
-    "require-environment-variables": "^1.1.2"
+    "require-environment-variables": "^1.1.2",
+    "sendgrid": "^4.7.1"
   },
   "scripts": {
     "start": "node index.js"

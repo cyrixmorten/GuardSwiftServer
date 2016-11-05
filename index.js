@@ -9,7 +9,8 @@ requireEnv([
   'MONGODB_URI',
   'S3_KEY',
   'S3_SECRET',
-  'GOOGLE_GEOCODE_API_KEY'
+  'GOOGLE_GEOCODE_API_KEY',
+  'SENDGRID_API_KEY'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -88,3 +89,10 @@ httpServer.listen(port, function() {
 
 // This will enable the Live Query real-time server
 ParseServer.createLiveQueryServer(httpServer);
+
+
+/**
+ * CRON JOBS
+ **/
+
+require('./cron/schedule').start();

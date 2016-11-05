@@ -48,7 +48,6 @@ var taskSettings = function(report) {
 };
 
 Parse.Cloud.define("sendReport", function (request, response) {
-    Parse.Cloud.useMasterKey();
 
     if (!request.params.reportId) {
         response.error('missing reportId');
@@ -70,6 +69,9 @@ Parse.Cloud.define("sendReport", function (request, response) {
         status: {},
         errors: false
     };
+
+    // var helper = require('sendgrid').mail;
+    // mail = new helper.Mail();
 
     reportUtils.fetchReport(request.params.reportId).then(function (report) {
         _report = report;
@@ -173,10 +175,10 @@ Parse.Cloud.define("sendReport", function (request, response) {
 
         _report.set('mailStatus', mailSetup);
 
-        return _report.save();
+        return _report.save({ useMasterKey: true });
     }).then(function () {
 
-        response.success('Mail sent');
+        response.success('Mail successfully sent');
 
     }).fail(function (error) {
 
