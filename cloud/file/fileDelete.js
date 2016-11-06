@@ -16,7 +16,6 @@ Parse.Cloud.define("fileDelete", function (request, response) {
         response.error('File is missing url');
     }
 
-    console.log('App ID: ' + Parse.applicationId);
 
     console.log('Deleting file: ' + JSON.stringify(file));
 

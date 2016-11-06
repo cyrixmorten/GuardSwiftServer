@@ -7,8 +7,8 @@ exports.fetchUser = function (report) {
 
 exports.fetchReport = function (reportId) {
 
-    console.log('fetchReport');
-    
+    console.log('fetchReport ' + reportId);
+
     var query = new Parse.Query('Report');
     query.equalTo('objectId', reportId);
 
@@ -33,29 +33,25 @@ exports.hasExistingPDF = function (report) {
     var hasPdf = report.has('pdf');
     var pdfCreatedAt = report.get('pdfCreatedAt');
     var updatedAt = report.get('updatedAt');
-    var pdfOutdated = pdfCreatedAt ? Math.abs(moment(pdfCreatedAt).diff(moment(updatedAt), 'seconds')) > 5 : true;
+    var pdfOutdated = pdfCreatedAt && Math.abs(moment(pdfCreatedAt).diff(moment(updatedAt), 'seconds')) > 5;
 
     return hasPdf && !pdfOutdated;
 };
 
 exports.readExistingPDF = function (report) {
     
-    console.log('readExistingPDF');
-
     return Parse.Cloud.httpRequest({
         method: 'GET',
         url: exports.getPDFUrl(report),
         headers: {
             'Content-Type': 'application/pdf'
         }
-    })
+    });
 };
 
 exports.deleteExistingPDF = function (report) {
 
-    console.log('deleteExistingPDF');
-
-    var promise = new Parse.Promise.as();
+    var promise = Parse.Promise.as();
 
     if (report.has('pdf')) {
 
@@ -65,9 +61,8 @@ exports.deleteExistingPDF = function (report) {
     }
 
     promise.fail(function (error) {
-        console.error('Error deleting report');
-
-        return error;
+        // ignoring any errors
+        console.error('Error deleting report', error);
     });
 
     return promise;
@@ -76,7 +71,6 @@ exports.deleteExistingPDF = function (report) {
 
 exports.generatePDF = function (docDefinition) {
 
-    console.log('generatePDF');
     return Parse.Cloud.httpRequest({
         method: 'POST',
         url: process.env.APP_URL + '/api/pdfmake',
@@ -89,13 +83,11 @@ exports.generatePDF = function (docDefinition) {
 
 exports.generatePDFParseFile = function (httpResponse) {
 
-    console.log('generatePDFParseFile');
-
     var file = new Parse.File("report.pdf", {
         base64: httpResponse.buffer.toString('base64', 0, httpResponse.buffer.length)
     }, 'application/pdf');
 
-    return file.save()
+    return file.save(null, {useMasterKey: true})
 
 };
 

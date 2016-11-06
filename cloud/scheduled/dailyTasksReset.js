@@ -103,7 +103,7 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
             console.log("found circuits " + circuits.length);
 
             if (circuits.length == 0)
-                return new Parse.Promise.as();
+                return Parse.Promise.as();
 
             var promises = [];
 
@@ -147,7 +147,7 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
                                 // perform
                                 // restart
 
-                                var promise = new Parse.Promise.as();
+                                var promise = Parse.Promise.as();
 
                                 promise = promise.then(
                                     function () {
@@ -219,7 +219,7 @@ var manageDistrictWatches = function (now_dayOfWeek, now_hour, forceUpdate) {
                 + districtWatches.length);
 
             if (districtWatches.length == 0)
-                return new Parse.Promise.as();
+                return Parse.Promise.as();
 
             var promises = [];
 
@@ -261,7 +261,7 @@ var manageDistrictWatches = function (now_dayOfWeek, now_hour, forceUpdate) {
 
                                 // perform
                                 // restart
-                                var promise = new Parse.Promise.as();
+                                var promise = Parse.Promise.as();
 
                                 promise = promise.then(
                                     function () {
@@ -328,7 +328,7 @@ var closeCircuitStartedMatching = function (circuit) {
 
 var closeCircuitsStarted = function (circuitsStarted) {
     if (circuitsStarted.length == 0) {
-        return new Parse.Promise.as();
+        return Parse.Promise.as();
     }
 
     var promises = [];
@@ -352,7 +352,7 @@ var closeDistrictWatchesStartedMatching = function (districtWatch) {
 
 var closeDistrictWatchesStarted = function (districtWatchesStarted) {
     if (districtWatchesStarted.length == 0)
-        return new Parse.Promise.as();
+        return Parse.Promise.as();
 
     var promises = [];
     districtWatchesStarted.forEach(function (districtWatchStarted) {

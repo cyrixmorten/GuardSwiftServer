@@ -10,14 +10,25 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
         return;
     }
 
+    exports.toPdf(request.params.reportId).then(function(res) {
+        response.success(res);
+    }).fail(function(err) {
+        response.error(err);
+    })
+
+
+});
+
+
+exports.toPdf = function(reportId) {
     var createdPDF = false;
     var reportObject = {};
 
 
-    reportUtils.fetchReport(request.params.reportId).then(function (report) {
+    return reportUtils.fetchReport(reportId).then(function (report) {
 
-        console.log('fetchReport success', report);
-        
+        console.log('fetchReport success');
+
         reportObject = report;
 
         if (reportUtils.hasExistingPDF(report)) {
@@ -26,36 +37,31 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
             return reportUtils.readExistingPDF(report);
         } else {
             createdPDF = true;
-            
+
             return reportUtils.deleteExistingPDF(report)
-            .always(function () {
-                // no matter the outcome of the delete, we continue creating the report
-                return reportToDoc.createDoc(report);
-            })
-            .then(reportUtils.generatePDF)
-            .fail(function(error) {
-                return new Parse.Promise.error({
-                    message: 'Error during PDF creation',
-                    error: error
+                .then(function() {
+                    // no matter the outcome of the delete, we continue creating the report
+                    return reportToDoc.createDoc(report);
+                })
+                .then(function(docDefinition) {
+                    return reportUtils.generatePDF(docDefinition);
+                })
+                .fail(function(error) {
+                    return new Parse.Promise.error({
+                        message: 'Error during PDF creation',
+                        error: error
+                    });
                 });
-            });
         }
 
     }).then(function (httpResponse) {
 
-
-        var httpResponsePromise = function() {
-            return new Parse.Promise.as(httpResponse);
-        };
-
-        var promise = httpResponsePromise();
+        var promise = new Parse.Promise();
 
         if (createdPDF) {
 
             var saveFileToReport = function (report, file) {
 
-                console.log('saveFileToReport', report);
-                
                 report.set('pdfCreatedAt', new Date());
                 report.set('pdf', file);
 
@@ -63,9 +69,10 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
             };
 
             promise = reportUtils.generatePDFParseFile(httpResponse).then(function (file) {
-                console.log('successfully saved pdf');
                 return saveFileToReport(reportObject, file)
-                        .then(httpResponsePromise);
+            })
+            .then(function() {
+                return httpResponse;
             })
             .fail(function (error) {
                 return new Parse.Promise.error({
@@ -73,25 +80,20 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
                     error: error
                 });
             });
+        } else {
+            promise.resolve(httpResponse);
         }
 
         return promise;
 
     }).then(function (httpResponse) {
-        console.log('success');
-
-        response.success({
+        return Parse.Promise.as({
             httpResponse: httpResponse,
             pdfUrl: reportUtils.getPDFUrl(reportObject)
         });
 
-    }).fail(function (error) {
-
-        response.error(error);
-
     });
-
-});
+}; 
 
 
 
