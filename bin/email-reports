@@ -3,10 +3,10 @@
 var http = require('http-request');
 
 http.post({
-    url: process.env.SERVER_URL + '/jobs/dailyMailReports',
+    url: 'https://gsdev-server.herokuapp.com/parse/jobs/dailyMailReports',
     headers: {
-        'X-Parse-Application-Id': process.env.APP_ID,
-        'X-Parse-Master-Key': process.env.MASTER_KEY,
+        'X-Parse-Application-Id': 'guardswift',
+        'X-Parse-Master-Key': 'B5hCuMpSLE67dImYzkvX68IcZ1rtJzPPLZYstMqI',
         'Content-Type': "application/json"
     }
 }, function (err, res) {
