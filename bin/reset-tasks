@@ -4,10 +4,10 @@ var http = require('http-request');
 
 
 http.post({
-    url: 'https://gsdev-server.herokuapp.com/parse/jobs/resetTasks',
+    url: process.env.SERVER_URL + '/jobs/resetTasks',
     headers: {
-        'X-Parse-Application-Id': 'guardswift',
-        'X-Parse-Master-Key': 'B5hCuMpSLE67dImYzkvX68IcZ1rtJzPPLZYstMqI',
+        'X-Parse-Application-Id': process.env.APP_ID,
+        'X-Parse-Master-Key': process.env.MASTER_KEY,
         'Content-Type': "application/json"
     }
 }, function (err, res) {
