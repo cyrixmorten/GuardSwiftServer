@@ -2,6 +2,8 @@
 
 var http = require('http-request');
 
+console.log('process.env.SERVER_URL: ', process.env.SERVER_URL);
+
 http.post({
     url: 'https://gsdev-server.herokuapp.com/parse/jobs/dailyMailReports',
     headers: {
