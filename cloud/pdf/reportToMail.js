@@ -46,10 +46,19 @@ var taskSettings = function(report) {
 };
 
 Parse.Cloud.define("sendReport", function (request, response) {
+    exports.sendReport(request.params.reportId).then(function() {
+        response.success('Report successfully sent!')
+    }).fail(function(error) {
+        response.error(error)
+    })
+});
 
-    if (!request.params.reportId) {
-        response.error('missing reportId');
-        return;
+exports.sendReport = function(reportId) {
+
+    console.log('Send report: ' + reportId);
+
+    if (!reportId) {
+        return Parse.Promise.reject('missing reportId');
     }
 
     var _report = {};
@@ -69,7 +78,7 @@ Parse.Cloud.define("sendReport", function (request, response) {
     };
 
 
-    reportUtils.fetchReport(request.params.reportId).then(function (report) {
+    return reportUtils.fetchReport(reportId).then(function (report) {
         _report = report;
 
         var contacts = _.filter(
@@ -103,7 +112,7 @@ Parse.Cloud.define("sendReport", function (request, response) {
         mailSetup.bccNames = reportSettings.get('bccNames') || [];
         mailSetup.bccEmails = reportSettings.get('bccEmails') || [];
 
-        return reportToPdf.toPdf(request.params.reportId);
+        return reportToPdf.toPdf(reportId);
 
     }).then(function (result) {
 
@@ -133,7 +142,7 @@ Parse.Cloud.define("sendReport", function (request, response) {
         var personalization = new helper.Personalization();
 
         var receivers = [];
-        
+
         // to client receivers
         _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames), function(mailTo) {
             var mailAddress = mailTo[0];
@@ -223,8 +232,8 @@ Parse.Cloud.define("sendReport", function (request, response) {
         sg.API(request, function(err, response) {
             if (err) {
                 return sendPromise.reject(err);
-            } 
-            
+            }
+
             return sendPromise.resolve(response);
         });
 
@@ -238,10 +247,6 @@ Parse.Cloud.define("sendReport", function (request, response) {
         _report.set('mailStatus', mailSetup);
 
         return _report.save(null, { useMasterKey: true });
-    }).then(function () {
-
-        response.success('Mail successfully sent');
-
     }).fail(function (error) {
 
         console.error(error);
@@ -251,12 +256,10 @@ Parse.Cloud.define("sendReport", function (request, response) {
 
         _report.set('mailStatus', mailSetup);
 
-        _report.save(null, { useMasterKey: true }).always(function() {
-            response.error(mailSetup);
+        return _report.save(null, { useMasterKey: true }).then(function() {
+            return Parse.Promise.reject(mailSetup);
         });
 
     });
-
-
-});
+};
 

@@ -9,7 +9,7 @@ require("./pdf/reportToMail.js");
 require("./pdf/reportToPDF.js");
 require("./pdf/reportUtils.js");
 
-// require("./scheduled/dailyMailReports.js");
+require("./scheduled/dailyMailReports.js");
 require("./scheduled/dailyTasksReset.js");
 
 require("./triggers/client.js");
