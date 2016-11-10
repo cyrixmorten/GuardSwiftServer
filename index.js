@@ -10,7 +10,9 @@ requireEnv([
   'S3_KEY',
   'S3_SECRET',
   'GOOGLE_GEOCODE_API_KEY',
-  'SENDGRID_API_KEY'
+  'SENDGRID_API_KEY',
+  'TWILIO_SID',
+  'TWILIO_AUTH_TOKEN'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -76,9 +78,14 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-apiRouter.route('/pdfmake').post(require('./api/pdfMake'));
-
+apiRouter.post('/pdfmake', require('./api/pdfMake'));
+// apiRouter.post('/sms-send', require('./api/twilio').send);
+apiRouter.post('/alarm',
+    require('twilio').webhook({ validate: false }),
+    require('./api/twilio').receive
+);
 app.use('/api', apiRouter);
+
 
 
 var port = process.env.PORT || 1337;
