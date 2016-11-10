@@ -16,8 +16,8 @@ exports.send = function(req, res) {
 
     client.messages.create({
         to: to,
-        from: '+46769446760',
-        body: body,
+        from: process.env.TWILIO_ALARM_NUMBER,
+        body: body
     }, function (err, message) {
         if (err) {
             res.status(400).send(err);
@@ -38,4 +38,6 @@ exports.receive = function (req, res) {
     console.log('from: ', from);
     console.log('to: ', to);
     console.log('body: ', body);
+
+    res.send('Alarm received')
 };
