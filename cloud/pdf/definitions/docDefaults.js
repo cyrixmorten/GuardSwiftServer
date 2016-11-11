@@ -123,7 +123,7 @@ exports.contentHeader = function (report, backgroundHeaderImage) {
 
 exports.footer = function (report) {
 	return [
-		{text: 'YDERLIGERE OPLYSNINGER PÅ TLF. 86 16 46 44', alignment: 'center'},
+		{text: 'YDERLIGERE OPLYSNINGER PÅ TLF. 86 10 49 50', alignment: 'center'},
 		{
 			text: 'Rapporten er genereret af GuardSwift - elektroniske vagtrapporter via smartphones',
 			alignment: 'center'

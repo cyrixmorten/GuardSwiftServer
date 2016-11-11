@@ -6,6 +6,7 @@ require("./pdf/definitions/regularReport.js");
 require("./pdf/definitions/staticReport.js");
 require("./pdf/definitions/taskReport.js");
 require("./pdf/reportToMail.js");
+require("./pdf/reportToDoc.js");
 require("./pdf/reportToPDF.js");
 require("./pdf/reportUtils.js");
 

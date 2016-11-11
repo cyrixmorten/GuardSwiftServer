@@ -114,7 +114,7 @@ exports.sendReport = function(reportId) {
 
         return reportToPdf.toPdf(reportId);
 
-    }).then(function (result) {
+    }).then(function (httpResponse) {
 
         var reportSettings = taskSettings(_report);
 
@@ -210,7 +210,7 @@ exports.sendReport = function(reportId) {
         mail.addPersonalization(personalization);
 
         var attachment = new helper.Attachment();
-        attachment.setContent(new Buffer(result.httpResponse.buffer).toString('base64'));
+        attachment.setContent(new Buffer(httpResponse.buffer).toString('base64'));
         attachment.setType('application/pdf');
         attachment.setFilename(reportSettings.fileName + '.pdf');
         attachment.setDisposition('attachment');
