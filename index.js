@@ -80,9 +80,12 @@ app.use(bodyParser.json());
 
 apiRouter.post('/pdfmake', require('./api/pdfMake'));
 // apiRouter.post('/sms-send', require('./api/twilio').send);
-apiRouter.post('/alarm',
+apiRouter.post('/twilio',
     require('twilio').webhook({ validate: false }),
     require('./api/twilio').receive
+);
+apiRouter.get('/cpsms',
+    require('./api/cpsms').receive
 );
 app.use('/api', apiRouter);
 
