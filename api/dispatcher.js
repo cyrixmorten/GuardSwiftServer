@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var Parse = require('parse');
+var Parse = require('parse/node');
 
 Parse.initialize(process.env.APP_ID);
 Parse.serverURL(process.env.SERVER_URL);
