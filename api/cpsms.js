@@ -1,17 +1,4 @@
-
-exports.send = function(req, res) {
-    var from = req.params.from;
-    var to   = req.params.number;
-    var body = req.params.body;
-
-    console.log('from: ', from);
-    console.log('number: ', to);
-    console.log('message: ', body);
-
-    res.send('CPSMS sent!')
-};
-
-
+var dispatcher = require('./dispatcher');
 
 exports.receive = function (req, res) {
     var from = req.query.from;
@@ -22,5 +9,6 @@ exports.receive = function (req, res) {
     console.log('number: ', to);
     console.log('message: ', body);
 
-    res.send('CPSMS received!')
+    dispatcher.handle(from, to, body, res);
+
 };

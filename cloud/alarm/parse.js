@@ -206,7 +206,7 @@ var createClient = function(user, alarm) {
 
 Parse.Cloud.define("alarm", function(request, response) {
     handleAlarmRequest(request).then(function() {
-        response.success('Successfully created new alarm');
+        response.success('Successfully created alarm');
     }).fail(function(error) {
         console.error(JSON.stringify(error));
 
