@@ -5,11 +5,9 @@ var geocode = require('../utils/geocode.js');
 
 var handleAlarmRequest = function(request) {
 
-    var body = JSON.parse(request.body);
-
-    var sender = body.sender;
-    var receiver = body.receiver;
-    var alarmMsg = body.alarm;
+    var sender = request.params.sender;
+    var receiver = request.params.receiver;
+    var alarmMsg = request.params.alarm;
 
     console.log('-------');
     console.log('sender: ' + sender);
@@ -210,6 +208,6 @@ Parse.Cloud.define("alarm", function(request, response) {
     }).fail(function(error) {
         console.error(JSON.stringify(error));
 
-        response.error('Failed to create alarm')
+        response.error('Failed to create alarm\n: ' + JSON.stringify(error));
     })
 });

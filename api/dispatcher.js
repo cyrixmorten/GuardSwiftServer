@@ -23,7 +23,7 @@ exports.handle = function (from, to, body, res) {
     .then(function(response) {
         res.send(response);
     }).fail(function(error) {
-        res.send(400, error);
+        res.status(400).send(error);
     });
 };
 
