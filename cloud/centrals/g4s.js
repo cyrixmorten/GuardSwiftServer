@@ -12,17 +12,16 @@ exports.parse = function(alarm, alarmMsg) {
         return;
     }
 
-    var pieces = _.split(alarmMsg, ',');
+    var clientNumberAndAlarm = _.split(alarmMsg, ':');
+    var pieces = _.split(clientNumberAndAlarm[1], ',');
 
     return {
-        taskId: pieces[0],
-        clientName: pieces[1],
-        clientId: pieces[2],
-        fullAddress: pieces[3],
-        securityLevel: _.toNumber(pieces[4]),
-        signalStatus: pieces[5],
-        remarks: pieces[6],
-        keybox: pieces[7]
+        clientName: pieces[0],
+        fullAddress: pieces[1] + pieces[2],
+        priority: pieces[3],
+        signalStatus: pieces[4],
+        remarks: pieces[5],
+        keybox: pieces[6]
     }
 
 };
@@ -32,7 +31,11 @@ exports.handlePending = function (alarm) {
         return;
     }
 
-    twilio.send(alarm.get('sentFrom'), 'Modtaget,' + alarm.get('original'));
+    twilio.send(
+        alarm.get('sentFrom'),
+        'Modtaget,' + alarm.get('original'),
+        160
+    );
 };
 
 exports.handleAccepted = function (alarm) {
@@ -40,7 +43,11 @@ exports.handleAccepted = function (alarm) {
         return;
     }
 
-    twilio.send(alarm.get('sentFrom'), 'På vej,' + alarm.get('original'));
+    twilio.send(
+        alarm.get('sentFrom'),
+        'På vej,' + alarm.get('original'),
+        160
+    );
 };
 
 exports.handleArrived = function (alarm) {
@@ -48,7 +55,11 @@ exports.handleArrived = function (alarm) {
         return;
     }
 
-    twilio.send(alarm.get('sentFrom'), 'Fremme,' + alarm.get('original'));
+    twilio.send(
+        alarm.get('sentFrom'),
+        'Fremme,' + alarm.get('original'),
+        160
+    );
 };
 
 exports.handleAborted = function (alarm) {
@@ -63,5 +74,9 @@ exports.handleFinished = function (alarm) {
         return;
     }
 
-    twilio.send(alarm.get('sentFrom'), 'Slut,' + alarm.get('original'));
+    twilio.send(
+        alarm.get('sentFrom'),
+        'Slut,' + alarm.get('original'),
+        160
+    );
 };

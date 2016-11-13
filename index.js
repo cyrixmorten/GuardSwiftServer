@@ -78,7 +78,8 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-apiRouter.post('/pdfmake', require('./api/pdfMake'));
+apiRouter.get('/report/:id', require('./api/pdf/pdfreport'));
+apiRouter.post('/pdfmake', require('./api/pdf/pdfmake'));
 // apiRouter.post('/sms-send', require('./api/twilio').send);
 apiRouter.post('/twilio',
     require('twilio').webhook({ validate: false }),

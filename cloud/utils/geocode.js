@@ -113,6 +113,7 @@ var unwrapPlaceObject = function (placeObject) {
     };
 
     var object = {};
+    object.placeObject = placeObject;
     object.placeId = placeObject.place_id;
     object.formattedAddress = placeObject.formatted_address;
     object.street = adressComponentByType(placeObject.address_components, 'route');
