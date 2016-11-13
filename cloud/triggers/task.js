@@ -31,15 +31,43 @@ exports.reset = function(task) {
 };
 
 var alarmUpdate = function(task) {
-    var statusChanges = Task.dirty(task);
+    var statusChange = task.dirty('status');
     var isAlarmTask = task.get('taskType') === 'Alarm';
 
-    if (isAlarmTask && statusChanges) {
+    console.log('isAlarmTask: ', isAlarmTask);
+    console.log('statusChange: ', statusChange, task.get('status'));
+
+    if (isAlarmTask && statusChange) {
         switch (task.get('status')) {
+            case states.PENDING: {
+                _.forEach(handlers, function(handler) {
+                    handler.handlePending(task);
+                });
+                break;
+            }
             case states.ACCEPTED: {
                 _.forEach(handlers, function(handler) {
                     handler.handleAccepted(task);
-                })
+                });
+                break;
+            }
+            case states.ARRIVED: {
+                _.forEach(handlers, function(handler) {
+                    handler.handleArrived(task);
+                });
+                break;
+            }
+            case states.ABORTED: {
+                _.forEach(handlers, function(handler) {
+                    handler.handleAborted(task);
+                });
+                break;
+            }
+            case states.FINISHED: {
+                _.forEach(handlers, function(handler) {
+                    handler.handleFinished(task);
+                });
+                break;
             }
         }
     }

@@ -7,13 +7,17 @@ var client = require('twilio')(accountSid, authToken);
 
 exports.send = function(to, body) {
 
+    console.log('Twilio send');
+    console.log('to: ', to);
+    console.log('body: ', body);
+
     client.messages.create({
         to: to,
         from: process.env.TWILIO_ALARM_NUMBER,
         body: body
     }, function (err, message) {
         if (err) {
-            console.error(err)
+            console.error(err);
             return;
         }
         console.log(message);

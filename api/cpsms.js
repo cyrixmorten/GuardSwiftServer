@@ -5,6 +5,9 @@ exports.receive = function (req, res) {
     var to   = req.query.number;
     var body = req.query.message;
 
+    from = '+' + from;
+    to = '+' + to;
+
     console.log('from: ', from);
     console.log('number: ', to);
     console.log('message: ', body);

@@ -39,6 +39,7 @@ var handleAlarmRequest = function(request) {
     var Alarm = Parse.Object.extend("Task");
     var alarm = new Alarm();
     alarm.set('taskType', 'Alarm');
+    alarm.set('sentFrom', sender);
 
     return findCentral(sender).then(function(centralObj) {
         if (_.isEmpty(centralObj)) {
@@ -49,7 +50,6 @@ var handleAlarmRequest = function(request) {
 
         alarm.set('central', central);
         alarm.set('centralName', central.get('name'));
-        alarm.set('sendFrom', central.get('sendFrom'));
 
         console.log('central: ' + central.get('name'));
 
@@ -67,7 +67,8 @@ var handleAlarmRequest = function(request) {
 
         return parser.parse(alarm, alarmMsg);
     }).then(function(alarmObj) {
-        console.log('alarmObject: ' + JSON.stringify(alarmObject));
+
+        console.log('alarmObj: ', alarmObj);
 
         if (!alarmObj.fullAddress) {
             return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
@@ -174,8 +175,8 @@ Parse.Cloud.define("alarm", function(request, response) {
     handleAlarmRequest(request).then(function() {
         response.success('Successfully created alarm');
     }).fail(function(error) {
-        console.error(JSON.stringify(error));
+        console.error(error);
 
-        response.error('Failed to create alarm\n: ' + JSON.stringify(error));
+        response.error(error);
     })
 });

@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var twilio = require('../../api/twilio');
 
 var matchesCentral = function(alarm) {
@@ -5,7 +6,9 @@ var matchesCentral = function(alarm) {
 };
 
 exports.parse = function(alarm, alarmMsg) {
+    console.log('matchesCentral(alarm): ', matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
+        console.log('abort');
         return;
     }
 
@@ -24,18 +27,20 @@ exports.parse = function(alarm, alarmMsg) {
 
 };
 
+exports.handlePending = function (alarm) {
+    if (!matchesCentral(alarm)) {
+        return;
+    }
+
+    twilio.send(alarm.get('sentFrom'), 'Modtaget,' + alarm.get('original'));
+};
+
 exports.handleAccepted = function (alarm) {
     if (!matchesCentral(alarm)) {
         return;
     }
 
-    var originalAlarmMsg = alarm.get('original');
-
-    _.forEach(alarm.get('sendFrom'), function(centralNumber) {
-        twilio.send(centralNumber, 'På vej,' + originalAlarmMsg);
-    });
-
-
+    twilio.send(alarm.get('sentFrom'), 'På vej,' + alarm.get('original'));
 };
 
 exports.handleArrived = function (alarm) {
@@ -43,14 +48,13 @@ exports.handleArrived = function (alarm) {
         return;
     }
 
-
+    twilio.send(alarm.get('sentFrom'), 'Fremme,' + alarm.get('original'));
 };
 
 exports.handleAborted = function (alarm) {
     if (!matchesCentral(alarm)) {
         return;
     }
-
 
 };
 
@@ -59,5 +63,5 @@ exports.handleFinished = function (alarm) {
         return;
     }
 
-
+    twilio.send(alarm.get('sentFrom'), 'Slut,' + alarm.get('original'));
 };
