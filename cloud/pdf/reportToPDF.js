@@ -11,7 +11,7 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
     }
 
     exports.toPdf(request.params.reportId).then(function(res) {
-        response.success(res.buffer.toString('base64'));
+        response.success(new Buffer(res.text).toString('base64'));
     }).fail(function(err) {
         response.error(err);
     })
