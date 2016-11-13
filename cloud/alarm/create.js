@@ -1,6 +1,6 @@
 var _ = require('lodash');
-
 var geocode = require('../utils/geocode.js');
+var parser = require('./parse');
 
 
 var handleAlarmRequest = function(request) {
@@ -35,7 +35,10 @@ var handleAlarmRequest = function(request) {
 
     var central = {};
     var user = {};
-    var alarm = {};
+
+    var Alarm = Parse.Object.extend("Task");
+    var alarm = new Alarm();
+    alarm.set('taskType', 'Alarm');
 
     return findCentral(sender).then(function(centralObj) {
         if (_.isEmpty(centralObj)) {
@@ -43,6 +46,10 @@ var handleAlarmRequest = function(request) {
         }
 
         central = centralObj;
+
+        alarm.set('central', central);
+        alarm.set('centralName', central.get('name'));
+        alarm.set('sendFrom', central.get('sendFrom'));
 
         console.log('central: ' + central.get('name'));
 
@@ -54,21 +61,24 @@ var handleAlarmRequest = function(request) {
 
         user = userObj;
 
+        alarm.set('owner', user);
+
         console.log('user: ' + user.get('username'));
 
-        return parseAlarm(alarmMsg, central.get('name'));
+        return parser.parse(alarm, alarmMsg);
     }).then(function(alarmObj) {
-        var fullAddress = alarmObj.get('fullAddress');
+        console.log('alarmObject: ' + JSON.stringify(alarmObject));
 
-        if (!fullAddress) {
+        if (!alarmObj.fullAddress) {
             return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
         }
 
-        alarm = alarmObj;
+        _.forOwn(alarmObj, function(value, key) {
+            alarm.set(key, value);
+        });
 
-        alarm.set('central', central);
-        
-        return findClient(user, fullAddress);
+
+        return findClient(user, alarmObj.fullAddress);
     }).then(function(client) {
         if (_.isEmpty(client) || !client.has('placeId')) {
             return createClient(user, alarm);
@@ -83,7 +93,6 @@ var handleAlarmRequest = function(request) {
         console.log('client: ' + client.get('name'));
 
         alarm.set('client', client);
-        alarm.set('owner', user);
 
         var acl = new Parse.ACL(user);
         alarm.setACL(acl);
@@ -100,47 +109,6 @@ var handleAlarmRequest = function(request) {
 
 };
 
-var parseAlarm = function(alarmMsg, senderName) {
-
-    var Alarm = Parse.Object.extend("Task");
-    var alarm = new Alarm();
-    alarm.set('taskType', 'Alarm');
-
-
-
-    var alarmObject = {};
-    if (senderName === 'G4S') {
-        alarmObject = parseG4SAlarm(alarmMsg, alarm);
-    }
-
-    console.log('alarmObject: ' + JSON.stringify(alarmObject));
-
-    _.forOwn(alarmObject, function(value, key) {
-        alarm.set(key, value);
-    });
-
-    if (_.isEmpty(alarmObject)) {
-        return Parse.Promise.error('Unable to parse alarm, unknown sender');
-    }
-
-    return Parse.Promise.as(alarm);
-};
-       
-var parseG4SAlarm = function(alarmMsg) {
-    var pieces = _.split(alarmMsg, ',');
-
-    return {
-        taskId: pieces[0],
-        clientName: pieces[1],
-        clientId: pieces[2],
-        fullAddress: pieces[3],
-        securityLevel: _.toNumber(pieces[4]),
-        signalStatus: pieces[5],
-        remarks: pieces[6],
-        keybox: pieces[7]
-    }
-
-};
 
 
 var findCentral = function(sender) {
