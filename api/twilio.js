@@ -15,7 +15,7 @@ exports.send = function(to, body, limit) {
 
     client.messages.create({
         to: to,
-        from: process.env.TWILIO_ALARM_NUMBER,
+        from: process.env.TWILIO_NUMBER,
         body: limit ? body.substring(0,limit) : body
     }, function (err, message) {
         if (err) {
