@@ -28,4 +28,9 @@ require("./utils/geocode.js");
 require("./utils/mailing.js");
 require("./utils/pdf.js");
 
+
+require("./alarm/create.js");
 require("./alarm/parse.js");
+
+require("./centrals/g4s.js");
+require("./centrals/all.js");
