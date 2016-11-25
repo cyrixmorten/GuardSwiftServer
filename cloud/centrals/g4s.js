@@ -18,12 +18,12 @@ exports.parse = function (alarm, alarmMsg) {
     return {
         alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),
         alarmObject: {
-            clientName: pieces[0],
-            fullAddress: pieces[2],
-            priority: pieces[3],
-            signalStatus: pieces[4],
-            remarks: pieces[5],
-            keybox: pieces[6]
+            clientName: _.trim(pieces[0]),
+            fullAddress: _.trim(pieces[2]),
+            priority: _.trim(pieces[3]),
+            signalStatus: _.trim(pieces[4]),
+            remarks: _.trim(pieces[5]),
+            keybox: _.trim(pieces[6])
         }
     }
 
