@@ -135,7 +135,7 @@ var findUser = function(receiver) {
 };
 
 var findClient = function(user, fullAddress) {
-    console.log('findClient');
+    console.log('findClient', user, fullAddress);
 
     var Client = Parse.Object.extend("Client");
     var query = new Parse.Query(Client);
