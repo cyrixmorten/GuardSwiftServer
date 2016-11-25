@@ -1,11 +1,11 @@
 var _ = require('lodash');
 var twilio = require('../../api/twilio');
 
-var matchesCentral = function(alarm) {
+var matchesCentral = function (alarm) {
     return alarm.get('centralName') === 'G4S'
 };
 
-exports.parse = function(alarm, alarmMsg) {
+exports.parse = function (alarm, alarmMsg) {
     console.log('matchesCentral(alarm): ', matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         console.log('abort');
@@ -15,18 +15,16 @@ exports.parse = function(alarm, alarmMsg) {
     var onMyWayclientNumberAndAlarm = _.split(alarmMsg, ':');
     var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
-
-    alarmMsg = alarmMsg.substr(alarmMsg.indexOf(","));
-
-    console.log('alarmMsg: ', alarmMsg);
-
     return {
-        clientName: pieces[0],
-        fullAddress: pieces[2],
-        priority: pieces[3],
-        signalStatus: pieces[4],
-        remarks: pieces[5],
-        keybox: pieces[6]
+        alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),
+        alarmObject: {
+            clientName: pieces[0],
+            fullAddress: pieces[2],
+            priority: pieces[3],
+            signalStatus: pieces[4],
+            remarks: pieces[5],
+            keybox: pieces[6]
+        }
     }
 
 };

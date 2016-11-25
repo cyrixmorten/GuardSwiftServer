@@ -66,20 +66,24 @@ var handleAlarmRequest = function(request) {
         console.log('user: ' + user.get('username'));
 
         return parser.parse(alarm, alarmMsg);
-    }).then(function(alarmObj) {
+    }).then(function(result) {
 
-        console.log('alarmObj: ', alarmObj);
+        var alarmObject = result.alarmObject;
+        var alarmMsg = result.alarmMsg;
 
-        if (!alarmObj.fullAddress) {
+        console.log('alarmObj: ', alarmObject);
+
+        if (!alarmObject.fullAddress) {
             return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
         }
 
-        _.forOwn(alarmObj, function(value, key) {
+        _.forOwn(alarmObject, function(value, key) {
             alarm.set(key, value);
         });
 
+        alarm.set('original', alarmMsg);
 
-        return findClient(user, alarmObj.fullAddress);
+        return findClient(user, alarmObject.fullAddress);
     }).then(function(client) {
         if (_.isEmpty(client) || !client.has('placeId')) {
             return createClient(user, alarm);
@@ -103,7 +107,6 @@ var handleAlarmRequest = function(request) {
             alarm.set(fieldName, client.get(fieldName));
         });
         
-        alarm.set('original', alarmMsg);
 
         return alarm.save();
     })
