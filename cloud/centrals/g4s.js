@@ -15,9 +15,18 @@ exports.parse = function(alarm, alarmMsg) {
     var clientNumberAndAlarm = _.split(alarmMsg, ':');
     var pieces = _.split(clientNumberAndAlarm[1], ',');
 
+    console.log('alarm object', {
+        clientName: pieces[0],
+        fullAddress: pieces[2],
+        priority: pieces[3],
+        signalStatus: pieces[4],
+        remarks: pieces[5],
+        keybox: pieces[6]
+    });
+
     return {
         clientName: pieces[0],
-        fullAddress: pieces[1] + pieces[2],
+        fullAddress: pieces[2],
         priority: pieces[3],
         signalStatus: pieces[4],
         remarks: pieces[5],

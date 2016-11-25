@@ -156,6 +156,7 @@ var createClient = function(user, alarm) {
         var Client = Parse.Object.extend("Client");
         var client = new Client();
 
+        client.set('automatic', true);
         client.set('name', name);
         client.set('fullAddress', fullAddress);
         client.set('owner', user);
