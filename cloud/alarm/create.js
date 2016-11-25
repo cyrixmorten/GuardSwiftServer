@@ -122,7 +122,7 @@ var findCentral = function(sender) {
     var query = new Parse.Query(Central);
     query.equalTo('sendFrom', sender);
 
-    return query.first();
+    return query.first({ useMasterKey: true });
 };
 
 var findUser = function(receiver) {
@@ -131,7 +131,7 @@ var findUser = function(receiver) {
     var query = new Parse.Query(Parse.User);
     query.equalTo('sendTo', receiver);
 
-    return query.first();
+    return query.first({ useMasterKey: true });
 };
 
 var findClient = function(user, fullAddress) {
@@ -142,7 +142,7 @@ var findClient = function(user, fullAddress) {
     query.equalTo('owner', user);
     query.equalTo('fullAddress', fullAddress);
 
-    return query.first();
+    return query.first({ useMasterKey: true });
 };
 
 var createClient = function(user, alarm) {
