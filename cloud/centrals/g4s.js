@@ -12,17 +12,13 @@ exports.parse = function(alarm, alarmMsg) {
         return;
     }
 
-    var clientNumberAndAlarm = _.split(alarmMsg, ':');
-    var pieces = _.split(clientNumberAndAlarm[1], ',');
+    var onMyWayclientNumberAndAlarm = _.split(alarmMsg, ':');
+    var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
-    console.log('alarm object', {
-        clientName: pieces[0],
-        fullAddress: pieces[2],
-        priority: pieces[3],
-        signalStatus: pieces[4],
-        remarks: pieces[5],
-        keybox: pieces[6]
-    });
+
+    alarmMsg = alarmMsg.substr(alarmMsg.indexOf(","));
+
+    console.log('alarmMsg: ', alarmMsg);
 
     return {
         clientName: pieces[0],
