@@ -12,7 +12,8 @@ requireEnv([
   'GOOGLE_GEOCODE_API_KEY',
   'SENDGRID_API_KEY',
   'TWILIO_SID',
-  'TWILIO_AUTH_TOKEN'
+  'TWILIO_AUTH_TOKEN',
+  'CPSMS_API_KEY'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -100,4 +101,5 @@ httpServer.listen(port, function() {
 
 // This will enable the Live Query real-time server
 ParseServer.createLiveQueryServer(httpServer);
+
 

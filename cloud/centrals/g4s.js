@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var twilio = require('../../api/twilio');
+var cpsms = require('./api/cpsms');
 
 var matchesCentral = function (alarm) {
     return alarm.get('centralName') === 'G4S'
@@ -34,11 +34,12 @@ exports.handlePending = function (alarm) {
         return;
     }
 
-    twilio.send(
-        alarm.get('sentFrom'),
-        'Modtaget,' + alarm.get('original'),
-        160
-    );
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: 'Modtaget,' + alarm.get('original'),
+        limit: 160
+    });
 };
 
 exports.handleAccepted = function (alarm) {
@@ -46,11 +47,12 @@ exports.handleAccepted = function (alarm) {
         return;
     }
 
-    twilio.send(
-        alarm.get('sentFrom'),
-        'På vej,' + alarm.get('original'),
-        160
-    );
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: 'På vej,' + alarm.get('original'),
+        limit: 160
+    });
 };
 
 exports.handleArrived = function (alarm) {
@@ -58,11 +60,12 @@ exports.handleArrived = function (alarm) {
         return;
     }
 
-    twilio.send(
-        alarm.get('sentFrom'),
-        'Fremme,' + alarm.get('original'),
-        160
-    );
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: 'Fremme,' + alarm.get('original'),
+        limit: 160
+    };
 };
 
 exports.handleAborted = function (alarm) {
@@ -77,9 +80,11 @@ exports.handleFinished = function (alarm) {
         return;
     }
 
-    twilio.send(
-        alarm.get('sentFrom'),
-        'Slut,' + alarm.get('original'),
-        160
-    );
+
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: 'Slut,' + alarm.get('original'),
+        limit: 160
+    });
 };

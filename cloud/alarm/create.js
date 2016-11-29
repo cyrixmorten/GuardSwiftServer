@@ -40,6 +40,7 @@ var handleAlarmRequest = function(request) {
     var alarm = new Alarm();
     alarm.set('taskType', 'Alarm');
     alarm.set('sentFrom', sender);
+    alarm.set('sentTo', receiver);
 
     return findCentral(sender).then(function(centralObj) {
         if (_.isEmpty(centralObj)) {
