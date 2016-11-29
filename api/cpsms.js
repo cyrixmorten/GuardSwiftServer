@@ -1,5 +1,6 @@
 var dispatcher = require('./dispatcher');
 var rp = require('request-promise');
+var _ = require('lodash');
 
 exports.receive = function (req, res) {
     var from = req.query.from;
@@ -20,9 +21,11 @@ exports.receive = function (req, res) {
 
 exports.send = function (options) {
 
-    var to = options.to;
-    var from = options.from;
-    var message = options.message;
+    console.log('options: ', options);
+
+    var to = options.to || '';
+    var from = options.from || '';
+    var message = options.message || '';
     var limit = options.limit;
 
     var options = {
@@ -32,8 +35,8 @@ exports.send = function (options) {
             'Authorization': 'Basic ' + new Buffer('cyrix:'+ process.env.CPSMS_API_KEY).toString('base64')
         },
         body: {
-            to: to,
-            from: from || 'GUARDSWIFT',
+            to: _.replace(to, '+', ''),
+            from: _.replace(to, '+', '') || 'GUARDSWIFT',
             message: limit ? message.substring(0,limit) : message
         },
         json: true
@@ -44,7 +47,7 @@ exports.send = function (options) {
         console.log(parsedBody);
     })
     .catch(function (err) {
-        console.log('err: ', err);
+        console.log(err.message);
     });
 
 };
