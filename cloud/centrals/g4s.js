@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var cpsms = require('./api/cpsms');
+var cpsms = require('../../api/cpsms');
 
 var matchesCentral = function (alarm) {
     return alarm.get('centralName') === 'G4S'
@@ -65,7 +65,7 @@ exports.handleArrived = function (alarm) {
         from: alarm.get('sentTo'),
         message: 'Fremme,' + alarm.get('original'),
         limit: 160
-    };
+    });
 };
 
 exports.handleAborted = function (alarm) {
