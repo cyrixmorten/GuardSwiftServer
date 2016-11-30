@@ -5,6 +5,7 @@ var matchesCentral = function (alarm) {
     return alarm.get('centralName') === 'G4S'
 };
 
+
 exports.parse = function (alarm, alarmMsg) {
     console.log('matchesCentral(alarm): ', matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
@@ -40,12 +41,12 @@ exports.handlePending = function (alarm) {
         return;
     }
 
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: 'Modtaget,' + alarm.get('original'),
-        limit: 160
-    });
+    // cpsms.send({
+    //     to: alarm.get('sentFrom'),
+    //     from: alarm.get('sentTo'),
+    //     message: 'Modtaget,' + alarm.get('original'),
+    //     limit: 160
+    // });
 };
 
 exports.handleAccepted = function (alarm) {
