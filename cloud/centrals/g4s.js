@@ -13,6 +13,12 @@ exports.parse = function (alarm, alarmMsg) {
     }
 
     var onMyWayclientNumberAndAlarm = _.split(alarmMsg, ':');
+    var statusMsg = _.split(onMyWayclientNumberAndAlarm[0], ',')[0];
+
+    if (statusMsg !== 'På vej') {
+        throw new Error('Ignoring G4S status chain message')
+    }
+
     var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
     return {

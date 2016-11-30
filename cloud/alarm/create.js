@@ -110,8 +110,7 @@ var handleAlarmRequest = function(request) {
         
 
         return alarm.save();
-    })
-
+    });
 };
 
 

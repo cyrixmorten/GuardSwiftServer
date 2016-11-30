@@ -36,12 +36,13 @@ exports.send = function (options) {
         },
         body: {
             to: _.replace(to, '+', ''),
-            from: _.replace(to, '+', '') || 'GUARDSWIFT',
+            from: _.replace(from, '+45', '') || 'GUARDSWIFT',
             message: limit ? message.substring(0,limit) : message
         },
         json: true
     };
 
+    console.log('options.body: ', options.body);
 
     rp(options).then(function (parsedBody) {
         console.log(parsedBody);
