@@ -25,9 +25,16 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
 });
 
 exports.reset = function(task) {
+    var isAlarmTask = task.get('taskType') === 'Alarm';
+
     task.set('status', states.PENDING);
-    task.set('timeStarted', new Date(1970));
-    task.set('timeEnded', new Date(1970));
+    if (isAlarmTask) {
+        task.set('timeStarted', new Date());
+    } else {
+        task.set('timeStarted', new Date(1970));
+        task.set('timeEnded', new Date(1970));
+    }
+
 };
 
 var alarmUpdate = function(task) {
