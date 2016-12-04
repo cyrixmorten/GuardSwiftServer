@@ -24,6 +24,17 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
     
 });
 
+Parse.Cloud.afterSave("Task", function (request) {
+    var task = request.object;
+
+    var isAlarmTask = task.get('taskType') === 'Alarm';
+    var isPending = task.get('status') === 'pending';
+
+    if (isAlarmTask && isPending) {
+        sendNotification(task);
+    }
+});
+
 exports.reset = function(task) {
     var isAlarmTask = task.get('taskType') === 'Alarm';
 
@@ -61,8 +72,6 @@ var alarmUpdate = function(task) {
     if (isAlarmTask && statusChange) {
         switch (task.get('status')) {
             case states.PENDING: {
-
-                sendNotification(task);
 
                 _.forEach(handlers, function(handler) {
                     handler.handlePending(task);
