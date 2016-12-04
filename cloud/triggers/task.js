@@ -37,6 +37,20 @@ exports.reset = function(task) {
 
 };
 
+var sendNotification = function(alarm) {
+
+    var query = new Parse.Query(Parse.Installation);
+    query.equalTo('owner', alarm.get('owner'));
+
+    Parse.Push.send({
+        where: query,
+        expiration_time: 600000,
+        data: {
+            alarmId: alarm.id
+        }
+    });
+};
+
 var alarmUpdate = function(task) {
     var statusChange = task.dirty('status');
     var isAlarmTask = task.get('taskType') === 'Alarm';
@@ -47,6 +61,9 @@ var alarmUpdate = function(task) {
     if (isAlarmTask && statusChange) {
         switch (task.get('status')) {
             case states.PENDING: {
+
+                sendNotification(task);
+
                 _.forEach(handlers, function(handler) {
                     handler.handlePending(task);
                 });

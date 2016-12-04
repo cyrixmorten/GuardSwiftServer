@@ -13,7 +13,9 @@ requireEnv([
   'SENDGRID_API_KEY',
   'TWILIO_SID',
   'TWILIO_AUTH_TOKEN',
-  'CPSMS_API_KEY'
+  'CPSMS_API_KEY',
+  'GOOGLE_PROJECT_ID',
+  'GOOGLE_SERVER_API_KEY'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -37,15 +39,23 @@ var api = new ParseServer({
   fileKey: process.env.FILE_KEY,
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
   serverURL: process.env.SERVER_URL, // Don't forget to change to https if needed
-  liveQuery: {
-    classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
-  },
+  // liveQuery: {
+  //   classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
+  // },
   filesAdapter: new S3Adapter(
       process.env.S3_KEY,
       process.env.S3_SECRET,
       process.env.S3_BUCKET || 'guardswift',
       { directAccess: true }
-  )
+  ),
+  push: {
+      android: {
+          senderId: process.env.GOOGLE_PROJECT_ID,
+          apiKey: process.env.GOOGLE_SERVER_API_KEY
+      }
+      // ,
+      // adapter: require('parse-server-push-adapter')
+  }
 });
 // Client-keys like the javascript key or the .NET key are not necessary with parse-server
 // If you wish you require them, you can set them as options in the initialization above:
@@ -100,6 +110,6 @@ httpServer.listen(port, function() {
 });
 
 // This will enable the Live Query real-time server
-ParseServer.createLiveQueryServer(httpServer);
+// ParseServer.createLiveQueryServer(httpServer);
 
 
