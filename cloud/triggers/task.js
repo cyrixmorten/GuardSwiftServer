@@ -48,7 +48,7 @@ var sendNotification = function(alarm) {
         data: {
             alarmId: alarm.id
         }
-    });
+    }, { useMasterKey: true });
 };
 
 var alarmUpdate = function(task) {
