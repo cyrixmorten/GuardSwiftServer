@@ -55,6 +55,9 @@ exports.createDoc = function (report) {
             return fetchReportSettings(report);
         })
         .then(function(settings) {
+            if (report.has('task')) {
+                return regularReport.createDoc(report, settings, timeZone);
+            }
             if (report.has('circuitUnit')) {
                 return regularReport.createDoc(report, settings, timeZone);
             }
