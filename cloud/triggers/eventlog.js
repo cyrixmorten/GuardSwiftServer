@@ -44,11 +44,6 @@ var wrieEventToSession = function(EventLog) {
 
 var writeEventToReport = function(EventLog) {
 
-    var appVersion = EventLog.get('gsVersion');
-    if (appVersion < 318) {
-        console.log('App version too low for cloud code report handling', 'version:' + appVersion, 'expected: >=318');
-        return;
-    }
 
     var reportNotFoundError = new Error('Report not found');
 

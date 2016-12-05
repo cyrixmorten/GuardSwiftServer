@@ -10,13 +10,17 @@ var reportUtils = require('../reportUtils.js');
 var fetchReportSettings = function (report) {
 
     var getSettingsColumn = function() {
-        if (report.has('circuitUnit')) {
+        var taskType = report.get('taskTypeName');
+        if (taskType === 'ALARM') {
             return 'regularReportSettings';
         }
-        if (report.has('districtWatchUnit')) {
+        if (taskType === 'REGULAR') {
+            return 'regularReportSettings';
+        }
+        if (taskType === 'DISTRICTWATCH') {
             return 'districtReportSettings';
         }
-        if (report.has('staticTask')) {
+        if (taskType === 'STATIC') {
             return 'staticReportSettings';
         }
     };
