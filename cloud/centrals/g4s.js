@@ -41,12 +41,12 @@ exports.handlePending = function (alarm) {
         return;
     }
 
-    // cpsms.send({
-    //     to: alarm.get('sentFrom'),
-    //     from: alarm.get('sentTo'),
-    //     message: 'Modtaget,' + alarm.get('original'),
-    //     limit: 160
-    // });
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: 'På vej,' + alarm.get('original'),
+        limit: 160
+    });
 };
 
 exports.handleAccepted = function (alarm) {
@@ -54,12 +54,6 @@ exports.handleAccepted = function (alarm) {
         return;
     }
 
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: 'På vej,' + alarm.get('original'),
-        limit: 160
-    });
 };
 
 exports.handleArrived = function (alarm) {

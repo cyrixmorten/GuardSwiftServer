@@ -20,6 +20,8 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
 
     alarmUpdate(task);
 
+    task.addUnique('knownStatus', task.get('status'));
+
     response.success();
     
 });
@@ -69,8 +71,12 @@ var alarmUpdate = function(task) {
     console.log('isAlarmTask: ', isAlarmTask);
     console.log('statusChange: ', statusChange, task.get('status'));
 
-    if (isAlarmTask && statusChange) {
-        switch (task.get('status')) {
+
+    var status = task.get('status');
+
+    if (isAlarmTask && statusChange && !_.includes(task.get('knownStatus'), status)) {
+
+        switch (status) {
             case states.PENDING: {
 
                 _.forEach(handlers, function(handler) {
