@@ -19,14 +19,12 @@ exports.receive = function (req, res) {
 };
 
 
-exports.send = function (options) {
+exports.send = function (params) {
 
-    console.log('options: ', options);
-
-    var to = options.to || '';
-    var from = options.from || '';
-    var message = options.message || '';
-    var limit = options.limit;
+    var to = params.to || '';
+    var from = params.from || '';
+    var message = params.message || '';
+    var limit = params.limit;
 
     var options = {
         method: 'POST',
@@ -42,7 +40,7 @@ exports.send = function (options) {
         json: true
     };
 
-    console.log('options.body: ', options.body);
+    console.log('Sending SMS: ', options.body);
 
     rp(options).then(function (parsedBody) {
         console.log(parsedBody);
