@@ -33,4 +33,5 @@ require("./alarm/create.js");
 require("./alarm/parse.js");
 
 require("./centrals/g4s.js");
+require("./centrals/guardswift.js");
 require("./centrals/all.js");

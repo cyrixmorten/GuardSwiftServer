@@ -1,3 +1,4 @@
-var g4s = require('./g4s');
-
-module.exports = [g4s];
+module.exports = [
+    require('./g4s'),
+    require('./guardswift')
+];

@@ -54,6 +54,7 @@ var sendNotification = function(alarm) {
 
     var query = new Parse.Query(Parse.Installation);
     query.equalTo('owner', alarm.get('owner'));
+    query.equalTo('channels', 'alarm');
 
     Parse.Push.send({
         where: query,

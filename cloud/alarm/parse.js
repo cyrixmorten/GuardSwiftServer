@@ -14,7 +14,7 @@ exports.parse = function(alarm, alarmMsg) {
     });
 
     if (_.isEmpty(alarmObject)) {
-        promise.error('Unable to parse alarm, unknown sender');
+        promise.reject('Unable to parse alarm, unknown sender');
     } else {
         console.log('alarmObject: ', alarmObject);
         promise.resolve(alarmObject);

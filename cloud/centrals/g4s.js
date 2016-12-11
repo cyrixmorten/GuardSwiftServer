@@ -9,7 +9,6 @@ var matchesCentral = function (alarm) {
 exports.parse = function (alarm, alarmMsg) {
     console.log('matchesCentral(alarm): ', matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
-        console.log('abort');
         return;
     }
 
@@ -36,17 +35,21 @@ exports.parse = function (alarm, alarmMsg) {
 
 };
 
+var smsToCentral = function(alarm, message) {
+    cpsms.send({
+        to: alarm.get('sentFrom'),
+        from: alarm.get('sentTo'),
+        message: message,
+        limit: 160
+    });
+};
+
 exports.handlePending = function (alarm) {
     if (!matchesCentral(alarm)) {
         return;
     }
 
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: 'På vej,' + alarm.get('original'),
-        limit: 160
-    });
+    smsToCentral(alarm, 'På vej,' + alarm.get('original'));
 };
 
 exports.handleAccepted = function (alarm) {
@@ -61,12 +64,7 @@ exports.handleArrived = function (alarm) {
         return;
     }
 
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: 'Fremme,' + alarm.get('original'),
-        limit: 160
-    });
+    smsToCentral(alarm, 'Fremme,' + alarm.get('original'));
 };
 
 exports.handleAborted = function (alarm) {
@@ -82,10 +80,5 @@ exports.handleFinished = function (alarm) {
     }
 
 
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: 'Slut,' + alarm.get('original'),
-        limit: 160
-    });
+    smsToCentral(alarm, 'Slut,' + alarm.get('original'));
 };
