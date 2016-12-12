@@ -49,7 +49,6 @@ exports.handlePending = function (alarm) {
         return;
     }
 
-    smsToCentral(alarm, 'På vej,' + alarm.get('original'));
 };
 
 exports.handleAccepted = function (alarm) {
@@ -57,6 +56,7 @@ exports.handleAccepted = function (alarm) {
         return;
     }
 
+    smsToCentral(alarm, 'På vej,' + alarm.get('original'));
 };
 
 exports.handleArrived = function (alarm) {

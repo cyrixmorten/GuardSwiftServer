@@ -89,9 +89,6 @@ var alarmUpdate = function(task) {
     var statusChange = task.dirty('status');
     var isAlarmTask = task.get('taskType') === 'Alarm';
 
-    console.log('isAlarmTask: ', isAlarmTask);
-    console.log('statusChange: ', statusChange, task.get('status'));
-
 
     var status = task.get('status');
 
