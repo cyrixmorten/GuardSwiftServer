@@ -32,7 +32,7 @@ exports.create = function (options) {
 
     return alarmUtils.findClient(options.user, alarmObject.fullAddress).then(function (client) {
         if (_.isEmpty(client) || !client.has('placeId')) {
-            return alarmUtils.createClient(user, alarm);
+            return alarmUtils.createClient(options.user, alarm);
         }
 
         console.log('existing client');
@@ -45,7 +45,7 @@ exports.create = function (options) {
 
         alarm.set('client', client);
 
-        var acl = new Parse.ACL(user);
+        var acl = new Parse.ACL(options.user);
         alarm.setACL(acl);
 
         // copy client attributes to alarm and save
