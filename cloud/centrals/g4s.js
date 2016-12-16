@@ -23,9 +23,6 @@ exports.parse = function (central, alarmMsg) {
 
     var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
-    console.log('_.upperCase(statusMsg): ', _.upperCase(statusMsg));
-    console.log('_.upperCase(statusMsg) === "ANNULERET": ', _.upperCase(statusMsg) === 'ANNULERET');
-
     return {
         action: _.upperCase(statusMsg) === 'ANNULERET' ? 'abort' : 'create',
         alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),

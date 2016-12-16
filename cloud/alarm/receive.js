@@ -3,17 +3,17 @@ var parser = require('./parse');
 var createAlarm = require('./create');
 var alarmUtils = require('./utils');
 
-Parse.Cloud.define("alarm", function(request, response) {
-    handleAlarmRequest(request).then(function(res) {
+Parse.Cloud.define("alarm", function (request, response) {
+    handleAlarmRequest(request).then(function (res) {
         response.success(res);
-    }).fail(function(error) {
+    }).fail(function (error) {
         console.error(error);
 
         response.error(error);
     })
 });
 
-var handleAlarmRequest = function(request) {
+var handleAlarmRequest = function (request) {
 
     var sender = request.params.sender;
     var receiver = request.params.receiver;
@@ -27,7 +27,7 @@ var handleAlarmRequest = function(request) {
 
     if (!sender || !receiver || !alarmMsg) {
         var error = '';
-        
+
         if (!sender) {
             error += 'Missing sender ';
         }
@@ -37,13 +37,13 @@ var handleAlarmRequest = function(request) {
         if (!alarmMsg) {
             error += 'Missing alarm ';
         }
-        
+
         return Parse.Promise.error(error);
     }
 
     var central, user = {};
 
-    return alarmUtils.findCentral(sender).then(function(centralObj) {
+    return alarmUtils.findCentral(sender).then(function (centralObj) {
         if (_.isEmpty(centralObj)) {
             return Parse.Promise.error('Unable to find central with sendFrom value: ' + sender);
         }
@@ -51,7 +51,7 @@ var handleAlarmRequest = function(request) {
         console.log('central: ' + central.get('name'));
 
         return alarmUtils.findUser(receiver);
-    }).then(function(userObj) {
+    }).then(function (userObj) {
         if (_.isEmpty(userObj)) {
             return Parse.Promise.error('Unable to find user with sendTo value: ' + receiver);
         }
@@ -59,7 +59,7 @@ var handleAlarmRequest = function(request) {
         console.log('user: ' + user.get('username'));
 
         return parser.parse(central, alarmMsg);
-    }).then(function(parsed) {
+    }).then(function (parsed) {
         console.log('parsed.action: ', parsed.action);
         if (parsed.action === 'create') {
             // return createAlarm.create({
@@ -74,10 +74,14 @@ var handleAlarmRequest = function(request) {
             return 'Successfully created alarm';
         }
         if (parsed.action === 'abort') {
-            return alarmUtils.findAlarm(central, user, parsed).then(function(alarm) {
+            return alarmUtils.findAlarm({
+                central: central,
+                user: user,
+                parsed: parsed
+            }).then(function (alarm) {
                 alarm.set('status', 'aborted');
                 return alarm.save({useMasterKey: true});
-            }).then(function() {
+            }).then(function () {
                 return 'Alarm aborted';
             });
 

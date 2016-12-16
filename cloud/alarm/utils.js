@@ -1,12 +1,12 @@
 var _ = require('lodash');
 var geocode = require('../utils/geocode.js');
 
-exports.findAlarm = function(central, user, parsed) {
+exports.findAlarm = function(options) {
     var Alarm = Parse.Object.extend('Task');
     var query = new Parse.Query(Alarm);
-    query.equalTo('centralName', central.get('name'));
-    query.equalTo('owner', user);
-    query.equalTo('original', parsed.alarmMsg);
+    query.equalTo('central', options.central);
+    query.equalTo('owner', options.user);
+    query.equalTo('fullAddress', options.parsed.alarmObject.fullAddress);
 
     return query.first({useMasterKey: true});
 };
