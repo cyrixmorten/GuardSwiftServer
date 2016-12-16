@@ -19,24 +19,21 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
         exports.reset(task);
     }
 
-    alarmUpdate(task);
-
-    task.addUnique('knownStatus', task.get('status'));
-
     response.success();
-    
+
 });
 
-// Parse.Cloud.afterSave("Task", function (request) {
-//     var task = request.object;
-//
-//     var isAlarmTask = task.get('taskType') === 'Alarm';
-//     var isPending = task.get('status') === 'pending';
-//
-//     if (isAlarmTask && isPending && !_.includes(task.get('knownStatus'), states.PENDING)) {
-//         sendNotification(task);
-//     }
-// });
+Parse.Cloud.afterSave("Task", function (request) {
+    alarmUpdate(request.object);
+    // var task = request.object;
+    //
+    // var isAlarmTask = task.get('taskType') === 'Alarm';
+    // var isPending = task.get('status') === 'pending';
+    //
+    // if (isAlarmTask && isPending && !_.includes(task.get('knownStatus'), states.PENDING)) {
+    //     sendNotification(task);
+    // }
+});
 
 exports.reset = function(task) {
     var isAlarmTask = task.get('taskType') === 'Alarm';
@@ -88,13 +85,13 @@ var sendNotification = function(alarm) {
 };
 
 var alarmUpdate = function(task) {
-    var statusChange = task.dirty('status');
+    // var statusChange = task.dirty('status');
     var isAlarmTask = task.get('taskType') === 'Alarm';
 
 
     var status = task.get('status');
 
-    if (isAlarmTask && statusChange && !_.includes(task.get('knownStatus'), status)) {
+    if (isAlarmTask && /*statusChange &&*/ !_.includes(task.get('knownStatus'), status)) {
 
         switch (status) {
             case states.PENDING: {
@@ -134,5 +131,8 @@ var alarmUpdate = function(task) {
                 break;
             }
         }
+
+        task.addUnique('knownStatus', status);
+        task.save(null, {useMasterKey: true});
     }
 };
