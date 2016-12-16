@@ -4,14 +4,16 @@
 var _ = require('lodash');
 var cpsms = require('../../api/cpsms');
 
-var matchesCentral = function (alarm) {
-    return alarm.get('centralName') === 'GuardSwift'
+var matchesCentral = function (alarmOrCentral) {
+    var centralName = alarmOrCentral.get('name') || alarmOrCentral.get('centralName');
+
+    return  centralName === 'GuardSwift'
 };
 
 
-exports.parse = function (alarm, alarmMsg) {
-    console.log('matchesCentral(alarm): ', matchesCentral(alarm));
-    if (!matchesCentral(alarm)) {
+exports.parse = function (central, alarmMsg) {
+    console.log('matchesCentral(alarm): ', matchesCentral(central));
+    if (!matchesCentral(central)) {
         return;
     }
 

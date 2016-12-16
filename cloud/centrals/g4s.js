@@ -1,27 +1,30 @@
 var _ = require('lodash');
 var cpsms = require('../../api/cpsms');
 
-var matchesCentral = function (alarm) {
-    return alarm.get('centralName') === 'G4S'
+var matchesCentral = function (alarmOrCentral) {
+    var centralName = alarmOrCentral.get('name') || alarmOrCentral.get('centralName');
+
+    return centralName === 'G4S'
 };
 
 
-exports.parse = function (alarm, alarmMsg) {
-    console.log('matchesCentral(alarm): ', matchesCentral(alarm));
-    if (!matchesCentral(alarm)) {
+exports.parse = function (central, alarmMsg) {
+    console.log('matchesCentral(alarm): ', matchesCentral(central));
+    if (!matchesCentral(central)) {
         return;
     }
 
     var onMyWayclientNumberAndAlarm = _.split(alarmMsg, ':');
     var statusMsg = _.split(onMyWayclientNumberAndAlarm[0], ',')[0];
 
-    if (statusMsg !== 'På vej') {
+    if (statusMsg !== 'På vej' && statusMsg != 'ANNULERET') {
         throw new Error('Ignoring G4S status chain message')
     }
 
     var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
     return {
+        action: (statusMsg === 'ANNULERET') ? 'abort' : 'create',
         alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),
         alarmObject: {
             clientName: _.trim(pieces[0]),

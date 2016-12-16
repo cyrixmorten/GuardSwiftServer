@@ -2,14 +2,14 @@ var _ = require('lodash');
 
 var handlers = require('../centrals/all');
 
-exports.parse = function(alarm, alarmMsg) {
+exports.parse = function(central, alarmMsg) {
 
     var promise = new Parse.Promise();
 
     var alarmObject = {};
     _.forEach(handlers, function(handler) {
         if (_.isEmpty(alarmObject)) {
-            alarmObject = handler.parse(alarm, alarmMsg) || {};
+            alarmObject = handler.parse(central, alarmMsg) || {};
         }
     });
 
