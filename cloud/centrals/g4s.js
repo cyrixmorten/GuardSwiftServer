@@ -35,15 +35,33 @@ exports.parse = function (alarm, alarmMsg) {
 
 };
 
-var smsToCentral = function(alarm, message) {
-    cpsms.send({
-        to: alarm.get('sentFrom'),
-        from: alarm.get('sentTo'),
-        message: message,
-        limit: 160
+var smsToCentral = function (alarm, message) {
+    findGuardMobile(alarm).then(function(mobileNumber) {
+        cpsms.send({
+            to: alarm.get('sentFrom'),
+            from: mobileNumber,
+            message: message,
+            limit: 160
+        });
     });
 };
 
+var findGuardMobile = function (alarm) {
+    var fallback = Parse.Promise.as(alarm.get('sentTo'));
+
+    var guardPointer = alarm.get('guard');
+    if (guardPointer) {
+        return guardPointer.fetch({useMasterKey: true}).then(function (guard) {
+            var mobile = guard.get('mobileNumber');
+
+            return mobile && mobile.length > 6 ? mobile : fallback;
+        }).fail(function() {
+            return fallback;
+        });
+    }
+
+    return fallback;
+};
 exports.handlePending = function (alarm) {
     if (!matchesCentral(alarm)) {
         return;
