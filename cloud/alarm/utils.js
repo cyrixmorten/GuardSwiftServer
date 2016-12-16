@@ -69,6 +69,6 @@ exports.createClient = function (user, alarm) {
             client.set(key, value);
         });
 
-        return client.save({useMasterKey: true});
+        return client.save(null, {useMasterKey: true});
     });
 };

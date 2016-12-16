@@ -27,16 +27,16 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
     
 });
 
-Parse.Cloud.afterSave("Task", function (request) {
-    var task = request.object;
-
-    var isAlarmTask = task.get('taskType') === 'Alarm';
-    var isPending = task.get('status') === 'pending';
-
-    if (isAlarmTask && isPending) {
-        sendNotification(task);
-    }
-});
+// Parse.Cloud.afterSave("Task", function (request) {
+//     var task = request.object;
+//
+//     var isAlarmTask = task.get('taskType') === 'Alarm';
+//     var isPending = task.get('status') === 'pending';
+//
+//     if (isAlarmTask && isPending && !_.includes(task.get('knownStatus'), states.PENDING)) {
+//         sendNotification(task);
+//     }
+// });
 
 exports.reset = function(task) {
     var isAlarmTask = task.get('taskType') === 'Alarm';
@@ -68,6 +68,8 @@ var sendNotification = function(alarm) {
     };
 
     var sendSMS = function () {
+        var prefix = alarm.get('status') === states.ABORTED ? 'ANNULERET\n' : '';
+
         var guardQuery = new Parse.Query("Guard");
         guardQuery.equalTo('owner', alarm.get('owner'));
         guardQuery.equalTo('alarmNotify', true);
@@ -76,7 +78,7 @@ var sendNotification = function(alarm) {
         guardQuery.each(function (guard) {
             cpsms.send({
                 to: guard.get("mobileNumber"),
-                message: alarm.get("original")
+                message: prefix + alarm.get("original")
             });
         }, { useMasterKey: true });
     };
@@ -97,6 +99,8 @@ var alarmUpdate = function(task) {
         switch (status) {
             case states.PENDING: {
 
+                sendNotification(task);
+
                 _.forEach(handlers, function(handler) {
                     handler.handlePending(task);
                 });
@@ -115,6 +119,9 @@ var alarmUpdate = function(task) {
                 break;
             }
             case states.ABORTED: {
+
+                sendNotification(task);
+
                 _.forEach(handlers, function(handler) {
                     handler.handleAborted(task);
                 });

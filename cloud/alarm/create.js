@@ -55,6 +55,6 @@ exports.create = function (options) {
         });
 
 
-        return alarm.save({useMasterKey: true});
+        return alarm.save(null, {useMasterKey: true});
     });
 };

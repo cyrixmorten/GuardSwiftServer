@@ -45,7 +45,7 @@ var sendToCircuitUnits = function(client) {
             circuitUnit.set('clientId', client.get('clientId'));
             circuitUnit.set('clientName', client.get('name'));
             circuitUnit.set('clientPosition', client.get('position'));
-            circuitUnit.save({useMasterKey: true});
+            circuitUnit.save(null, {useMasterKey: true});
         });
 
     }).fail(function(error) {

@@ -18,29 +18,30 @@ Parse.Cloud.afterSave("EventLog", function (request) {
 
     var EventLog = request.object;
 
-    wrieEventToSession(EventLog);
+    // wrieEventToSession(EventLog);
     writeEventToReport(EventLog);
 
 
 });
 
-var wrieEventToSession = function(EventLog) {
-    var eventCode = EventLog.get('eventCode');
-    if (eventCode == 200 || eventCode == 201) {
-
-        Parse.Session.current().then(function(session) {
-            var guard = undefined;
-            if (eventCode == 200) {
-                guard = EventLog.get('guard');
-                console.log('Adding guard to session: ' + EventLog.get('guard'));
-            } else {
-                console.log('Removing guard from session ' + EventLog.get('guard'));
-            }
-            session.set('guard', guard);
-            session.save();
-        });
-    }
-};
+// remove ->
+// var wrieEventToSession = function(EventLog) {
+//     var eventCode = EventLog.get('eventCode');
+//     if (eventCode == 200 || eventCode == 201) {
+//
+//         Parse.Session.current().then(function(session) {
+//             var guard = undefined;
+//             if (eventCode == 200) {
+//                 guard = EventLog.get('guard');
+//                 console.log('Adding guard to session: ' + EventLog.get('guard'));
+//             } else {
+//                 console.log('Removing guard from session ' + EventLog.get('guard'));
+//             }
+//             session.set('guard', guard);
+//             session.save();
+//         });
+//     }
+// };
 
 var writeEventToReport = function(EventLog) {
 

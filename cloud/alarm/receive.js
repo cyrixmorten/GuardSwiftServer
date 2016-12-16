@@ -62,16 +62,15 @@ var handleAlarmRequest = function (request) {
     }).then(function (parsed) {
         console.log('parsed.action: ', parsed.action);
         if (parsed.action === 'create') {
-            // return createAlarm.create({
-            //     sender: sender,
-            //     receiver: receiver,
-            //     central: central,
-            //     user: user,
-            //     parsedAlarm: parsed
-            // }).then(function() {
-            //     return 'Successfully created alarm';
-            // });
-            return 'Successfully created alarm';
+            return createAlarm.create({
+                sender: sender,
+                receiver: receiver,
+                central: central,
+                user: user,
+                parsedAlarm: parsed
+            }).then(function() {
+                return 'Successfully created alarm';
+            });
         }
         if (parsed.action === 'abort') {
             return alarmUtils.findAlarm({
@@ -80,7 +79,7 @@ var handleAlarmRequest = function (request) {
                 parsed: parsed
             }).then(function (alarm) {
                 alarm.set('status', 'aborted');
-                return alarm.save({useMasterKey: true});
+                return alarm.save(null, {useMasterKey: true});
             }).then(function () {
                 return 'Alarm aborted';
             });

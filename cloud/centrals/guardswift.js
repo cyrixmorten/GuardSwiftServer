@@ -4,10 +4,13 @@
 var _ = require('lodash');
 var cpsms = require('../../api/cpsms');
 
-var matchesCentral = function (alarmOrCentral) {
-    var centralName = alarmOrCentral.get('name') || alarmOrCentral.get('centralName');
 
-    return  centralName === 'GuardSwift'
+
+var matchesCentral = function (alarmOrCentral) {
+
+    var centralName =  alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
+
+    return centralName === 'GuardSwift'
 };
 
 
