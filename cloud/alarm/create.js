@@ -1,4 +1,5 @@
 var alarmUtils = require('./utils');
+var _ = require('lodash');
 
 exports.create = function (options) {
 
