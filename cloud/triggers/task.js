@@ -81,7 +81,7 @@ var sendNotification = function(alarm) {
     };
 
     sendPushNotification();
-    sendSMS();
+    // sendSMS();
 };
 
 var alarmUpdate = function(task) {
