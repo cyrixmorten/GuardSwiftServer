@@ -24,7 +24,7 @@ exports.parse = function (central, alarmMsg) {
     var pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
 
     return {
-        action: (statusMsg === 'ANNULERET') ? 'abort' : 'create',
+        action: (_.capitalize(statusMsg) === 'ANNULERET') ? 'abort' : 'create',
         alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),
         alarmObject: {
             clientName: _.trim(pieces[0]),

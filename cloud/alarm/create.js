@@ -31,8 +31,6 @@ exports.create = function (options) {
     alarm.set('original', alarmMsg);
 
     return alarmUtils.findClient(options.user, alarmObject.fullAddress).then(function (client) {
-        console.log('_.isEmpty(client): ', _.isEmpty(client));
-        console.log('!client.has("placeId"): ', !client.has('placeId'));
 
         if (_.isEmpty(client) || !client.has('placeId')) {
             return alarmUtils.createClient(options.user, alarm);
