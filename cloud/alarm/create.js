@@ -11,7 +11,7 @@ exports.create = function (options) {
     alarm.set('central', options.central);
     alarm.set('centralName', options.central.get('name'));
 
-    alarm.set('owner', user);
+    alarm.set('owner', options.user);
 
 
     var alarmObject = options.parsedAlarm.alarmObject;
