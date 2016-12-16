@@ -60,16 +60,18 @@ var handleAlarmRequest = function(request) {
 
         return parser.parse(central, alarmMsg);
     }).then(function(parsed) {
+        console.log('parsed.action: ', parsed.action);
         if (parsed.action === 'create') {
-            return createAlarm.create({
-                sender: sender,
-                receiver: receiver,
-                central: central,
-                user: user,
-                parsedAlarm: parsed
-            }).then(function() {
-                return 'Successfully created alarm';
-            });
+            // return createAlarm.create({
+            //     sender: sender,
+            //     receiver: receiver,
+            //     central: central,
+            //     user: user,
+            //     parsedAlarm: parsed
+            // }).then(function() {
+            //     return 'Successfully created alarm';
+            // });
+            return 'Successfully created alarm';
         }
         if (parsed.action === 'abort') {
             return alarmUtils.findAlarm(central, user, parsed).then(function(alarm) {
