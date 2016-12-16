@@ -30,7 +30,7 @@ exports.create = function (options) {
 
     alarm.set('original', alarmMsg);
 
-    return alarmUtils.findClient(user, alarmObject.fullAddress).then(function (client) {
+    return alarmUtils.findClient(options.user, alarmObject.fullAddress).then(function (client) {
         if (_.isEmpty(client) || !client.has('placeId')) {
             return alarmUtils.createClient(user, alarm);
         }
@@ -54,6 +54,6 @@ exports.create = function (options) {
         });
 
 
-        return alarm.save();
+        return alarm.save({useMasterKey: true});
     });
 };
