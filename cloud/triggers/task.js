@@ -50,6 +50,8 @@ exports.reset = function(task) {
 
 var sendNotification = function(alarm) {
 
+    console.log('sendNotification');
+
     var sendPushNotification = function() {
         var installationQuery = new Parse.Query(Parse.Installation);
         installationQuery.equalTo('owner', alarm.get('owner'));
@@ -91,7 +93,10 @@ var alarmUpdate = function(task) {
 
     var status = task.get('status');
 
+    console.log('status: ', status);
     if (isAlarmTask && /*statusChange &&*/ !_.includes(task.get('knownStatus'), status)) {
+
+        console.log('switch');
 
         switch (status) {
             case states.PENDING: {
