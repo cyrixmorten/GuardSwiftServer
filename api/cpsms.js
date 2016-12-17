@@ -21,8 +21,6 @@ exports.receive = function (req, res) {
 
 exports.send = function (params) {
 
-    return;
-
     var to = params.to || '';
     var from = params.from || '';
     var message = params.message || '';

@@ -25,14 +25,6 @@ Parse.Cloud.beforeSave("Task", function (request, response) {
 
 Parse.Cloud.afterSave("Task", function (request) {
     alarmUpdate(request.object);
-    // var task = request.object;
-    //
-    // var isAlarmTask = task.get('taskType') === 'Alarm';
-    // var isPending = task.get('status') === 'pending';
-    //
-    // if (isAlarmTask && isPending && !_.includes(task.get('knownStatus'), states.PENDING)) {
-    //     sendNotification(task);
-    // }
 });
 
 exports.reset = function(task) {
@@ -49,8 +41,6 @@ exports.reset = function(task) {
 };
 
 var sendNotification = function(alarm) {
-
-    console.log('sendNotification');
 
     var sendPushNotification = function() {
         var installationQuery = new Parse.Query(Parse.Installation);
@@ -87,16 +77,12 @@ var sendNotification = function(alarm) {
 };
 
 var alarmUpdate = function(task) {
-    // var statusChange = task.dirty('status');
     var isAlarmTask = task.get('taskType') === 'Alarm';
 
 
     var status = task.get('status');
 
-    console.log('status: ', status);
-    if (isAlarmTask && /*statusChange &&*/ !_.includes(task.get('knownStatus'), status)) {
-
-        console.log('switch');
+    if (isAlarmTask && !_.includes(task.get('knownStatus'), status)) {
 
         switch (status) {
             case states.PENDING: {
