@@ -11,6 +11,8 @@ var states = {
     FINISHED: 'finished'
 };
 
+exports.states = states;
+
 Parse.Cloud.beforeSave("Task", function (request, response) {
     
     var task = request.object;

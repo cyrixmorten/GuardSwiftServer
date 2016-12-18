@@ -4,7 +4,7 @@ var _ = require('lodash');
 var reportUtils = require('./reportUtils');
 var reportToPdf = require('./reportToPDF');
 
-var taskSettings = function(report) {
+var taskSettings = function (report) {
 
     var createdAt = moment(report.get('createdAt')).format('DD-MM-YYYY');
     var clientName = report.get('client').get('name');
@@ -17,43 +17,51 @@ var taskSettings = function(report) {
         fileName: ''
     };
 
+    if (report.get('taskTypeName') === 'ALARM') {
+        taskSettings.settingsPointerName = 'regularReportSettings';
+        taskSettings.taskType = "Alarm"; // TODO: translate
+    }
     if (report.has('circuitStarted')) {
         taskSettings.settingsPointerName = 'regularReportSettings';
-        taskSettings.taskType = "Tilsyn";
-        taskSettings.subject = clientName + ' - ' + taskSettings.taskType + ' ' + createdAt;
-        taskSettings.fileName = clientName + '-' + taskSettings.taskType + '-' + createdAt;
+        taskSettings.taskType = "Tilsyn"; // TODO: translate
     }
 
     if (report.has('staticTask')) {
         taskSettings.settingsPointerName = 'staticReportSettings';
-        taskSettings.taskType = "Fastvagt";
-        taskSettings.subject = clientName + ' - ' + taskSettings.taskType + ' ' + createdAt;
-        taskSettings.fileName = clientName + '-' + taskSettings.taskType + '-' + createdAt;
+        taskSettings.taskType = "Fastvagt"; // TODO: translate
     }
 
     if (report.has('districtWatchStarted')) {
         var districtName = report.get('districtWatchStarted').get('name');
-        
+
         taskSettings.settingsPointerName = 'districtReportSettings';
-        taskSettings.taskType = "Områdevagt";
+        taskSettings.taskType = "Områdevagt"; // TODO: translate
         taskSettings.subject = districtName + ' - ' + taskSettings.taskType + ' ' + createdAt;
         taskSettings.fileName = districtName + '-' + taskSettings.taskType + '-' + createdAt;
     }
-    
+
+    if (taskSettings.taskType) {
+        if (!taskSettings.subject) {
+            taskSettings.subject = clientName + ' - ' + taskSettings.taskType + ' ' + createdAt;
+        }
+        if (!taskSettings.fileName) {
+            taskSettings.fileName = clientName + '-' + taskSettings.taskType + '-' + createdAt;
+        }
+    }
 
 
     return taskSettings;
 };
 
 Parse.Cloud.define("sendReport", function (request, response) {
-    exports.sendReport(request.params.reportId).then(function() {
+    exports.sendReport(request.params.reportId).then(function () {
         response.success('Report successfully sent!')
-    }).fail(function(error) {
+    }).fail(function (error) {
         response.error(error)
     })
 });
 
-exports.sendReport = function(reportId) {
+exports.sendReport = function (reportId) {
 
     console.log('Send report: ' + reportId);
 
@@ -97,14 +105,13 @@ exports.sendReport = function(reportId) {
 
 
         if (!taskSettings(report).settingsPointerName) {
-            response.error('Unable to get taskSettings');
-            return;
+            throw new Error('Unable to get taskSettings');
         }
 
         console.log('fetching: ' + taskSettings(report).settingsPointerName);
 
-        return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({ useMasterKey: true });
-    }).then(function(reportSettings) {
+        return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({useMasterKey: true});
+    }).then(function (reportSettings) {
 
         mailSetup.replytoName = reportSettings.get('replytoName') || '';
         mailSetup.replytoEmail = reportSettings.get('replytoEmail') || '';
@@ -144,7 +151,7 @@ exports.sendReport = function(reportId) {
         var receivers = [];
 
         // to client receivers
-        _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames), function(mailTo) {
+        _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames), function (mailTo) {
             var mailAddress = mailTo[0];
             var mailName = mailTo[1];
 
@@ -193,7 +200,7 @@ exports.sendReport = function(reportId) {
         }
 
         // bcc task admins
-        _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames), function(mailBcc) {
+        _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames), function (mailBcc) {
             var mailAddress = mailBcc[0];
             var mailName = mailBcc[1];
 
@@ -217,7 +224,6 @@ exports.sendReport = function(reportId) {
         mail.addAttachment(attachment);
 
 
-
         console.log('Sending to ', receivers);
 
         var sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
@@ -229,7 +235,7 @@ exports.sendReport = function(reportId) {
 
         var sendPromise = new Parse.Promise();
 
-        sg.API(request, function(err, response) {
+        sg.API(request, function (err, response) {
             if (err) {
                 return sendPromise.reject(err);
             }
@@ -246,7 +252,7 @@ exports.sendReport = function(reportId) {
 
         _report.set('mailStatus', mailSetup);
 
-        return _report.save(null, { useMasterKey: true });
+        return _report.save(null, {useMasterKey: true});
     }).fail(function (error) {
 
         console.error(error);
@@ -256,7 +262,7 @@ exports.sendReport = function(reportId) {
 
         _report.set('mailStatus', mailSetup);
 
-        return _report.save(null, { useMasterKey: true }).then(function() {
+        return _report.save(null, {useMasterKey: true}).then(function () {
             return Parse.Promise.reject(mailSetup);
         });
 
