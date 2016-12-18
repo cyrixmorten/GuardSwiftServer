@@ -22,6 +22,7 @@ exports.parse = function (central, alarmMsg) {
 
 
     return {
+        action: 'create',
         alarmMsg: 'Test alarm, Ryttervej 16 6600 Vejen, A, Indbrud, Hund, Bag døren',
         alarmObject: {
             clientName: 'Test alarm',
