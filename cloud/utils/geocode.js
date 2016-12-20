@@ -61,7 +61,7 @@ exports.lookupAddress = function (searchAddress) {
  * @param searchAddress
  * @returns {Parse.Promise}
  */
-exports.lookupPlaceObject = function (searchAddress) {
+exports.lookupPlaceObject = function (searchAddress, retryCount) {
     console.log('lookupPlaceObject');
 
     var promise = new Parse.Promise();
@@ -77,21 +77,60 @@ exports.lookupPlaceObject = function (searchAddress) {
 
                 var placeObject = unwrapPlaceObject(data.results[0]);
 
+                console.log('Found placeObject for: ' + searchAddress);
 
                 promise.resolve(placeObject);
 
             } else {
-                console.error(httpResponse);
-                promise.reject("Failed to locate coordinate for : "
-                    + searchAddress);
+                var errorMsg = "Failed to locate coordinate for : "  + searchAddress;
+                console.error(errorMsg);
+
+                promise.reject(errorMsg);
             }
         },
         error: function (httpResponse) {
             promise.reject(httpResponse);
-            console.error(httpResponse);
         }
     });
-    return promise;
+
+    return promise.fail(function() {
+        if (retryCount) {
+            return Parse.Promise.error("Failed to look up address despite retrying");
+        }
+
+        var searchWords = _.words(searchAddress);
+
+        var zipcodes = _.filter(searchWords, function(word) {
+            return word.length === 4;
+        });
+
+        var others = _.without(searchWords, zipcodes);
+
+        console.log('searchWords: ', searchWords);
+        console.log('zipcodes: ', zipcodes);
+        console.log('others: ', others);
+
+        var newAddress = '';
+        if (!_.isEmpty(others)) {
+            if (others.length >= 1) {
+                newAddress += others[0];
+                newAddress += " ";
+            }
+            if (others.length >= 2) {
+                newAddress += others[1];
+                newAddress += " ";
+            }
+        }
+
+        var zipcode = _.last(zipcodes);
+        if (zipcode) {
+            newAddress += zipcode;
+        }
+
+        console.log('Retrying with: ' + newAddress);
+
+        return exports.lookupPlaceObject(newAddress, 1);
+    });
 };
 
 var unwrapPlaceObject = function (placeObject) {
