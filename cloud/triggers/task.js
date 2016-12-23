@@ -44,18 +44,24 @@ exports.reset = function(task) {
 
 var sendNotification = function(alarm) {
 
+    console.log('sendNotification alarm', alarm.id);
+
     var sendPushNotification = function() {
+        console.log('sendPushNotification');
+
         var installationQuery = new Parse.Query(Parse.Installation);
         installationQuery.equalTo('owner', alarm.get('owner'));
         installationQuery.equalTo('channels', 'alarm');
 
         Parse.Push.send({
             where: installationQuery,
-            expiration_time: 600000,
+            expiration_interval: 600,
             data: {
                 alarmId: alarm.id
             }
-        }, { useMasterKey: true });
+        }, { useMasterKey: true }).then(function() {
+            console.log('Push notification successfully sent for alarm', alarm.id);
+        });
     };
 
     var sendSMS = function () {
@@ -71,7 +77,9 @@ var sendNotification = function(alarm) {
                 to: guard.get("mobileNumber"),
                 message: prefix + alarm.get("original")
             });
-        }, { useMasterKey: true });
+        }, { useMasterKey: true }).then(function() {
+            console.log('SMS successfully sent for alarm', alarm.id);
+        });
     };
 
     sendPushNotification();

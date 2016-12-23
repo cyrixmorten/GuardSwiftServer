@@ -42,7 +42,7 @@ exports.send = function (params) {
 
     console.log('Sending SMS: ', options.body);
 
-    rp(options).then(function (parsedBody) {
+    return rp(options).then(function (parsedBody) {
         console.log(parsedBody);
     })
     .catch(function (err) {
