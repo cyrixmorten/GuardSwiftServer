@@ -61,6 +61,8 @@ var sendNotification = function(alarm) {
             }
         }, { useMasterKey: true }).then(function() {
             console.log('Push notification successfully sent for alarm', alarm.id);
+        }).fail(function(e) {
+            console.error('Error sending push notification', e);
         });
     };
 
