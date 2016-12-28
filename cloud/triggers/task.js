@@ -77,7 +77,8 @@ var sendNotification = function(alarm) {
         guardQuery.each(function (guard) {
             cpsms.send({
                 to: guard.get("mobileNumber"),
-                message: prefix + alarm.get("original")
+                message: prefix + alarm.get("original"),
+                flash: true
             });
         }, { useMasterKey: true }).then(function() {
             console.log('SMS successfully sent for alarm', alarm.id);

@@ -35,7 +35,8 @@ exports.send = function (params) {
         body: {
             to: _.replace(to, '+', ''),
             from: _.replace(from, '+45', '') || 'GUARDSWIFT',
-            message: limit ? message.substring(0,limit) : message
+            message: limit ? message.substring(0,limit) : message,
+            flash: params.flash ? 1 : 0
         },
         json: true
     };
