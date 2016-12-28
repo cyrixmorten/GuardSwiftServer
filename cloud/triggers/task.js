@@ -71,7 +71,6 @@ var sendNotification = function(alarm) {
 
         var guardQuery = new Parse.Query("Guard");
         guardQuery.equalTo('owner', alarm.get('owner'));
-        guardQuery.equalTo('alarmNotify', true);
         guardQuery.equalTo('alarmSMS', true);
         guardQuery.exists('mobileNumber', true);
         guardQuery.each(function (guard) {
