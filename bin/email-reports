@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+require("dotenv").config({ path: '../local.env' });
+var requireEnv = require("require-environment-variables");
+requireEnv([
+    'APP_ID',
+    'MASTER_KEY'
+]);
 
 var http = require('http-request');
 

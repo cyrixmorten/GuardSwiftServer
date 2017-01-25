@@ -372,21 +372,12 @@ var resetCircuitUnits = function (circuit) {
 
     var counter = 0;
 
-    var queryCompleted = new Parse.Query("CircuitUnit");
-    queryCompleted.notEqualTo('guardId', 0);
-
-    var queryExtras = new Parse.Query("CircuitUnit");
-    queryExtras.equalTo('isExtra', true);
-    queryExtras.doesNotExist('isHidden');
-
-    var queryHasCheckpoints = new Parse.Query("CircuitUnit");
-    queryHasCheckpoints.exists("checkedCheckpoints");
-
-
-    var query = Parse.Query.or(queryCompleted, queryExtras, queryHasCheckpoints);
+    var query = new Parse.Query("CircuitUnit");
     query.equalTo('circuit', circuit);
+    query.notEqualTo('status', 'pending');
 
     query.each(function (object) {
+        object.set('status', 'pending');
         object.set('guardId', 0);
         object.set('guardName', "");
         if (object.get('isExtra')) {
