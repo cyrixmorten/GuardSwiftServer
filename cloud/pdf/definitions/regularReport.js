@@ -37,34 +37,34 @@ exports.createDoc = function (report, settings, timeZone) {
 
 
     var uniqueEvents = function () {
-        var combinedContent = [];
-        for (var i = 0; i < events.eventName.length; i++) {
-            combinedContent.push(
-                events.eventName[i] +
-                events.amount[i] +
-                events.people[i] +
-                events.location[i] +
-                events.remarks[i]
-            )
-        }
+        // var combinedContent = [];
+        // for (var i = 0; i < events.eventName.length; i++) {
+        //     combinedContent.push(
+        //         events.eventName[i] +
+        //         events.amount[i] +
+        //         events.people[i] +
+        //         events.location[i] +
+        //         events.remarks[i]
+        //     )
+        // }
+        //
+        //
+        // var uniqueContent = [];
+        // for (var j = 0; j < combinedContent.length; j++) {
+        //     if (!_.includes(uniqueContent, combinedContent[j])) {
+        //         uniqueContent.push(combinedContent[j]);
+        //     } else if (!_.isEmpty(combinedContent[j])) {
+        //         // strip of duplicate from events
+        //         events.eventName.splice(j, 1);
+        //         events.amount.splice(j, 1);
+        //         events.people.splice(j, 1);
+        //         events.location.splice(j, 1);
+        //         events.remarks.splice(j, 1);
+        //     }
+        // }
 
 
-        var uniqueContent = [];
-        for (var j = 0; j < combinedContent.length; j++) {
-            if (!_.includes(uniqueContent, combinedContent[j])) {
-                uniqueContent.push(combinedContent[j]);
-            } else if (!_.isEmpty(combinedContent[j])) {
-                // strip of duplicate from events
-                events.eventName.splice(j, 1);
-                events.amount.splice(j, 1);
-                events.people.splice(j, 1);
-                events.location.splice(j, 1);
-                events.remarks.splice(j, 1);
-            }
-        }
-
-
-        return _.zip(events.eventName, events.amount, events.people, events.location, events.remarks);
+        return _.zip(events.timestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
     };
 
 
@@ -74,28 +74,36 @@ exports.createDoc = function (report, settings, timeZone) {
         // client info
         var header = docDefaults.contentHeader(report, backgroundHeaderImage);
         var arrivalAndReportId = pdfUtils.leftRightAlignedContent({
-            textLeft: ['Vægter var ved adressen kl: ', {text: arrivalTimestamps(), bold: true}],
+            textLeft: [],
+            // textLeft: ['Vægter var ved adressen kl: ', {text: arrivalTimestamps(), bold: true}],
             textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
             margin: [0, 10],
             style: {bold: true}
         });
-        var writtenEvents = uniqueEvents();
         var reportedEvents = pdfUtils.tableBorderedWithHeader({
-            widths: ['*', 50, '*', '*', '*'],
-            header: ['Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
-            content: uniqueEvents()
+            widths: ['*', '*', 50, '*', '*', '*'],
+            header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
+            content:  uniqueEvents()
         });
-        
+
+        console.log('reportedEvents: ', reportedEvents);
+
         // todo: make part of report settings
-        var noEventsText = {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [ 0, 10, 0, 0 ]};
+        // var noEventsText = ;
         
         content.push(header);
         content.push(arrivalAndReportId);
-        if (!_.isEmpty(writtenEvents)) {
+        // if (!_.isEmpty(writtenEvents)) {
             content.push(reportedEvents);
-        } else {
-            content.push(noEventsText);
-        }
+
+            if (events.writtenByGuard.length == 0){
+                content.push(
+                    {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [ 0, 10, 0, 0 ]}
+                )
+            }
+        // } else {
+        //     content.push(noEventsText);
+        // }
         
         return content;
     };

@@ -1,7 +1,7 @@
 var _ = require('lodash');
 
 var regularReport = require('./regularReport.js');
-var districtReport = require('./districtReport.js');
+// var districtReport = require('./districtReport.js');
 var staticReport = require('./staticReport.js');
 
 
@@ -17,9 +17,9 @@ var fetchReportSettings = function (report) {
         if (taskType === 'REGULAR') {
             return 'regularReportSettings';
         }
-        if (taskType === 'DISTRICTWATCH') {
-            return 'districtReportSettings';
-        }
+        // if (taskType === 'DISTRICTWATCH') {
+        //     return 'districtReportSettings';
+        // }
         if (taskType === 'STATIC') {
             return 'staticReportSettings';
         }
@@ -61,9 +61,9 @@ exports.createDoc = function (report) {
             if (report.has('circuitUnit')) {
                 return regularReport.createDoc(report, settings, timeZone);
             }
-            if (report.has('districtWatchUnit')) {
-                return districtReport.createDoc(report, settings, timeZone);
-            }
+            // if (report.has('districtWatchUnit')) {
+            //     return districtReport.createDoc(report, settings, timeZone);
+            // }
             if (report.has('staticTask')) {
                 return staticReport.createDoc(report, settings, timeZone);
             }

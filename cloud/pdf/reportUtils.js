@@ -100,15 +100,25 @@ exports.reportEventsMap = function (report, timeZone) {
 
 exports.eventsMap = function (eventLogs, timeZone) {
 
-    var arrivedEvents = _.filter(eventLogs, function (eventLog) {
+    var reportEventLogs = _.filter(eventLogs, function (eventLog) {
+        return eventLog.get('task_event') === 'ARRIVE' || eventLog.get('task_event') === 'OTHER';
+    });
+
+    var arrivedEvents = _.filter(reportEventLogs, function (eventLog) {
         return eventLog.get('task_event') === 'ARRIVE';
     });
 
-    var otherEvents = _.filter(eventLogs, function (eventLog) {
+    var writtenByGuard = _.filter(reportEventLogs, function (eventLog) {
         return eventLog.get('task_event') === 'OTHER';
     });
 
     return {
+        // all: reportEventLogs,
+        //
+        writtenByGuard: writtenByGuard,
+        //
+        // arrivedEvents: arrivedEvents,
+
         arrivedTimestamps: _.map(arrivedEvents, function (log) {
             return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
         }),
@@ -116,6 +126,7 @@ exports.eventsMap = function (eventLogs, timeZone) {
         arrivedGuardNames: _.map(arrivedEvents, function (log) {
             return log.get('guardName') || '';
         }),
+
         arrivedClientNames: _.map(arrivedEvents, function (log) {
             return log.get('clientName') || '';
         }),
@@ -123,28 +134,31 @@ exports.eventsMap = function (eventLogs, timeZone) {
             return log.has('clientAddress') ? log.get('clientAddress') + ' ' + log.get('clientAddressNumber') : '';
         }),
 
-        timestamps: _.map(otherEvents, function (log) {
+
+        timestamps: _.map(reportEventLogs, function (log) {
             return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
         }),
 
-        eventName: _.map(otherEvents, function (log) {
+        eventName: _.map(reportEventLogs, function (log) {
             return log.get('event') || '';
         }),
 
-        amount: _.map(otherEvents, function (log) {
+        amount: _.map(reportEventLogs, function (log) {
             return (log.has('amount') && log.get('amount') !== 0) ? log.get('amount').toString() : '';
         }),
 
-        people: _.map(otherEvents, function (log) {
+        people: _.map(reportEventLogs, function (log) {
             return log.get('people') || '';
         }),
 
-        location: _.map(otherEvents, function (log) {
+        location: _.map(reportEventLogs, function (log) {
             return log.get('clientLocation') || '';
         }),
 
-        remarks: _.map(otherEvents, function (log) {
+        remarks: _.map(reportEventLogs, function (log) {
             return log.get('remarks') || '';
         })
+
+
     };
 };
