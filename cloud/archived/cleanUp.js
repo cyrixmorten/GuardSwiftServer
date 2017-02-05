@@ -85,27 +85,20 @@
 // });
 //
 //
-// Parse.Cloud.job("ResetAllCircuitUnits", function(request, status) {
-//     console.log('ResetAllCircuitUnits');
-//
-// 	var query = new Parse.Query("CircuitUnit");
-// //	query.doesNotExist("days");
-// 	query.each(function(object) {
-// //		object.unset('guardId');
-// //        object.unset('guardName');
-// // 		var radius = object.get('geofenceRadius');
-// // 		if (radius < 200) {
-// // 			object.set('geofenceRadius', 200);
-// // 		}
-// 		return object.save(null, { useMasterKey: true });
-// 	}, { useMasterKey: true }).then(function() {
-// 		status.success("completed successfully.");
-// 	}, function(err) {
-// 		console.error(err);
-// 		status.error(err.message);
-// 	});
-//
-// });
+Parse.Cloud.job("SaveAllCircuitUnits", function(request, status) {
+
+	var query = new Parse.Query("CircuitUnit");
+	
+	query.each(function(object) {
+		return object.save(null, { useMasterKey: true });
+	}, { useMasterKey: true }).then(function() {
+		status.success("completed successfully.");
+	}, function(err) {
+		console.error(err);
+		status.error(err.message);
+	});
+
+});
 //
 //Parse.Cloud.job("DistrictWatchUnitSupervisions", function(request, status) {
 //	Parse.Cloud.useMasterKey();

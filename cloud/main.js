@@ -37,4 +37,4 @@ require("./centrals/g4s.js");
 require("./centrals/guardswift.js");
 require("./centrals/all.js");
 
-// require("./archived/cleanUp.js");
+require("./archived/cleanUp.js");

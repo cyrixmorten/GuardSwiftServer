@@ -380,11 +380,8 @@ var resetCircuitUnits = function (circuit) {
         object.set('status', 'pending');
         object.set('guardId', 0);
         object.set('guardName', "");
-        if (object.get('isExtra')) {
-            object.set('isHidden', true);
-        }
+        object.set('timesArrived', 0);
         object.unset('checkedCheckpoints');
-        object.set('isAborted', false);
 
         counter++;
         return object.save(null, { useMasterKey: true });

@@ -7,6 +7,10 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
         CircuitUnit.set('supervisions', 1);
     }
 
+    if (!CircuitUnit.has('timesArrived')) {
+        CircuitUnit.set('timesArrived', 0);
+    }
+
     if (!CircuitUnit.has('timeStarted')) {
         CircuitUnit.set('timeStarted', new Date(1970));
     }
