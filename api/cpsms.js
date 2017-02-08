@@ -2,9 +2,20 @@ var dispatcher = require('./dispatcher');
 var rp = require('request-promise');
 var _ = require('lodash');
 
+var saveSMSLog = function (to, from, message, limit, error) {
+    var SMSLog = Parse.Object.extend('SMSLog');
+    var smsLog = new SMSLog();
+    smsLog.set('to', to);
+    smsLog.set('from', from);
+    smsLog.set('message', message);
+    smsLog.set('limit', limit);
+    smsLog.set('error', error);
+    smsLog.save(null, {useMasterKey: true});
+};
+
 exports.receive = function (req, res) {
     var from = req.query.from;
-    var to   = req.query.number;
+    var to = req.query.number;
     var body = req.query.message;
 
     from = '+' + from;
@@ -30,24 +41,29 @@ exports.send = function (params) {
         method: 'POST',
         uri: 'https://api.cpsms.dk/v2/send',
         headers: {
-            'Authorization': 'Basic ' + new Buffer('cyrix:'+ process.env.CPSMS_API_KEY).toString('base64')
+            'Authorization': 'Basic ' + new Buffer('cyrix:' + process.env.CPSMS_API_KEY).toString('base64')
         },
         body: {
             to: _.replace(to, '+', ''),
             from: _.replace(from, '+45', '') || 'GUARDSWIFT',
-            message: limit ? message.substring(0,limit) : message,
-            flash: params.flash ? 1 : 0
+            message: limit ? message.substring(0, limit) : message,
+            flash: 0//params.flash ? 1 : 0
         },
         json: true
     };
 
     console.log('Sending SMS: ', options.body);
 
+    var error = {};
     return rp(options).then(function (parsedBody) {
         console.log(parsedBody);
-    })
-    .catch(function (err) {
+    }).catch(function (err) {
         console.log(err.message);
+        error = err;
+    }).always(function () {
+        saveSMSLog(to, from, message, limit, error);
     });
 
 };
+
+

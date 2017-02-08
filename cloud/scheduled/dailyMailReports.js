@@ -6,10 +6,10 @@ var reportToMail = require('../pdf/reportToMail');
 
 Parse.Cloud.job("dailyMailReports", function (request, status) {
 
-    console.log('dailyMailReports');
+    console.log('dailyMailReports', JSON.stringify(request.params));
 
     var now = moment();
-    var yesterday = moment().subtract(1, 'days');
+    var yesterday = moment().subtract(request.params.days || 1, 'days');
 
     var query = new Parse.Query(Parse.User);
     query.each(function (company) {

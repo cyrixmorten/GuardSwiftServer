@@ -88,7 +88,7 @@
 Parse.Cloud.job("SaveAllCircuitUnits", function(request, status) {
 
 	var query = new Parse.Query("CircuitUnit");
-	
+
 	query.each(function(object) {
 		return object.save(null, { useMasterKey: true });
 	}, { useMasterKey: true }).then(function() {
