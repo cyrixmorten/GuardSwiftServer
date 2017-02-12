@@ -374,7 +374,8 @@ var resetCircuitUnits = function (circuit) {
 
     var query = new Parse.Query("CircuitUnit");
     query.equalTo('circuit', circuit);
-    query.notEqualTo('status', 'pending');
+    // query.notEqualTo('status', 'pending');
+    query.greaterThan('timesArrived', 0);
 
     query.each(function (object) {
         object.set('status', 'pending');
@@ -382,6 +383,7 @@ var resetCircuitUnits = function (circuit) {
         object.set('guardName', "");
         object.set('timesArrived', 0);
         object.unset('checkedCheckpoints');
+        object.unset('guard');
 
         counter++;
         return object.save(null, { useMasterKey: true });
