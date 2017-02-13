@@ -372,17 +372,22 @@ var resetCircuitUnits = function (circuit) {
 
     var counter = 0;
 
-    var finishedQuery = new Parse.Query("CircuitUnit");
-    finishedQuery.equalTo('status', 'finished');
 
     // TODO backwards compatibility - remove
+
+    var arrivedQuery = new Parse.Query("CircuitUnit");
+    arrivedQuery.equalTo('status', 'arrived');
+
     var abortedQuery = new Parse.Query("CircuitUnit");
     abortedQuery.equalTo('status', 'aborted');
+
+    var finishedQuery = new Parse.Query("CircuitUnit");
+    finishedQuery.equalTo('status', 'finished');
 
     var timesArrivedQuery = new Parse.Query("CircuitUnit");
     timesArrivedQuery.greaterThan('timesArrived', 0);
 
-    var mainQuery = Parse.Query.or(abortedQuery, finishedQuery, timesArrivedQuery);
+    var mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
     mainQuery.equalTo('circuit', circuit);
 
     mainQuery.each(function (object) {
