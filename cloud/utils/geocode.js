@@ -62,7 +62,6 @@ exports.lookupAddress = function (searchAddress) {
  * @returns {Parse.Promise}
  */
 exports.lookupPlaceObject = function (searchAddress, retryCount) {
-    console.log('lookupPlaceObject');
 
     var promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
@@ -135,7 +134,7 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
 
 var unwrapPlaceObject = function (placeObject) {
 
-    var adressComponentByType = function (components, type) {
+    var addressComponentByType = function (components, type) {
         if (_.isEmpty(components)) {
             return '';
         }
@@ -155,10 +154,10 @@ var unwrapPlaceObject = function (placeObject) {
     object.placeObject = placeObject;
     object.placeId = placeObject.place_id;
     object.formattedAddress = placeObject.formatted_address;
-    object.street = adressComponentByType(placeObject.address_components, 'route');
-    object.streetNumber = adressComponentByType(placeObject.address_components, 'street_number');
-    object.city = adressComponentByType(placeObject.address_components, 'locality');
-    object.postalCode = adressComponentByType(placeObject.address_components, 'postal_code');
+    object.street = addressComponentByType(placeObject.address_components, 'route');
+    object.streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
+    object.city = addressComponentByType(placeObject.address_components, 'locality');
+    object.postalCode = addressComponentByType(placeObject.address_components, 'postal_code');
     if (placeObject.geometry) {
         object.position = new Parse.GeoPoint({
             latitude: placeObject.geometry.location.lat,

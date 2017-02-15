@@ -46,17 +46,37 @@ exports.findClient = function (user, fullAddress) {
 exports.createClient = function (user, alarm) {
     console.log('createClient');
 
+    var id = alarm.get('clientId');
     var name = alarm.get('clientName');
     var fullAddress = alarm.get('fullAddress');
 
-
     return geocode.lookupPlaceObject(fullAddress).then(function (placeObject) {
+        return Parse.Promise.as(placeObject);
+    }, function() {
+        // unable to look up address
+        console.log('Failed to look up address for: ' + fullAddress);
 
-        console.log('placeObject: ' + JSON.stringify(placeObject));
+        var fakePlaceObject  = {
+            placeObject: {},
+            placeId: '',
+            formattedAddress: fullAddress,
+            street: '',
+            streetNumber: '',
+            city: '',
+            postalCode: '',
+            position: new Parse.GeoPoint({
+                latitude: 1,
+                longitude: 1
+            })
+        };
 
+        return Parse.Promise.as(fakePlaceObject);
+
+    }).then(function(placeObject) {
         var Client = Parse.Object.extend("Client");
         var client = new Client();
 
+        client.set('clientId', id);
         client.set('automatic', true);
         client.set('name', name);
         client.set('fullAddress', fullAddress);
@@ -70,5 +90,5 @@ exports.createClient = function (user, alarm) {
         });
 
         return client.save(null, {useMasterKey: true});
-    });
+    })
 };

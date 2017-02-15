@@ -29,6 +29,7 @@ exports.parse = function (central, alarmMsg) {
         alarmMsg: alarmMsg.substr(alarmMsg.indexOf(",") + 1),
         alarmObject: {
             clientName: _.trim(pieces[0]),
+            clientId: _.trim(pieces[1]),
             fullAddress: _.trim(pieces[2]),
             priority: _.trim(pieces[3]),
             signalStatus: _.trim(pieces[4]),
