@@ -18,7 +18,7 @@
     "moment-timezone-all": "^0.5.5",
     "parse": "~1.8.0",
     "parse-server": "*",
-    "pdfmake": "^0.1.18",
+    "pdfmake": "^0.1.26",
     "request": "^2.78.0",
     "request-promise": "^4.1.1",
     "require-environment-variables": "^1.1.2",

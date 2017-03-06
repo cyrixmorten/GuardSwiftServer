@@ -2,7 +2,7 @@ var _ = require('lodash');
 var moment = require('moment-timezone-all');
 
 exports.fetchUser = function (report) {
-    return report.get('owner').fetch({ useMasterKey: true });
+    return report.get('owner').fetch({useMasterKey: true});
 };
 
 exports.fetchReport = function (reportId) {
@@ -19,8 +19,8 @@ exports.fetchReport = function (reportId) {
     query.include('staticTask');
     query.include('circuitStarted');
     query.include('districtWatchStarted');
-    
-    return query.first({ useMasterKey: true });
+
+    return query.first({useMasterKey: true});
 };
 
 
@@ -39,7 +39,7 @@ exports.hasExistingPDF = function (report) {
 };
 
 exports.readExistingPDF = function (report) {
-    
+
     return Parse.Cloud.httpRequest({
         method: 'GET',
         url: exports.getPDFUrl(report),
@@ -98,65 +98,95 @@ exports.reportEventsMap = function (report, timeZone) {
     return exports.eventsMap(report.get('eventLogs'), timeZone);
 };
 
+exports.isArrivalEvent = function (eventLog) {
+    return eventLog.get('task_event') === 'ARRIVE';
+};
+
+exports.isWrittenByGuard = function (eventLog) {
+    return eventLog.get('task_event') === 'OTHER';
+};
+
+exports.isReportLog = function (eventLog) {
+    return eventLog.get('task_event') === 'ARRIVE' || eventLog.get('task_event') === 'OTHER';
+};
+
 exports.eventsMap = function (eventLogs, timeZone) {
 
-    var reportEventLogs = _.filter(eventLogs, function (eventLog) {
-        return eventLog.get('task_event') === 'ARRIVE' || eventLog.get('task_event') === 'OTHER';
-    });
+    var numberOfArrivals = _.filter(eventLogs, exports.isArrivalEvent).length;
 
-    var arrivedEvents = _.filter(reportEventLogs, function (eventLog) {
-        return eventLog.get('task_event') === 'ARRIVE';
-    });
+    eventLogs = _.sortBy(eventLogs, function (log) {
+        var date = log.get('deviceTimestamp');
 
-    var writtenByGuard = _.filter(reportEventLogs, function (eventLog) {
-        return eventLog.get('task_event') === 'OTHER';
+        if (exports.isArrivalEvent(log) && numberOfArrivals === 1) {
+            return Number.MIN_VALUE;
+        }
+
+        return date;
     });
 
     return {
         // all: reportEventLogs,
         //
-        writtenByGuard: writtenByGuard,
+        writtenByGuard: _.map(eventLogs, function (log) {
+            if (exports.isWrittenByGuard(log)) {
+                return log;
+            }
+        }),
         //
         // arrivedEvents: arrivedEvents,
 
-        arrivedTimestamps: _.map(arrivedEvents, function (log) {
-            return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+        arrivedTimestamps: _.map(eventLogs, function (log) {
+            if (exports.isArrivalEvent(log)) {
+                return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+            }
         }),
 
-        arrivedGuardNames: _.map(arrivedEvents, function (log) {
-            return log.get('guardName') || '';
+        // arrivedGuardNames: _.map(arrivedEvents, function (log) {
+        //     return log.get('guardName') || '';
+        // }),
+        //
+        // arrivedClientNames: _.map(arrivedEvents, function (log) {
+        //     return log.get('clientName') || '';
+        // }),
+        // arrivedClientAddress: _.map(arrivedEvents, function (log) {
+        //     return log.has('clientAddress') ? log.get('clientAddress') + ' ' + log.get('clientAddressNumber') : '';
+        // }),
+
+
+        timestamps: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+            }
         }),
 
-        arrivedClientNames: _.map(arrivedEvents, function (log) {
-            return log.get('clientName') || '';
-        }),
-        arrivedClientAddress: _.map(arrivedEvents, function (log) {
-            return log.has('clientAddress') ? log.get('clientAddress') + ' ' + log.get('clientAddressNumber') : '';
-        }),
-
-
-        timestamps: _.map(reportEventLogs, function (log) {
-            return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+        eventName: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return log.get('event') || '';
+            }
         }),
 
-        eventName: _.map(reportEventLogs, function (log) {
-            return log.get('event') || '';
+        amount: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return (log.has('amount') && log.get('amount') !== 0) ? log.get('amount').toString() : '';
+            }
         }),
 
-        amount: _.map(reportEventLogs, function (log) {
-            return (log.has('amount') && log.get('amount') !== 0) ? log.get('amount').toString() : '';
+        people: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return log.get('people') || '';
+            }
         }),
 
-        people: _.map(reportEventLogs, function (log) {
-            return log.get('people') || '';
+        location: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return log.get('clientLocation') || '';
+            }
         }),
 
-        location: _.map(reportEventLogs, function (log) {
-            return log.get('clientLocation') || '';
-        }),
-
-        remarks: _.map(reportEventLogs, function (log) {
-            return log.get('remarks') || '';
+        remarks: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                return log.get('remarks') || '';
+            }
         })
 
 

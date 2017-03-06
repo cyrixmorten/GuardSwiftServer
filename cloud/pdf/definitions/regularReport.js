@@ -19,53 +19,23 @@ exports.createDoc = function (report, settings, timeZone) {
 
     var events = reportUtils.reportEventsMap(report, timeZone);
 
-    var arrivalTimestamps = function () {
-        if (_.isEmpty(events.arrivedTimestamps)) {
-            return '';
-        }
-
-        var arrivals = '';
-        var delimiter = ', ';
-        _.each(events.arrivedTimestamps, function (timestamp) {
-            arrivals += timestamp + delimiter;
-        });
-
-        return _.trimEnd(arrivals, delimiter);
-    };
+    // var arrivalTimestamps = function () {
+    //     if (_.isEmpty(events.arrivedTimestamps)) {
+    //         return '';
+    //     }
+    //
+    //     var arrivals = '';
+    //     var delimiter = ', ';
+    //     _.each(events.arrivedTimestamps, function (timestamp) {
+    //         arrivals += timestamp + delimiter;
+    //     });
+    //
+    //     return _.trimEnd(arrivals, delimiter);
+    // };
 
     var backgroundHeaderImage = docDefaults.backgroundHeaderImage(settings);
 
 
-    var uniqueEvents = function () {
-        // var combinedContent = [];
-        // for (var i = 0; i < events.eventName.length; i++) {
-        //     combinedContent.push(
-        //         events.eventName[i] +
-        //         events.amount[i] +
-        //         events.people[i] +
-        //         events.location[i] +
-        //         events.remarks[i]
-        //     )
-        // }
-        //
-        //
-        // var uniqueContent = [];
-        // for (var j = 0; j < combinedContent.length; j++) {
-        //     if (!_.includes(uniqueContent, combinedContent[j])) {
-        //         uniqueContent.push(combinedContent[j]);
-        //     } else if (!_.isEmpty(combinedContent[j])) {
-        //         // strip of duplicate from events
-        //         events.eventName.splice(j, 1);
-        //         events.amount.splice(j, 1);
-        //         events.people.splice(j, 1);
-        //         events.location.splice(j, 1);
-        //         events.remarks.splice(j, 1);
-        //     }
-        // }
-
-
-        return _.zip(events.timestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
-    };
 
 
     var reportContent = function() {
@@ -80,10 +50,10 @@ exports.createDoc = function (report, settings, timeZone) {
             margin: [0, 10],
             style: {bold: true}
         });
-        var reportedEvents = pdfUtils.tableBorderedWithHeader({
-            widths: ['*', '*', 50, '*', '*', '*'],
+        var reportedEvents = pdfUtils.tableWithBorder({
+            widths: [50, '*', 25, '*', '*', '*'],
             header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
-            content:  uniqueEvents()
+            content:  _.zip(events.arrivedTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks)
         });
 
         console.log('reportedEvents: ', reportedEvents);

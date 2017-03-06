@@ -60,7 +60,24 @@ exports.leftRightAlignedContent = function (options) {
 };
 
 
-exports.tableBorderedWithHeader = function(options) {
+var contentWithHeader = function (reportHeader, reportContent) {
+    // define header
+    var tableHeader = [];
+
+    _.forEach(reportHeader, function(header) {
+        tableHeader.push(
+            {text: header, style: 'tableHeader'}
+        );
+    });
+
+    // insert header
+    reportContent.unshift(tableHeader);
+
+    return reportContent;
+};
+
+
+exports.tableWithBorder = function(options) {
 
 	//options = {
 	//	widths : ['*','*', '50'],
@@ -68,42 +85,14 @@ exports.tableBorderedWithHeader = function(options) {
 	//	content : [['col1'], ['col2'], ['col3']]
 	//};
 
-	var contentWithHeader = function (reportContent) {
-		// define header
-		var tableHeader = [];
-
-		_.forEach(options.header, function(header) {
-			tableHeader.push(
-				{text: header, style: 'tableHeader'}
-			);
-		});
-
-		// insert header
-		reportContent.unshift(tableHeader);
-
-		return reportContent;
-	};
 
 	return {
 		table: {
 			widths: options.widths,
-			headerRows: 1,
-			body: _.isEmpty(options.content) ? [[]] : contentWithHeader(options.content)
+            headerRows: options.header ? 1 : 0,
+			body: _.isEmpty(options.content) ? [[]] : contentWithHeader(options.header, options.content)
 		},
-		layout: {
-			hLineWidth: function (i, node) {
-				return (i === 0 || i === node.table.body.length) ? 2 : 1;
-			},
-			vLineWidth: function (i, node) {
-				return (i === 0 || i === node.table.widths.length) ? 2 : 1;
-			},
-			hLineColor: function (i, node) {
-				return (i === 0 || i === node.table.body.length) ? 'black' : 'gray';
-			},
-			vLineColor: function (i, node) {
-				return (i === 0 || i === node.table.widths.length) ? 'black' : 'gray';
-			}
-		},
+        layout: 'lightHorizontalLines',
 		margin: [0, 30]
 	}
 };
@@ -118,8 +107,8 @@ exports.tableNoBorders = function(options) {
 	return {
 		table: {
 			widths: options.widths,
-			headerRows: 0,
-			body: _.isEmpty(options.content) ? [[]] : options.content
+			headerRows: options.header ? 1 : 0,
+			body: _.isEmpty(options.content) ? [[]] : contentWithHeader(options.header, options.content)
 		},
 		layout: 'noBorders',
 		margin: [0, 30]
@@ -140,7 +129,7 @@ exports.defaultStyles = function () {
 		},
 		tableHeader: {
 			bold: true,
-			fontSize: 13,
+			fontSize: 11,
 			color: 'black'
 		},
 		boldFont: {
