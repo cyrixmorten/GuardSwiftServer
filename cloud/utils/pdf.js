@@ -71,7 +71,9 @@ var contentWithHeader = function (reportHeader, reportContent) {
     });
 
     // insert header
-    reportContent.unshift(tableHeader);
+	if (!_.isEmpty(tableHeader)) {
+    	reportContent.unshift(tableHeader);
+    }
 
     return reportContent;
 };
