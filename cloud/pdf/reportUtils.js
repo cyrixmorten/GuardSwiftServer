@@ -98,16 +98,36 @@ exports.reportEventsMap = function (report, timeZone) {
     return exports.eventsMap(report.get('eventLogs'), timeZone);
 };
 
+exports.isAcceptEvent = function (eventLog) {
+    return eventLog.get('task_event') === 'ACCEPT';
+};
+
 exports.isArrivalEvent = function (eventLog) {
     return eventLog.get('task_event') === 'ARRIVE';
+};
+
+exports.isAbortEvent = function (eventLog) {
+    return eventLog.get('task_event') === 'ABORT';
+};
+
+exports.isFinishEvent = function (eventLog) {
+    return eventLog.get('task_event') === 'FINISH';
 };
 
 exports.isWrittenByGuard = function (eventLog) {
     return eventLog.get('task_event') === 'OTHER';
 };
 
+exports.isAlarmEvent = function (eventLog) {
+    return eventLog.get('taskTypeName') === 'ALARM';
+};
+
 exports.isReportLog = function (eventLog) {
-    return eventLog.get('task_event') === 'ARRIVE' || eventLog.get('task_event') === 'OTHER';
+    var isArrive = eventLog.get('task_event') === 'ARRIVE';
+    var isWritten = eventLog.get('task_event') === 'OTHER';
+
+
+    return isArrive || isWritten || exports.isAlarmEvent(eventLog);
 };
 
 exports.eventsMap = function (eventLogs, timeZone) {
@@ -117,7 +137,7 @@ exports.eventsMap = function (eventLogs, timeZone) {
     eventLogs = _.sortBy(eventLogs, function (log) {
         var date = log.get('deviceTimestamp');
 
-        if (exports.isArrivalEvent(log) && numberOfArrivals === 1) {
+        if (!exports.isAlarmEvent(log) && exports.isArrivalEvent(log) && numberOfArrivals === 1) {
             return Number.MIN_VALUE;
         }
 
@@ -135,8 +155,9 @@ exports.eventsMap = function (eventLogs, timeZone) {
         //
         // arrivedEvents: arrivedEvents,
 
-        arrivedTimestamps: _.map(eventLogs, function (log) {
-            if (exports.isArrivalEvent(log)) {
+        eventTimestamps: _.map(eventLogs, function (log) {
+            var isAlarmEvent = exports.isAlarmEvent(log) && (exports.isAcceptEvent(log) || exports.isAbortEvent(log)  ||  exports.isFinishEvent(log))
+            if (exports.isArrivalEvent(log) || isAlarmEvent) {
                 return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
             }
         }),

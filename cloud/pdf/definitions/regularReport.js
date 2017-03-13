@@ -35,10 +35,30 @@ exports.createDoc = function (report, settings, timeZone) {
 
     var backgroundHeaderImage = docDefaults.backgroundHeaderImage(settings);
 
+    var eventsContent = function () {
 
 
+        var pruneIndexes = [];
+        for (var i = 0; i<events.eventTimestamps.length; i++) {
+            var hasEventName = !!events.eventName[i];
+            if (!hasEventName) {
+                pruneIndexes.push(i);
+            }
+        }
 
-    var reportContent = function() {
+
+        _.pullAt(events.eventTimestamps, pruneIndexes);
+        _.pullAt(events.eventName, pruneIndexes);
+        _.pullAt(events.amount, pruneIndexes);
+        _.pullAt(events.people, pruneIndexes);
+        _.pullAt(events.location, pruneIndexes);
+        _.pullAt(events.remarks, pruneIndexes);
+
+
+        return _.zip(events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
+    };
+
+    var reportContent = function () {
         var content = [];
 
         // client info
@@ -53,28 +73,20 @@ exports.createDoc = function (report, settings, timeZone) {
         var reportedEvents = pdfUtils.tableWithBorder({
             widths: [50, '*', 25, '*', '*', '*'],
             header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
-            content:  _.zip(events.arrivedTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks)
+            content: eventsContent()
         });
 
-        console.log('reportedEvents: ', reportedEvents);
-
-        // todo: make part of report settings
-        // var noEventsText = ;
-        
         content.push(header);
         content.push(arrivalAndReportId);
-        // if (!_.isEmpty(writtenEvents)) {
-            content.push(reportedEvents);
+        content.push(reportedEvents);
 
-            if (events.writtenByGuard.length == 0){
-                content.push(
-                    {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [ 0, 10, 0, 0 ]}
-                )
-            }
-        // } else {
-        //     content.push(noEventsText);
-        // }
-        
+        var eventsWrittenbyGuard = _.compact(events.writtenByGuard);
+        if (eventsWrittenbyGuard.length == 0) {
+            content.push(
+                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
+            )
+        }
+
         return content;
     };
     return _.extend(docDefaults.doc(report, timeZone), {
