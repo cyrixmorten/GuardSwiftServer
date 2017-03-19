@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var moment = require('moment');
 var cpsms = require('../../api/cpsms');
 
 var handlers = require('../centrals/all');
@@ -52,6 +53,7 @@ var sendNotification = function(alarm) {
         var installationQuery = new Parse.Query(Parse.Installation);
         installationQuery.equalTo('owner', alarm.get('owner'));
         installationQuery.equalTo('channels', 'alarm');
+        installationQuery.greaterThan('updatedAt', moment().subtract(2, 'days').toDate());
 
         Parse.Push.send({
             where: installationQuery,
