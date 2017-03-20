@@ -19,30 +19,25 @@ exports.createDoc = function (report, settings, timeZone) {
 
     var events = reportUtils.reportEventsMap(report, timeZone);
 
-    // var arrivalTimestamps = function () {
-    //     if (_.isEmpty(events.arrivedTimestamps)) {
-    //         return '';
-    //     }
-    //
-    //     var arrivals = '';
-    //     var delimiter = ', ';
-    //     _.each(events.arrivedTimestamps, function (timestamp) {
-    //         arrivals += timestamp + delimiter;
-    //     });
-    //
-    //     return _.trimEnd(arrivals, delimiter);
-    // };
-
     var backgroundHeaderImage = docDefaults.backgroundHeaderImage(settings);
 
     var eventsContent = function () {
 
+
+        var hasAccepted = false;
 
         var pruneIndexes = [];
         for (var i = 0; i<events.eventTimestamps.length; i++) {
             var hasEventName = !!events.eventName[i];
             if (!hasEventName) {
                 pruneIndexes.push(i);
+            }
+
+            if (events.taskEvents[i] === 'ACCEPT') {
+                if (hasAccepted === true) {
+                    pruneIndexes.push(i);
+                }
+                hasAccepted = true;
             }
         }
 
@@ -65,7 +60,6 @@ exports.createDoc = function (report, settings, timeZone) {
         var header = docDefaults.contentHeader(report, backgroundHeaderImage);
         var arrivalAndReportId = pdfUtils.leftRightAlignedContent({
             textLeft: [],
-            // textLeft: ['Vægter var ved adressen kl: ', {text: arrivalTimestamps(), bold: true}],
             textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
             margin: [0, 10],
             style: {bold: true}

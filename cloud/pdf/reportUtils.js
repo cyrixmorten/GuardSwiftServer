@@ -144,6 +144,8 @@ exports.eventsMap = function (eventLogs, timeZone) {
         return date;
     });
 
+
+
     return {
         // all: reportEventLogs,
         //
@@ -154,6 +156,10 @@ exports.eventsMap = function (eventLogs, timeZone) {
         }),
         //
         // arrivedEvents: arrivedEvents,
+
+        taskEvents: _.map(eventLogs, function(log) {
+           return log.get('task_event');
+        }),
 
         eventTimestamps: _.map(eventLogs, function (log) {
             var isAlarmEvent = exports.isAlarmEvent(log) && (exports.isAcceptEvent(log) || exports.isAbortEvent(log)  ||  exports.isFinishEvent(log))
@@ -179,6 +185,7 @@ exports.eventsMap = function (eventLogs, timeZone) {
                 return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
             }
         }),
+
 
         eventName: _.map(eventLogs, function (log) {
             if (exports.isReportLog(log)) {
