@@ -23,23 +23,71 @@ exports.createDoc = function (report, settings, timeZone) {
 
     var eventsContent = function () {
 
-
-        var hasAccepted = false;
-
         var pruneIndexes = [];
-        for (var i = 0; i<events.eventTimestamps.length; i++) {
-            var hasEventName = !!events.eventName[i];
-            if (!hasEventName) {
-                pruneIndexes.push(i);
-            }
 
-            if (events.taskEvents[i] === 'ACCEPT') {
-                if (hasAccepted === true) {
+
+        var missingEventName = function() {
+            for (var i = 0; i<events.eventTimestamps.length; i++) {
+                var hasEventName = !!events.eventName[i];
+                if (!hasEventName) {
                     pruneIndexes.push(i);
                 }
-                hasAccepted = true;
             }
-        }
+        };
+
+        /*
+         * Alarms can be accepted by multiple guards, however there is no reason to write it more than once in the report
+         */
+        var onlyWriteAcceptOnce = function() {
+            var hasAccepted = false;
+            for (var i = 0; i<events.eventTimestamps.length; i++) {
+
+                if (events.taskEvents[i] === 'ACCEPT') {
+                    if (hasAccepted === true) {
+                        pruneIndexes.push(i);
+                    }
+                    hasAccepted = true;
+                }
+            }
+        };
+
+        var preferArrivalsWithinSchedule = function() {
+            var regularTask = report.get('circuitUnit');
+            if (!regularTask) {
+                return;
+            }
+
+            var supervisions = regularTask.get('supervisions');
+            var arrivalEvents = [];
+
+            // collect arrival events
+            for (var i = 0; i<events.eventTimestamps.length; i++) {
+                if (events.taskEvents[i] === 'ARRIVE') {
+                    arrivalEvents.push({
+                        event: events.all[i],
+                        index: i
+                    });
+                }
+            }
+
+            var extraArrivalsCount = arrivalEvents.length - supervisions;
+
+            if (extraArrivalsCount > 0) {
+                for (var j = 0; j<extraArrivalsCount; j++) {
+                    var arrivalEvent = arrivalEvents[j];
+
+                    var isWithinSchedule = arrivalEvent.event.get('withinSchedule');
+                    if (!isWithinSchedule) {
+                        pruneIndexes.push(arrivalEvent.index);
+                    }
+                }
+            }
+        };
+
+
+        missingEventName();
+        onlyWriteAcceptOnce();
+        preferArrivalsWithinSchedule();
 
 
         _.pullAt(events.eventTimestamps, pruneIndexes);

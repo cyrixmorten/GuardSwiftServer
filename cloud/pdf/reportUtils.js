@@ -16,9 +16,13 @@ exports.fetchReport = function (reportId) {
     query.include('client.contacts');
     query.include('eventLogs');
 
-    query.include('staticTask');
+
+    query.include('staticTask');    // Static
+    query.include('circuitUnit');   // Regular
+    query.include('task');          // Alarms
+
     query.include('circuitStarted');
-    query.include('districtWatchStarted');
+    query.include('districtWatchStarted'); // to be removed
 
     return query.first({useMasterKey: true});
 };
@@ -147,8 +151,7 @@ exports.eventsMap = function (eventLogs, timeZone) {
 
 
     return {
-        // all: reportEventLogs,
-        //
+        all: eventLogs,
         writtenByGuard: _.map(eventLogs, function (log) {
             if (exports.isWrittenByGuard(log)) {
                 return log;
