@@ -73,14 +73,26 @@ exports.createDoc = function (report, settings, timeZone) {
             var extraArrivalsCount = arrivalEvents.length - supervisions;
 
             if (extraArrivalsCount > 0) {
-                for (var j = 0; j<extraArrivalsCount; j++) {
-                    var arrivalEvent = arrivalEvents[j];
 
-                    var isWithinSchedule = arrivalEvent.event.get('withinSchedule');
-                    if (!isWithinSchedule) {
-                        pruneIndexes.push(arrivalEvent.index);
+                var pruneCount = 0;
+
+                var pruneExtraArrivals = function(ignoreSchedule) {
+                    for (var j = 0; j<arrivalEvents.length; j++) {
+                        var arrivalEvent = arrivalEvents[j];
+
+                        var isWithinSchedule = arrivalEvent.event.get('withinSchedule');
+                        var pruneDueToSchedule = ignoreSchedule || !isWithinSchedule;
+                        if (pruneDueToSchedule && pruneCount !== extraArrivalsCount) {
+                            pruneIndexes.push(arrivalEvent.index);
+                            pruneCount++;
+                        }
                     }
-                }
+                };
+
+
+                pruneExtraArrivals();
+                pruneExtraArrivals(true);
+
             }
         };
 
