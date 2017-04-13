@@ -17,9 +17,9 @@ var fetchReportSettings = function (report) {
         if (taskType === 'REGULAR') {
             return 'regularReportSettings';
         }
-        // if (taskType === 'DISTRICTWATCH') {
-        //     return 'districtReportSettings';
-        // }
+        if (taskType === 'RAID') {
+            return 'regularReportSettings';
+        }
         if (taskType === 'STATIC') {
             return 'staticReportSettings';
         }
