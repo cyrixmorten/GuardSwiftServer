@@ -1,18 +1,18 @@
 
-// Parse.Cloud.beforeSave("EventLog", function (request, response) {
-//
-//     var EventLog = request.object;
-//
-//     // avoid 'undefined' for automatic
-//     var automatic = EventLog.get('automatic');
-//     if (!automatic) {
-//         EventLog.set('automatic', false);
-//     }
-//
-//     response.success();
-//
-//
-// });
+Parse.Cloud.beforeSave("EventLog", function (request, response) {
+
+    var EventLog = request.object;
+
+    // avoid 'undefined' for automatic
+    var automatic = EventLog.get('automatic');
+    if (!automatic) {
+        EventLog.set('automatic', false);
+    }
+
+    response.success();
+
+
+});
 
 Parse.Cloud.afterSave("EventLog", function (request) {
 
