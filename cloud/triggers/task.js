@@ -74,13 +74,24 @@ var sendNotification = function(alarm) {
         var guardQuery = new Parse.Query("Guard");
         guardQuery.equalTo('owner', alarm.get('owner'));
         guardQuery.equalTo('alarmSMS', true);
-        guardQuery.exists('mobileNumber', true);
+        guardQuery.include('installation');
         guardQuery.each(function (guard) {
-            cpsms.send({
-                to: guard.get("mobileNumber"),
-                message: prefix + alarm.get("original"),
-                flash: true
-            });
+            var installation = guard.get('installation');
+
+            var guardMobile = guard.get('mobileNumber');
+            var installationMobile = installation ? installation.get('mobileNumber') : '';
+
+            if (guardMobile || installationMobile) {
+                var sendTo = (installationMobile) ? installationMobile : guardMobile;
+
+                cpsms.send({
+                    to: sendTo,
+                    message: prefix + alarm.get("original"),
+                    flash: true
+                });
+            } else {
+                console.error('Unable to send SMS to guard', guard.get('name'), 'no mobile number for installation or guard');
+            }
         }, { useMasterKey: true }).then(function() {
             console.log('SMS successfully sent for alarm', alarm.id);
         });
