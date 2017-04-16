@@ -96,11 +96,76 @@ exports.createDoc = function (report, settings, timeZone) {
             }
         };
 
+        var removeDuplicateTexts = function() {
+
+            // 1) collect comparables with concatenated text
+            var comparables = [];
+            for (var i = 0; i<events.eventName.length; i++) {
+
+                var event = events.eventName[i];
+
+                if (event) {
+                    var amount = events.amount[i];
+                    var people = events.people[i];
+                    var location = events.location[i];
+                    var remarks = events.remarks[i];
+
+                    comparables.push({
+                        text: _.join(_.compact([event, amount, people, location, remarks]), "_"),
+                        index: i,
+                        timestamp: events.all[i].get('deviceTimestamp')
+                    });
+                }
+            }
+
+            // 2) collect duplicates
+            var seenTexts = [];
+            var duplicates = [];
+            _.forEach(comparables, function(comparable) {
+
+                if (_.includes(seenTexts, comparable.text)) {
+                    duplicates.push(comparable);
+                }
+
+                seenTexts.push(comparable.text);
+            });
+
+            // 3) inspect time distance between duplicates
+            _.forEach(duplicates, function(duplicate) {
+
+                var duplicateTimestamp = moment(duplicate.timestamp);
+
+
+                var matchingComparables = _.filter(comparables, function(comparable) {
+                    var match = comparable.text === duplicate.text;
+                    var isBefore = moment(comparable.timestamp).isBefore(duplicateTimestamp);
+
+                    return match && isBefore;
+                });
+
+                var prune = false;
+                _.forEach(matchingComparables, function(comparable) {
+                    var diffMinutes = moment(comparable.timestamp).diff(duplicateTimestamp, 'minutes');
+
+                    if (diffMinutes < 15) {
+                        prune = true;
+                    }
+                });
+
+                if (prune) {
+                    pruneIndexes.push(duplicate.index);
+                }
+            })
+
+        };
 
         missingEventName();
         onlyWriteAcceptOnce();
         preferArrivalsWithinSchedule();
+        removeDuplicateTexts();
 
+        // uniq in case multiple strategies apply to same index
+        pruneIndexes = _.uniq(pruneIndexes);
 
         _.pullAt(events.eventTimestamps, pruneIndexes);
         _.pullAt(events.eventName, pruneIndexes);
