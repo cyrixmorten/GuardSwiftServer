@@ -57,7 +57,7 @@ exports.createDoc = function (report, settings, timeZone) {
                 return;
             }
 
-            var supervisions = regularTask.get('supervisions');
+            var supervisionsCount = regularTask.get('supervisions');
             var arrivalEvents = [];
 
             // collect arrival events
@@ -70,7 +70,7 @@ exports.createDoc = function (report, settings, timeZone) {
                 }
             }
 
-            var extraArrivalsCount = arrivalEvents.length - supervisions;
+            var extraArrivalsCount = arrivalEvents.length - supervisionsCount;
 
             if (extraArrivalsCount > 0) {
 
@@ -103,6 +103,12 @@ exports.createDoc = function (report, settings, timeZone) {
             for (var i = 0; i<events.eventName.length; i++) {
 
                 var event = events.eventName[i];
+
+
+                // only compare events written by guard
+                if (events.taskEvents[i] !== 'OTHER') {
+                    continue;
+                }
 
                 if (event) {
                     var amount = events.amount[i];
@@ -166,6 +172,7 @@ exports.createDoc = function (report, settings, timeZone) {
 
         // uniq in case multiple strategies apply to same index
         pruneIndexes = _.uniq(pruneIndexes);
+
 
         _.pullAt(events.eventTimestamps, pruneIndexes);
         _.pullAt(events.eventName, pruneIndexes);
