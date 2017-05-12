@@ -25,14 +25,11 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
         CircuitUnit.set('taskType', 'Driving');
     }
 
-    // inherit client position
-    var clientPointer = CircuitUnit.get('client');
+    response.success();
 
-    if (!clientPointer) {
-        response.error("Missing client pointer");
-    } else {
-        response.success();
-    }
+
+    // inherit client position
+    // var clientPointer = CircuitUnit.get('client');
 
     // console.log('clientPointer', clientPointer);
     //
