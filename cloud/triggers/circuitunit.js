@@ -30,6 +30,8 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
 
     if (!clientPointer) {
         response.error("Missing client pointer");
+    } else {
+        response.success();
     }
 
     // console.log('clientPointer', clientPointer);
