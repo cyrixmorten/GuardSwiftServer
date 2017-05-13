@@ -25,27 +25,28 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
         CircuitUnit.set('taskType', 'Driving');
     }
 
-    response.success();
 
 
     // inherit client position
-    // var clientPointer = CircuitUnit.get('client');
+    var hasPosition = CircuitUnit.has('clientPosition')
+    var clientPointer = CircuitUnit.get('client');
 
     // console.log('clientPointer', clientPointer);
     //
     // // TODO Update task positions in client afterSave
-    // if (clientPointer) {
-    //     clientPointer.fetch({ useMasterKey: true }).then(function (client) {
-    //         CircuitUnit.set('clientId', client.get('clientId'));
-    //         CircuitUnit.set('clientName', client.get('name'));
-    //         CircuitUnit.set('clientPosition', client.get('position'));
-    //         response.success();
-    //     }).fail(function(error) {
-    //         console.error('Failed to fetch clientPointer: ' + clientPointer);
-    //         response.success();
-    //     });
-    // } else {
-    //     response.error("Missing client pointer");
-    // }
+
+    if (clientPointer && !hasPosition) {
+        clientPointer.fetch({ useMasterKey: true }).then(function (client) {
+            CircuitUnit.set('clientId', client.get('clientId'));
+            CircuitUnit.set('clientName', client.get('name'));
+            CircuitUnit.set('clientPosition', client.get('position'));
+            response.success();
+        }).fail(function(error) {
+            console.error('Failed to fetch clientPointer: ' + clientPointer);
+            response.success();
+        });
+    } else {
+        response.success();
+    }
 
 });
