@@ -3,13 +3,13 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
     var CircuitUnit = request.object;
 
     // client pointer has been updated
-    // if (!CircuitUnit.isNew() && CircuitUnit.dirty('client')) {
-    //     // and is empty
-    //     if (!CircuitUnit.get('client')) {
-    //         response.error('Not allowed to delete client pointer');
-    //         return;
-    //     }
-    // }
+    if (!CircuitUnit.isNew() && CircuitUnit.dirty('client')) {
+        // and is empty
+        if (!CircuitUnit.get('client')) {
+            response.error('Not allowed to delete client pointer');
+            return;
+        }
+    }
 
     // Set default values
     if (!CircuitUnit.has('supervisions')) {
