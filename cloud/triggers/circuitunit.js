@@ -2,10 +2,14 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
 
     var CircuitUnit = request.object;
 
-    if (!CircuitUnit.isNew() && CircuitUnit.dirty('client')) {
-            response.error('Not allowed to change client pointer');
-            return;
-    }
+    // client pointer has been updated
+    // if (!CircuitUnit.isNew() && CircuitUnit.dirty('client')) {
+    //     // and is empty
+    //     if (!CircuitUnit.get('client')) {
+    //         response.error('Not allowed to delete client pointer');
+    //         return;
+    //     }
+    // }
 
     // Set default values
     if (!CircuitUnit.has('supervisions')) {
@@ -40,12 +44,12 @@ Parse.Cloud.beforeSave("CircuitUnit", function (request, response) {
     // // TODO Update task positions in client afterSave
 
     if (clientPointer && !hasPosition) {
-        clientPointer.fetch({ useMasterKey: true }).then(function (client) {
+        clientPointer.fetch({useMasterKey: true}).then(function (client) {
             CircuitUnit.set('clientId', client.get('clientId'));
             CircuitUnit.set('clientName', client.get('name'));
             CircuitUnit.set('clientPosition', client.get('position'));
             response.success();
-        }).fail(function(error) {
+        }).fail(function (error) {
             console.error('Failed to fetch clientPointer: ' + clientPointer);
             response.success();
         });
