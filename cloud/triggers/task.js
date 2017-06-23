@@ -55,23 +55,24 @@ var sendNotification = function(alarm) {
         installationQuery.equalTo('channels', 'alarm');
         installationQuery.greaterThan('updatedAt', moment().subtract(7, 'days').toDate());
 
-        installationQuery.find({ useMasterKey: true }).then(function(installations) {
+        return installationQuery.find({ useMasterKey: true }).then(function(installations) {
             console.log('Sending push to installations', installations.length);
             _.forEach(installations, function(installation) {
                 console.log('installation: ', installation.get('name'), installation.id);
             })
-        });
-
-        Parse.Push.send({
-            where: installationQuery,
-            expiration_interval: 600,
-            data: {
-                alarmId: alarm.id
-            }
-        }, { useMasterKey: true }).then(function() {
-            console.log('Push notification successfully sent for alarm', alarm.id);
-        }).fail(function(e) {
-            console.error('Error sending push notification', e);
+        }).then(function() {
+            return Parse.Push.send({
+                where: installationQuery,
+                expiration_interval: 600,
+                data: {
+                    alarmId: alarm.id
+                }
+            }, { useMasterKey: true })
+            .then(function() {
+                console.log('Push notification successfully sent for alarm', alarm.id);
+            }).fail(function(e) {
+                console.error('Error sending push notification', e);
+            });
         });
     };
 
@@ -83,33 +84,41 @@ var sendNotification = function(alarm) {
         guardQuery.equalTo('owner', alarm.get('owner'));
         guardQuery.equalTo('alarmSMS', true);
         guardQuery.include('installation');
-        guardQuery.find({ useMasterKey: true }).then(function (guards) {
+        return guardQuery.find({ useMasterKey: true }).then(function (guards) {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
+
+            var smsPromises = [];
 
             _.forEach(guards, function(guard) {
                 var installation = guard.get('installation');
                 var guardMobile = guard.get('mobileNumber');
                 var installationMobile = installation ? installation.get('mobileNumber') : '';
 
+                console.log('Sending to',  guard.get('name'), guardMobile, installationMobile);
+
                 if (guardMobile || installationMobile) {
                     var sendTo = (installationMobile) ? installationMobile : guardMobile;
 
-                    console.log('Sending to',  guard.get('name'), sendTo);
-
-                    cpsms.send({
+                    var smsPromise = cpsms.send({
                         to: sendTo,
                         message: prefix + alarm.get("original"),
                         flash: true
                     });
+
+                    smsPromises.push(smsPromise)
                 } else {
                     console.error('Unable to send SMS to guard', guard.get('name'), 'no mobile number for installation or guard');
                 }
             });
+
+            return Parse.Promise.when(smsPromises);
         });
     };
 
-    sendPushNotification();
-    sendSMS();
+
+    return sendPushNotification().always(function() {
+        sendSMS()
+    });
 };
 
 var alarmUpdate = function(task) {
