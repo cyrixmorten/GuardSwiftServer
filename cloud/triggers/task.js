@@ -141,7 +141,7 @@ var alarmUpdate = function(task) {
                 sendNotification(task).then(function() {
                     console.log('Done sending notification for alarm', task.id);
                 }).fail(function(e) {
-                    console.error('Error sending notigication for alarm', task.id, e);
+                    console.error('Error sending notification for alarm', task.id, e);
                 });
 
                 break;

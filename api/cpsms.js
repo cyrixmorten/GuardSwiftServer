@@ -61,14 +61,12 @@ exports.send = function (params) {
 
     console.log('Sending SMS: ', options.body);
 
-    var error = {};
     return rp(options).then(function (parsedBody) {
         console.log(parsedBody);
+        saveSMSLog(to, from, message, limit);
     }).catch(function (err) {
         console.log(err.message);
-        error = err;
-    }).always(function () {
-        saveSMSLog(to, from, message, limit, error);
+        saveSMSLog(to, from, message, limit, err);
     });
 
 };
