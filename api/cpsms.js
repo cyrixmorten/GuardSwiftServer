@@ -3,8 +3,6 @@ var rp = require('request-promise');
 var _ = require('lodash');
 
 var saveSMSLog = function (to, from, message, limit, error) {
-    console.log('saveSMSLog', to, from);
-
     var SMSLog = Parse.Object.extend('SMSLog');
     var smsLog = new SMSLog();
     smsLog.set('to', to);
@@ -13,9 +11,7 @@ var saveSMSLog = function (to, from, message, limit, error) {
     smsLog.set('limit', limit);
     smsLog.set('error', error);
 
-    return smsLog.save(null, {useMasterKey: true}).then(function() {
-        console.log('SMSLog saved');
-    }).fail(function(e) {
+    return smsLog.save(null, {useMasterKey: true}).fail(function(e) {
         console.error('Error saving SMSLog', e);
     });
 };
@@ -39,8 +35,8 @@ exports.receive = function (req, res) {
 
 exports.send = function (params) {
 
-    var to = params.to || '';
-    var from = params.from || '';
+    var to = _.replace(params.to, '+', '');
+    var from = _.replace(from, '+45', '') || 'GUARDSWIFT';
     var message = params.message || '';
     var limit = params.limit;
 
@@ -51,8 +47,8 @@ exports.send = function (params) {
             'Authorization': 'Basic ' + new Buffer('cyrix:' + process.env.CPSMS_API_KEY).toString('base64')
         },
         body: {
-            to: _.replace(to, '+', ''),
-            from: _.replace(from, '+45', '') || 'GUARDSWIFT',
+            to: to,
+            from: from,
             message: limit ? message.substring(0, limit) : message,
             flash: 0//params.flash ? 1 : 0
         },
@@ -62,10 +58,10 @@ exports.send = function (params) {
     console.log('Sending SMS: ', options.body);
 
     return rp(options).then(function (parsedBody) {
-        console.log(parsedBody);
+        console.log('SMS sent', options.body);
         saveSMSLog(to, from, message, limit);
     }).catch(function (err) {
-        console.log(err.message);
+        console.log('SMS failed', options.body, err);
         saveSMSLog(to, from, message, limit, err);
     });
 

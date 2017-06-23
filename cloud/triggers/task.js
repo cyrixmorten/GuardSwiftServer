@@ -87,8 +87,6 @@ var sendNotification = function(alarm) {
         return guardQuery.find({ useMasterKey: true }).then(function (guards) {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
 
-            console.log('guards: ', guards);
-
             var smsPromises = [];
 
             _.forEach(guards, function(guard) {
