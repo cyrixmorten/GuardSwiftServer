@@ -3,6 +3,8 @@ var rp = require('request-promise');
 var _ = require('lodash');
 
 var saveSMSLog = function (to, from, message, limit, error) {
+    console.log('saveSMSLog', to, from);
+
     var SMSLog = Parse.Object.extend('SMSLog');
     var smsLog = new SMSLog();
     smsLog.set('to', to);
@@ -10,7 +12,12 @@ var saveSMSLog = function (to, from, message, limit, error) {
     smsLog.set('message', message);
     smsLog.set('limit', limit);
     smsLog.set('error', error);
-    smsLog.save(null, {useMasterKey: true});
+
+    return smsLog.save(null, {useMasterKey: true}).then(function() {
+        console.log('SMSLog saved');
+    }).fail(function(e) {
+        console.error('Error saving SMSLog', e);
+    });
 };
 
 exports.receive = function (req, res) {

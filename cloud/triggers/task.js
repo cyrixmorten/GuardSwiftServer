@@ -87,6 +87,8 @@ var sendNotification = function(alarm) {
         return guardQuery.find({ useMasterKey: true }).then(function (guards) {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
 
+            console.log('guards: ', guards);
+
             var smsPromises = [];
 
             _.forEach(guards, function(guard) {
@@ -117,7 +119,7 @@ var sendNotification = function(alarm) {
 
 
     return sendPushNotification().always(function() {
-        sendSMS()
+        return sendSMS()
     });
 };
 
@@ -132,11 +134,16 @@ var alarmUpdate = function(task) {
         switch (status) {
             case states.PENDING: {
 
-                sendNotification(task);
-
                 _.forEach(handlers, function(handler) {
                     handler.handlePending(task);
                 });
+
+                sendNotification(task).then(function() {
+                    console.log('Done sending notification for alarm', task.id);
+                }).fail(function(e) {
+                    console.error('Error sending notigication for alarm', task.id, e);
+                });
+
                 break;
             }
             case states.ACCEPTED: {
