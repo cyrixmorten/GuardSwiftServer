@@ -58,7 +58,7 @@ var sendNotification = function(alarm) {
         installationQuery.find({ useMasterKey: true }).then(function(installations) {
             console.log('Sending push to installations', installations.length);
             _.forEach(installations, function(installation) {
-                console.log('installation.id: ', installation.id);
+                console.log('installation: ', installation.get('name'), installation.id);
             })
         });
 
