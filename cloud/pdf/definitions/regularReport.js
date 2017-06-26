@@ -197,7 +197,7 @@ exports.createDoc = function (report, settings, timeZone) {
             style: {bold: true}
         });
         var reportedEvents = pdfUtils.tableWithBorder({
-            widths: [50, '*', 25, '*', '*', '*'],
+            widths: [50, '*', 30, '*', '*', '*'],
             header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
             content: eventsContent()
         });
@@ -207,7 +207,7 @@ exports.createDoc = function (report, settings, timeZone) {
         content.push(reportedEvents);
 
         var eventsWrittenbyGuard = _.compact(events.writtenByGuard);
-        if (eventsWrittenbyGuard.length == 0) {
+        if (eventsWrittenbyGuard.length === 0) {
             content.push(
                 {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
             )
