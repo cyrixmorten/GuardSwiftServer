@@ -32,13 +32,19 @@ exports.findUser = function (receiver) {
     return query.first({useMasterKey: true});
 };
 
-exports.findClient = function (user, fullAddress) {
-    console.log('findClient', user, fullAddress);
+exports.findClient = function (user, queryMap) {
+    console.log('findClient', user, queryMap);
 
     var Client = Parse.Object.extend("Client");
     var query = new Parse.Query(Client);
     query.equalTo('owner', user);
-    query.equalTo('fullAddress', fullAddress);
+
+    _.forOwn(queryMap, function(value, key) {
+        if (!_.isUndefined(value)) {
+            query.equalTo(key, value);
+        }
+    });
+
 
     return query.first({useMasterKey: true});
 };
