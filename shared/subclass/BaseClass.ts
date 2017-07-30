@@ -1,0 +1,28 @@
+export abstract class BaseClass extends Parse.Object {
+
+    static readonly _owner = 'owner';
+    static readonly _archive = 'archive';
+
+
+    get owner(): Parse.User {
+        return this.get(BaseClass._owner)
+    }
+
+    set owner(user: Parse.User) {
+        this.set(BaseClass._owner, user);
+    }
+
+    get archive(): boolean {
+        return this.get(BaseClass._archive);
+    }
+
+    set archive(archive: boolean) {
+        this.set(BaseClass._archive, archive);
+    }
+
+    copyAttributes(fromObject: Parse.Object) {
+        Object.keys(fromObject.attributes).forEach((fieldName) => {
+            this.set(fieldName, fromObject.get(fieldName));
+        });
+    }
+}

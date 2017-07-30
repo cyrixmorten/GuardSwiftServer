@@ -25,7 +25,7 @@ exports.toDoc = function(reportId) {
         return reportToDoc.createDoc(report)
     })
     .fail(function(error) {
-        return new Parse.Promise.error({
+        return Parse.Promise.error({
             message: 'Error during Document creation',
             error: error
         });

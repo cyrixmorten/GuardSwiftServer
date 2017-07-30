@@ -30,7 +30,7 @@ exports.toPdf = function(reportId) {
             return reportUtils.generatePDF(docDefinition);
         })
         .fail(function(error) {
-                return new Parse.Promise.error({
+                return Parse.Promise.error({
                     message: 'Error during PDF creation',
                     error: error
                 });

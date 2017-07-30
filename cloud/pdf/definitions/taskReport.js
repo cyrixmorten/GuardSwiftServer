@@ -31,7 +31,7 @@ var fetchReportSettings = function (report) {
         console.log('settingsCol: ' + settingsCol);
 
         if (_.isEmpty(settingsCol)) {
-            return new Parse.Promise.error('No definition matching report');
+            return Parse.Promise.error('No definition matching report');
         }
 
         return reportUtils.fetchUser(report).then(function (user) {

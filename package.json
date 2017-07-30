@@ -9,6 +9,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@types/request": "^2.0.0",
+    "@types/request-promise": "^4.1.36",
+    "bluebird": "^3.5.0",
     "cron": "^1.1.1",
     "dotenv": "^2.0.0",
     "express": "~4.11.x",
@@ -20,9 +23,10 @@
     "parse": "~1.8.0",
     "parse-server": "*",
     "pdfmake": "^0.1.26",
-    "request": "^2.78.0",
-    "request-promise": "^4.1.1",
+    "request": "^2.81.0",
+    "request-promise": "^4.2.1",
     "require-environment-variables": "^1.1.2",
+    "require-glob": "^3.2.0",
     "sendgrid": "^4.7.1",
     "twilio": "^2.11.0"
   },
@@ -33,6 +37,7 @@
     "node": ">=4.3"
   },
   "devDependencies": {
-    "parse-server-push-adapter": "^1.1.0"
+    "parse-server-push-adapter": "^1.1.0",
+    "typescript": "^2.4.2"
   }
 }
