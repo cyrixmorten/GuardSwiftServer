@@ -76,14 +76,14 @@ var ResetTasks = (function () {
         var abortedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ABORTED).build();
         var finishedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.FINISHED).build();
         var timesArrivedQuery = new Task_1.TaskQuery().whereTimesArrivedGreaterThan(0).build();
-        // let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
-        var mainQuery = new Task_1.TaskQuery().build();
+        var mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
         mainQuery.equalTo(Task_1.Task._taskGroup, taskGroup);
         return mainQuery.each(function (task) {
-            console.log('Reseting task', task.clientName, task.name);
+            console.log('Resetting task', task.clientName, task.name);
             task.status = Task_1.TaskStatus.PENDING;
             task.guard = undefined;
             task.timesArrived = 0;
+            return task.save(null, { useMasterKey: true });
         }, { useMasterKey: true });
     };
     return ResetTasks;

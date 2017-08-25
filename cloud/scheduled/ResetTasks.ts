@@ -98,17 +98,18 @@ export class ResetTasks {
         let finishedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.FINISHED).build();
         let timesArrivedQuery = new TaskQuery().whereTimesArrivedGreaterThan(0).build();
 
-        // let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
-        let mainQuery = new TaskQuery().build();
+        let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
         mainQuery.equalTo(Task._taskGroup, taskGroup);
 
         return mainQuery.each((task: Task) => {
 
-            console.log('Reseting task', task.clientName, task.name);
+            console.log('Resetting task', task.clientName, task.name);
 
             task.status = TaskStatus.PENDING;
             task.guard = undefined;
-            task.timesArrived = 0
+            task.timesArrived = 0;
+
+            return task.save(null, { useMasterKey: true } )
         }, {useMasterKey: true})
 
     }
