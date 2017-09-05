@@ -1,18 +1,8 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var BaseClass_1 = require("./BaseClass");
-var QueryBuilder_1 = require("../QueryBuilder");
-var _ = require("lodash");
+const BaseClass_1 = require("./BaseClass");
+const QueryBuilder_1 = require("../QueryBuilder");
+const _ = require("lodash");
 var TaskStatus;
 (function (TaskStatus) {
     TaskStatus[TaskStatus["PENDING"] = 'pending'] = "PENDING";
@@ -27,123 +17,87 @@ var TaskType;
     TaskType[TaskType["STATIC"] = 'Static'] = "STATIC";
     TaskType[TaskType["ALARM"] = 'Alarm'] = "ALARM";
 })(TaskType = exports.TaskType || (exports.TaskType = {}));
-var Task = (function (_super) {
-    __extends(Task, _super);
-    function Task() {
-        return _super.call(this, Task.className) || this;
+class Task extends BaseClass_1.BaseClass {
+    constructor() {
+        super(Task.className);
     }
-    Object.defineProperty(Task.prototype, "name", {
-        get: function () {
-            return this.get(Task._name);
-        },
-        set: function (name) {
-            this.set(Task._name, name);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "status", {
-        get: function () {
-            return this.get(Task._status);
-        },
-        set: function (status) {
-            this.set(Task._status, status);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "taskType", {
-        get: function () {
-            return this.get(Task._taskType);
-        },
-        set: function (taskType) {
-            this.set(Task._taskType, taskType);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "taskGroup", {
-        get: function () {
-            return this.get(Task._taskGroup);
-        },
-        set: function (taskGroup) {
-            this.set(Task._taskGroup, taskGroup);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "timesArrived", {
-        get: function () {
-            return this.get(Task._timesArrived);
-        },
-        set: function (timesArrived) {
-            this.set(Task._timesArrived, timesArrived);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "guard", {
-        get: function () {
-            return this.get(Task._guard);
-        },
-        set: function (guard) {
-            if (_.isUndefined(guard)) {
-                this.unset(Task._guard);
-                return;
-            }
-            this.set(Task._guard, guard);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "clientId", {
-        get: function () {
-            return this.get(Task._clientId);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(Task.prototype, "clientName", {
-        get: function () {
-            return this.get(Task._clientName);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Task.className = 'Task';
-    Task._name = 'name';
-    Task._guard = 'guard';
-    Task._status = 'status';
-    Task._taskType = 'taskType';
-    Task._taskGroup = 'taskGroup';
-    Task._timesArrived = 'timesArrived';
-    Task._clientId = 'clientId';
-    Task._clientName = 'clientName';
-    return Task;
-}(BaseClass_1.BaseClass));
+    get name() {
+        return this.get(Task._name);
+    }
+    set name(name) {
+        this.set(Task._name, name);
+    }
+    get status() {
+        return this.get(Task._status);
+    }
+    set status(status) {
+        this.set(Task._status, status);
+    }
+    get taskType() {
+        return this.get(Task._taskType);
+    }
+    set taskType(taskType) {
+        this.set(Task._taskType, taskType);
+    }
+    get taskGroup() {
+        return this.get(Task._taskGroup);
+    }
+    set taskGroup(taskGroup) {
+        this.set(Task._taskGroup, taskGroup);
+    }
+    get timesArrived() {
+        return this.get(Task._timesArrived);
+    }
+    set timesArrived(timesArrived) {
+        this.set(Task._timesArrived, timesArrived);
+    }
+    set guard(guard) {
+        if (_.isUndefined(guard)) {
+            this.unset(Task._guard);
+            return;
+        }
+        this.set(Task._guard, guard);
+    }
+    get guard() {
+        return this.get(Task._guard);
+    }
+    get clientId() {
+        return this.get(Task._clientId);
+    }
+    get clientName() {
+        return this.get(Task._clientName);
+    }
+}
+Task.className = 'Task';
+Task._name = 'name';
+Task._guard = 'guard';
+Task._status = 'status';
+Task._taskType = 'taskType';
+Task._taskGroup = 'taskGroup';
+Task._timesArrived = 'timesArrived';
+Task._clientId = 'clientId';
+Task._clientName = 'clientName';
 exports.Task = Task;
-var TaskQuery = (function (_super) {
-    __extends(TaskQuery, _super);
-    function TaskQuery() {
-        return _super.call(this, Task) || this;
+class TaskQuery extends QueryBuilder_1.QueryBuilder {
+    constructor() {
+        super(Task);
     }
-    TaskQuery.prototype.matchingTaskGroup = function (taskGroup) {
+    matchingTaskGroup(taskGroup) {
         this.query.equalTo(Task._taskGroup, taskGroup);
         return this;
-    };
-    TaskQuery.prototype.matchingTaskType = function (taskType) {
+    }
+    matchingTaskType(taskType) {
         this.query.equalTo(Task._taskType, taskType);
         return this;
-    };
-    TaskQuery.prototype.matchingTaskStatus = function (taskStatus) {
+    }
+    matchingTaskStatus(taskStatus) {
         this.query.equalTo(Task._status, taskStatus);
         return this;
-    };
-    TaskQuery.prototype.whereTimesArrivedGreaterThan = function (timesArrived) {
+    }
+    whereTimesArrivedGreaterThan(timesArrived) {
         this.query.greaterThan(Task._timesArrived, timesArrived);
         return this;
-    };
-    return TaskQuery;
-}(QueryBuilder_1.QueryBuilder));
+    }
+}
 exports.TaskQuery = TaskQuery;
 //# sourceMappingURL=Task.js.map

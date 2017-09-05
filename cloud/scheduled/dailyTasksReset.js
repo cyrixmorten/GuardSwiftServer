@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var _ = require("lodash");
-var rp = require("request-promise");
-var ResetTasks_1 = require("./ResetTasks");
+const _ = require("lodash");
+const rp = require("request-promise");
+const ResetTasks_1 = require("./ResetTasks");
 Parse.Cloud.job("forceResetTasks", function (request, status) {
     return rp({
         method: "POST",
@@ -16,9 +16,9 @@ Parse.Cloud.job("forceResetTasks", function (request, status) {
             'force': true
         }
     })
-        .then(function () {
+        .then(() => {
         status.success("Successfully forced reset of all tasks");
-    }).catch(function (error) {
+    }).catch((error) => {
         console.error(error);
         status.error(error.message);
     });

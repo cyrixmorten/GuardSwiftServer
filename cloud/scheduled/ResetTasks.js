@@ -1,39 +1,38 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var TaskGroup_1 = require("../../shared/subclass/TaskGroup");
-var TaskGroupStarted_1 = require("../../shared/subclass/TaskGroupStarted");
-var Task_1 = require("../../shared/subclass/Task");
-var rp = require("request-promise");
-var ResetTasks = (function () {
-    function ResetTasks(force) {
+const TaskGroup_1 = require("../../shared/subclass/TaskGroup");
+const TaskGroupStarted_1 = require("../../shared/subclass/TaskGroupStarted");
+const Task_1 = require("../../shared/subclass/Task");
+const rp = require("request-promise");
+class ResetTasks {
+    constructor(force) {
         this.force = force;
-        var now = new Date();
+        let now = new Date();
         this.now_day = now.getHours();
         this.now_day = now.getDay();
     }
-    ResetTasks.prototype.run = function () {
-        var _this = this;
-        return this.ensureMigrated().then(function () {
-            var queryTaskGroups = new Parse.Query(TaskGroup_1.TaskGroup);
-            if (!_this.force) {
-                queryTaskGroups.notEqualTo(TaskGroup_1.TaskGroup._createdDay, _this.now_day);
+    run() {
+        return this.ensureMigrated().then(() => {
+            let queryTaskGroups = new Parse.Query(TaskGroup_1.TaskGroup);
+            if (!this.force) {
+                queryTaskGroups.notEqualTo(TaskGroup_1.TaskGroup._createdDay, this.now_day);
             }
             queryTaskGroups.doesNotExist(TaskGroup_1.TaskGroup._archive);
-            return queryTaskGroups.each(function (taskGroup) {
+            return queryTaskGroups.each((taskGroup) => {
                 console.log('------');
-                console.log('Reseting TaskGroup: ', taskGroup.name);
+                console.log('Resetting TaskGroup: ', taskGroup.name);
                 console.log('Is run today: ', taskGroup.isRunToday());
                 console.log('Hours until reset: ', taskGroup.hoursUntilReset());
-                if (_this.force || taskGroup.resetNow()) {
-                    return _this.resetTaskGroupsStartedMatching(taskGroup)
-                        .then(function () { return _this.resetRegularTasksMatching(taskGroup); });
+                if (this.force || taskGroup.resetNow()) {
+                    return this.resetTaskGroupsStartedMatching(taskGroup)
+                        .then(() => this.resetRegularTasksMatching(taskGroup));
                 }
             }, { useMasterKey: true });
         });
-    };
+    }
     // TODO remove when Circuit tasks are no longer being used
-    ResetTasks.prototype.ensureMigrated = function () {
-        var options = {
+    ensureMigrated() {
+        let options = {
             headers: {
                 'X-Parse-Application-Id': process.env.APP_ID,
                 'X-Parse-Master-Key': process.env.MASTER_KEY,
@@ -43,23 +42,22 @@ var ResetTasks = (function () {
         };
         console.log('options: ', options);
         return rp.post(process.env.SERVER_URL + '/jobs/MigrateAll', options);
-    };
-    ResetTasks.prototype.resetTaskGroupsStartedMatching = function (taskGroup) {
-        var _this = this;
+    }
+    resetTaskGroupsStartedMatching(taskGroup) {
         return new TaskGroupStarted_1.TaskGroupStartedQuery()
             .matchingTaskGroup(taskGroup)
             .notEnded()
             .build()
-            .each(function (taskGroupStarted) {
+            .each((taskGroupStarted) => {
             // finish matching
             taskGroupStarted.timeEnded = new Date();
             console.log('Reseting group started: ', taskGroupStarted.name);
-            var promises = [
+            let promises = [
                 taskGroupStarted.save(null, { useMasterKey: true })
             ];
             if (taskGroup.isRunToday()) {
-                taskGroup.createdDay = _this.now_hours;
-                var newTaskGroupStarted = new TaskGroupStarted_1.TaskGroupStarted();
+                taskGroup.createdDay = this.now_hours;
+                let newTaskGroupStarted = new TaskGroupStarted_1.TaskGroupStarted();
                 newTaskGroupStarted.copyAttributes(taskGroupStarted);
                 newTaskGroupStarted.timeEnded = undefined;
                 newTaskGroupStarted.timeStarted = new Date();
@@ -70,23 +68,22 @@ var ResetTasks = (function () {
             }
             return Parse.Promise.when(promises);
         }, { useMasterKey: true });
-    };
-    ResetTasks.prototype.resetRegularTasksMatching = function (taskGroup) {
-        var arrivedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ARRIVED).build();
-        var abortedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ABORTED).build();
-        var finishedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.FINISHED).build();
-        var timesArrivedQuery = new Task_1.TaskQuery().whereTimesArrivedGreaterThan(0).build();
-        var mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
+    }
+    resetRegularTasksMatching(taskGroup) {
+        let arrivedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ARRIVED).build();
+        let abortedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ABORTED).build();
+        let finishedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.FINISHED).build();
+        let timesArrivedQuery = new Task_1.TaskQuery().whereTimesArrivedGreaterThan(0).build();
+        let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
         mainQuery.equalTo(Task_1.Task._taskGroup, taskGroup);
-        return mainQuery.each(function (task) {
+        return mainQuery.each((task) => {
             console.log('Resetting task', task.clientName, task.name);
             task.status = Task_1.TaskStatus.PENDING;
             task.guard = undefined;
             task.timesArrived = 0;
             return task.save(null, { useMasterKey: true });
         }, { useMasterKey: true });
-    };
-    return ResetTasks;
-}());
+    }
+}
 exports.ResetTasks = ResetTasks;
 //# sourceMappingURL=ResetTasks.js.map

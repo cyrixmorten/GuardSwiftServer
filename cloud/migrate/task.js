@@ -1,33 +1,33 @@
-var _ = require('lodash');
-var excludeMigrated = function (query) {
+let _ = require('lodash');
+let excludeMigrated = function (query) {
     query.notEqualTo('isMigrated', true);
 };
-var markMigratedAndSave = function (object) {
+let markMigratedAndSave = function (object) {
     object.set('isMigrated', true);
     return object.save(null, { useMasterKey: true });
 };
-var migratePointer = function (pointer, toClass, toColName, object) {
+let migratePointer = function (pointer, toClass, toColName, object) {
     console.log('migratePointer', pointer, toClass, toColName);
     if (!pointer) {
         return Parse.Promise.as('');
     }
-    var query = new Parse.Query(toClass);
+    let query = new Parse.Query(toClass);
     query.equalTo('prevId', pointer.id);
-    return query.first({ useMasterKey: true }).then(function (newPointerObject) {
+    return query.first({ useMasterKey: true }).then((newPointerObject) => {
         if (!newPointerObject) {
             throw new Error(toClass + ' not found');
         }
-        var pointer = Parse.Object.extend(toClass).createWithoutData(newPointerObject.id);
+        let pointer = Parse.Object.extend(toClass).createWithoutData(newPointerObject.id);
         object.set(toColName, pointer);
         console.log('Writing pointer', toColName, pointer);
         return newPointerObject;
-    }, function (e) {
+    }, (e) => {
         console.error(e);
         return Parse.Promise.as('');
     });
 };
-var migrateRegularTasks = function (forClass) {
-    var query = new Parse.Query(forClass);
+let migrateRegularTasks = function (forClass) {
+    let query = new Parse.Query(forClass);
     query.exists('circuitStarted');
     excludeMigrated(query);
     return query.each(function (object) {
@@ -41,8 +41,8 @@ var migrateRegularTasks = function (forClass) {
         });
     }, { useMasterKey: true });
 };
-var migrateStaticTasks = function (forClass) {
-    var query = new Parse.Query(forClass);
+let migrateStaticTasks = function (forClass) {
+    let query = new Parse.Query(forClass);
     excludeMigrated(query);
     return query.each(function (object) {
         return migratePointer('staticTask', 'Task', 'task', object)
@@ -54,21 +54,22 @@ var migrateStaticTasks = function (forClass) {
         });
     }, { useMasterKey: true });
 };
-var migrate = function (options, beforeAttr, beforeSave) {
+let migrate = function (options, beforeAttr, beforeSave) {
     console.log('perform migrate', options);
-    var prevQuery = new Parse.Query(options.fromClass);
+    let prevQuery = new Parse.Query(options.fromClass);
     excludeMigrated(prevQuery);
+    //
     // prevQuery.addDescending('createdAt');
     // prevQuery.limit(10);
     // return prevQuery.find({useMasterKey: true}).then((prevObjects) => {
     //     _.forEach(prevObjects, (prevObject) => {
     return prevQuery.each(function (prevObject) {
         console.log('Look for existing', options.toClass, options.toClass);
-        var existingQuery = new Parse.Query(options.toClass);
+        let existingQuery = new Parse.Query(options.toClass);
         existingQuery.equalTo('prevId', prevObject.id);
         return existingQuery.first({ useMasterKey: true }).then(function (exsitingObject) {
-            var NewClass = Parse.Object.extend(options.toClass);
-            var newObject = new NewClass();
+            let NewClass = Parse.Object.extend(options.toClass);
+            let newObject = new NewClass();
             if (exsitingObject) {
                 console.log('Found existing:', exsitingObject.id);
                 newObject = exsitingObject;
@@ -77,10 +78,10 @@ var migrate = function (options, beforeAttr, beforeSave) {
                 console.log('Creating new');
             }
             console.log('prevObject.attributes: ', prevObject.attributes);
-            var fieldNames = [];
+            let fieldNames = [];
             // copy attributes
             Object.keys(prevObject.attributes).forEach(function (fieldName) {
-                var attribute = fieldName;
+                let attribute = fieldName;
                 if (_.isFunction(beforeAttr)) {
                     attribute = beforeAttr(fieldName);
                 }
@@ -94,7 +95,7 @@ var migrate = function (options, beforeAttr, beforeSave) {
                 newObject.set('taskType', options.taskType);
             }
             newObject.set('prevId', prevObject.id);
-            var beforeSavePromise = function () {
+            let beforeSavePromise = function () {
                 if (_.isFunction(beforeSave)) {
                     console.log('Calling beforeSaveCallback');
                     return beforeSave(prevObject, newObject);
@@ -122,7 +123,7 @@ Parse.Cloud.define("MigrateCircuit", function (request, status) {
         toClass: "TaskGroup",
         taskType: "Regular"
     }, function (attr) {
-        var ignore = ['timeReset', 'timeStart', 'timeEnd', 'districtWatches', 'isMigrated'];
+        let ignore = ['timeReset', 'timeStart', 'timeEnd', 'districtWatches', 'isMigrated'];
         if (_.includes(ignore, attr)) {
             return '';
         }
@@ -140,7 +141,7 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
         toClass: "Task",
         taskType: "Regular"
     }, function (attr) {
-        var ignore = [
+        let ignore = [
             'circuit',
             'circuitStarted',
             'guardId', 'guardName',
@@ -154,6 +155,9 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
         }
         return attr;
     }, function (circuitUnit, newTask) {
+        if (newTask.get('isRaid')) {
+            newTask.set('taskType', 'Raid');
+        }
         return migratePointer('circuitUnit', 'Task', 'task', newTask);
     }).then(function () {
         status.success("completed successfully.");
@@ -184,7 +188,7 @@ Parse.Cloud.define("MigrateCircuitStarted", function (request, status) {
         fromClass: "CircuitStarted",
         toClass: "TaskGroupStarted"
     }, function (attr) {
-        var ignore = [
+        let ignore = [
             'circuit',
             'emailFailedContent',
             'sentMails', 'eventCount',
@@ -231,8 +235,8 @@ Parse.Cloud.define("MigrateEventLogs", function (request, status) {
 });
 Parse.Cloud.job("MigrateAll", function (request, status) {
     console.log('MigrateAll');
-    var runTask = function (name) {
-        var promise = new Parse.Promise();
+    let runTask = function (name) {
+        let promise = new Parse.Promise();
         Parse.Cloud.run(name, {}).then(function () {
             return promise.resolve("Task success: " + name);
         }, function (error) {
@@ -242,14 +246,14 @@ Parse.Cloud.job("MigrateAll", function (request, status) {
         return promise;
     };
     return runTask("MigrateCircuit")
-        .then(function () { return runTask("MigrateCircuitStarted"); })
-        .then(function () { return runTask("MigrateCircuitUnit"); })
-        .then(function () { return runTask("MigrateStaticTask"); })
-        .then(function () { return runTask("MigrateEventLogs"); })
-        .then(function () { return runTask("MigrateReports"); })
+        .then(() => runTask("MigrateCircuitStarted"))
+        .then(() => runTask("MigrateCircuitUnit"))
+        .then(() => runTask("MigrateStaticTask"))
+        .then(() => runTask("MigrateEventLogs"))
+        .then(() => runTask("MigrateReports"))
         .then(function () {
         status.success("MigrateAll completed successfully.");
-    }, function (err) {
+    }, (err) => {
         status.error(err.message);
     });
 });

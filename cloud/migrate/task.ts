@@ -77,6 +77,7 @@ let migrate = function (options, beforeAttr?, beforeSave?) {
 
     let prevQuery = new Parse.Query(options.fromClass);
     excludeMigrated(prevQuery);
+    //
     // prevQuery.addDescending('createdAt');
     // prevQuery.limit(10);
     // return prevQuery.find({useMasterKey: true}).then((prevObjects) => {
@@ -189,6 +190,7 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
             'isMigrated', 'highPriority', 'isHidden', 'isAborted', 'timeStartSortable', 'timeEndSortable', 'timeStart', 'timeEnd', 'isExtra', 'isArrivedReported', 'isWithinGeofence', 'isOnfootReported', 'isStillReported', 'isDepartureReported', 'clientIdAndName'];
 
 
+
         if (attr === 'clientPosition') {
             return 'position';
         }
@@ -200,6 +202,9 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
         return attr;
 
     }, function (circuitUnit, newTask) {
+        if (newTask.get('isRaid')) {
+            newTask.set('taskType', 'Raid');
+        }
         return migratePointer('circuitUnit', 'Task', 'task', newTask);
     }).then(function () {
         status.success("completed successfully.");

@@ -17,7 +17,7 @@ export class ResetTasks {
         this.now_day = now.getDay();
     }
 
-    public run(): Parse.IPromise<void> {
+    public run(): PromiseLike<any> {
         return this.ensureMigrated().then(() => {
             let queryTaskGroups = new Parse.Query(TaskGroup);
             if (!this.force) {
@@ -27,7 +27,7 @@ export class ResetTasks {
             return queryTaskGroups.each((taskGroup: TaskGroup) => {
 
                 console.log('------');
-                console.log('Reseting TaskGroup: ', taskGroup.name);
+                console.log('Resetting TaskGroup: ', taskGroup.name);
                 console.log('Is run today: ', taskGroup.isRunToday());
                 console.log('Hours until reset: ', taskGroup.hoursUntilReset());
 
@@ -41,7 +41,7 @@ export class ResetTasks {
     }
 
     // TODO remove when Circuit tasks are no longer being used
-    private ensureMigrated(): Promise<void> {
+    private ensureMigrated(): PromiseLike<void> {
         let options = {
             headers: {
                 'X-Parse-Application-Id': process.env.APP_ID,
