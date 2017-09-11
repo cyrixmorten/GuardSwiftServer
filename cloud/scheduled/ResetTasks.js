@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const TaskGroup_1 = require("../../shared/subclass/TaskGroup");
 const TaskGroupStarted_1 = require("../../shared/subclass/TaskGroupStarted");
 const Task_1 = require("../../shared/subclass/Task");
-const rp = require("request-promise");
 class ResetTasks {
     constructor(force) {
         this.force = force;
@@ -32,16 +31,7 @@ class ResetTasks {
     }
     // TODO remove when Circuit tasks are no longer being used
     ensureMigrated() {
-        let options = {
-            headers: {
-                'X-Parse-Application-Id': process.env.APP_ID,
-                'X-Parse-Master-Key': process.env.MASTER_KEY,
-                'Content-Type': "application/json"
-            },
-            json: true
-        };
-        console.log('options: ', options);
-        return rp.post(process.env.SERVER_URL + '/jobs/MigrateAll', options);
+        return Parse.Cloud.run('MigrateAll');
     }
     resetTaskGroupsStartedMatching(taskGroup) {
         return new TaskGroupStarted_1.TaskGroupStartedQuery()
@@ -63,7 +53,7 @@ class ResetTasks {
                 newTaskGroupStarted.timeStarted = new Date();
                 promises.push([
                     taskGroup.save(null, { useMasterKey: true }),
-                    taskGroupStarted.save(null, { useMasterKey: true })
+                    newTaskGroupStarted.save(null, { useMasterKey: true })
                 ]);
             }
             return Parse.Promise.when(promises);

@@ -1,15 +1,13 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
-import BeforeSaveRequest = Parse.Cloud.BeforeSaveRequest;
-import BeforeSaveResponse = Parse.Cloud.BeforeSaveResponse;
+
 import * as _ from "lodash";
+
 import AfterSaveRequest = Parse.Cloud.AfterSaveRequest;
 
 Parse.Cloud.afterSave(TaskGroup, (request: AfterSaveRequest) => {
-    console.log('beforeSave');
-    let taskGroup: TaskGroup = <TaskGroup>request.object;
 
-    console.log('taskGroup: ', taskGroup);
+    let taskGroup: TaskGroup = <TaskGroup>request.object;
 
     if (!taskGroup.existed()) {
         console.log("Create new TaskGroupStarted");

@@ -19,6 +19,7 @@ export class ResetTasks {
 
     public run(): PromiseLike<any> {
         return this.ensureMigrated().then(() => {
+
             let queryTaskGroups = new Parse.Query(TaskGroup);
             if (!this.force) {
                 queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
@@ -42,18 +43,7 @@ export class ResetTasks {
 
     // TODO remove when Circuit tasks are no longer being used
     private ensureMigrated(): PromiseLike<void> {
-        let options = {
-            headers: {
-                'X-Parse-Application-Id': process.env.APP_ID,
-                'X-Parse-Master-Key': process.env.MASTER_KEY,
-                'Content-Type': "application/json"
-            },
-            json: true
-        };
-
-        console.log('options: ', options);
-
-        return rp.post(process.env.SERVER_URL + '/jobs/MigrateAll', options);
+        return Parse.Cloud.run('MigrateAll')
     }
 
     private resetTaskGroupsStartedMatching(taskGroup: TaskGroup): Parse.Promise<void> {
@@ -82,7 +72,7 @@ export class ResetTasks {
 
                     promises.push([
                         taskGroup.save(null, { useMasterKey: true }),
-                        taskGroupStarted.save(null, { useMasterKey: true })
+                        newTaskGroupStarted.save(null, { useMasterKey: true })
                     ])
                 }
 

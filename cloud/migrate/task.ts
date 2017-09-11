@@ -77,12 +77,6 @@ let migrate = function (options, beforeAttr?, beforeSave?) {
 
     let prevQuery = new Parse.Query(options.fromClass);
     excludeMigrated(prevQuery);
-    //
-    // prevQuery.addDescending('createdAt');
-    // prevQuery.limit(10);
-    // return prevQuery.find({useMasterKey: true}).then((prevObjects) => {
-    //     _.forEach(prevObjects, (prevObject) => {
-
 
     return prevQuery.each(function (prevObject) {
 
@@ -293,7 +287,7 @@ Parse.Cloud.define("MigrateEventLogs", function (request, status) {
         });
 });
 
-Parse.Cloud.job("MigrateAll", function (request, status) {
+Parse.Cloud.define("MigrateAll", function (request, status) {
 
     console.log('MigrateAll');
 
@@ -315,8 +309,8 @@ Parse.Cloud.job("MigrateAll", function (request, status) {
         .then(() => runTask("MigrateCircuitUnit"))
         .then(() => runTask("MigrateStaticTask"))
         .then(() => runTask("MigrateEventLogs"))
-        .then(() =>runTask("MigrateReports"))
-        .then(function () {
+        .then(() => runTask("MigrateReports"))
+        .then( () => {
             status.success("MigrateAll completed successfully.");
         }, (err) =>  {
             status.error(err.message);

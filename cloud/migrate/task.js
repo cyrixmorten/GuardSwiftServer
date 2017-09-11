@@ -58,11 +58,6 @@ let migrate = function (options, beforeAttr, beforeSave) {
     console.log('perform migrate', options);
     let prevQuery = new Parse.Query(options.fromClass);
     excludeMigrated(prevQuery);
-    //
-    // prevQuery.addDescending('createdAt');
-    // prevQuery.limit(10);
-    // return prevQuery.find({useMasterKey: true}).then((prevObjects) => {
-    //     _.forEach(prevObjects, (prevObject) => {
     return prevQuery.each(function (prevObject) {
         console.log('Look for existing', options.toClass, options.toClass);
         let existingQuery = new Parse.Query(options.toClass);
@@ -233,7 +228,7 @@ Parse.Cloud.define("MigrateEventLogs", function (request, status) {
         status.error(err.message);
     });
 });
-Parse.Cloud.job("MigrateAll", function (request, status) {
+Parse.Cloud.define("MigrateAll", function (request, status) {
     console.log('MigrateAll');
     let runTask = function (name) {
         let promise = new Parse.Promise();
@@ -251,7 +246,7 @@ Parse.Cloud.job("MigrateAll", function (request, status) {
         .then(() => runTask("MigrateStaticTask"))
         .then(() => runTask("MigrateEventLogs"))
         .then(() => runTask("MigrateReports"))
-        .then(function () {
+        .then(() => {
         status.success("MigrateAll completed successfully.");
     }, (err) => {
         status.error(err.message);
