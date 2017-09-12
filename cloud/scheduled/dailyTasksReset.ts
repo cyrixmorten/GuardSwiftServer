@@ -11,6 +11,7 @@ Parse.Cloud.job("forceResetTasks", function(request, status) {
 			'X-Parse-Master-Key': process.env.MASTER_KEY,
             'Content-Type': "application/json"
         },
+        json: true,
         body: {
            'force': true
         }
