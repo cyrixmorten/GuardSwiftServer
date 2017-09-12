@@ -12,6 +12,8 @@ var _ = require('lodash');
 
 var task = (_.includes(process.argv, '-f')) ? 'forceResetTasks' : 'resetTasks';
 
+console.log('process.env.SERVER_URL: ', process.env.SERVER_URL);
+
 http.post({
     url: process.env.SERVER_URL + '/jobs/' + task,
     headers: {
