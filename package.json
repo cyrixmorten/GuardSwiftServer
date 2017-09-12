@@ -35,7 +35,7 @@
     "start": "node index.js"
   },
   "engines": {
-    "node": "^6.11.1"
+    "node": "^8.2.1"
   },
   "devDependencies": {
     "parse-server-push-adapter": "^1.1.0",
