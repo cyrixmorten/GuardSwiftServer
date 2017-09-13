@@ -45,6 +45,16 @@ class Task extends BaseClass_1.BaseClass {
     set taskGroup(taskGroup) {
         this.set(Task._taskGroup, taskGroup);
     }
+    get taskGroupStarted() {
+        return this.get(Task._taskGroupStarted);
+    }
+    set taskGroupStarted(taskGroupStarted) {
+        if (_.isUndefined(taskGroupStarted)) {
+            this.unset(Task._taskGroupStarted);
+            return;
+        }
+        this.set(Task._taskGroupStarted, taskGroupStarted);
+    }
     get timesArrived() {
         return this.get(Task._timesArrived);
     }
@@ -67,6 +77,18 @@ class Task extends BaseClass_1.BaseClass {
     get clientName() {
         return this.get(Task._clientName);
     }
+    set days(days) {
+        this.set(Task._days, days);
+    }
+    get days() {
+        return this.get(Task._days);
+    }
+    set isRunToday(isRunToday) {
+        this.set(Task._isRunToday, isRunToday);
+    }
+    get isRunToday() {
+        return this.get(Task._isRunToday);
+    }
 }
 Task.className = 'Task';
 Task._name = 'name';
@@ -74,9 +96,12 @@ Task._guard = 'guard';
 Task._status = 'status';
 Task._taskType = 'taskType';
 Task._taskGroup = 'taskGroup';
+Task._taskGroupStarted = 'taskGroupStarted';
 Task._timesArrived = 'timesArrived';
 Task._clientId = 'clientId';
 Task._clientName = 'clientName';
+Task._days = 'days';
+Task._isRunToday = 'isRunToday';
 exports.Task = Task;
 class TaskQuery extends QueryBuilder_1.QueryBuilder {
     constructor() {

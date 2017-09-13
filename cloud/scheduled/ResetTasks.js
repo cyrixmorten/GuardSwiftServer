@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const TaskGroup_1 = require("../../shared/subclass/TaskGroup");
 const TaskGroupStarted_1 = require("../../shared/subclass/TaskGroupStarted");
 const Task_1 = require("../../shared/subclass/Task");
+const _ = require("lodash");
+const util = require("util");
 class ResetTasks {
     constructor(force) {
         this.force = force;
@@ -38,41 +40,80 @@ class ResetTasks {
             .matchingTaskGroup(taskGroup)
             .notEnded()
             .build()
-            .each((taskGroupStarted) => {
-            // finish matching
-            taskGroupStarted.timeEnded = new Date();
-            console.log('Reseting group started: ', taskGroupStarted.name);
-            let promises = [
-                taskGroupStarted.save(null, { useMasterKey: true })
-            ];
-            if (taskGroup.isRunToday()) {
-                taskGroup.createdDay = this.now_hours;
-                let newTaskGroupStarted = new TaskGroupStarted_1.TaskGroupStarted();
-                newTaskGroupStarted.copyAttributes(taskGroupStarted);
-                newTaskGroupStarted.timeEnded = undefined;
-                newTaskGroupStarted.timeStarted = new Date();
-                promises.push([
-                    taskGroup.save(null, { useMasterKey: true }),
-                    newTaskGroupStarted.save(null, { useMasterKey: true })
-                ]);
-            }
-            return Parse.Promise.when(promises);
-        }, { useMasterKey: true });
+            .find({ useMasterKey: true }).then((activeTaskGroupStarted) => {
+            console.log('Resetting active groups: ', _.map(activeTaskGroupStarted, 'name'));
+            _.forEach(activeTaskGroupStarted, (taskGroupStarted) => {
+                taskGroupStarted.timeEnded = new Date();
+            });
+            return Parse.Object.saveAll(activeTaskGroupStarted, { useMasterKey: true }).then(() => {
+                // Create new taskGroupStarted
+                if (taskGroup.isRunToday()) {
+                    taskGroup.createdDay = this.now_day;
+                    let newTaskGroupStarted = new TaskGroupStarted_1.TaskGroupStarted();
+                    newTaskGroupStarted.copyAttributes(taskGroup);
+                    newTaskGroupStarted.timeEnded = undefined;
+                    newTaskGroupStarted.timeStarted = new Date();
+                    return Parse.Promise.when([
+                        // Save day of creation to taskGroup
+                        taskGroup.save(null, { useMasterKey: true }),
+                        // Save new taskGroupStarted
+                        newTaskGroupStarted.save(null, { useMasterKey: true })
+                    ]);
+                }
+            });
+        });
     }
     resetRegularTasksMatching(taskGroup) {
-        let arrivedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ARRIVED).build();
-        let abortedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.ABORTED).build();
-        let finishedQuery = new Task_1.TaskQuery().matchingTaskStatus(Task_1.TaskStatus.FINISHED).build();
-        let timesArrivedQuery = new Task_1.TaskQuery().whereTimesArrivedGreaterThan(0).build();
-        let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
-        mainQuery.equalTo(Task_1.Task._taskGroup, taskGroup);
-        return mainQuery.each((task) => {
-            console.log('Resetting task', task.clientName, task.name);
+        // let arrivedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.ARRIVED).build();
+        // let abortedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.ABORTED).build();
+        // let finishedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.FINISHED).build();
+        // let timesArrivedQuery = new TaskQuery().whereTimesArrivedGreaterThan(0).build();
+        //
+        // let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
+        // mainQuery.equalTo(Task._taskGroup, taskGroup);
+        //
+        // return mainQuery.each((task: Task) => {
+        //
+        //     console.log('Resetting task', task.clientName, task.name);
+        //
+        //     task.status = TaskStatus.PENDING;
+        //     task.guard = undefined;
+        //     task.timesArrived = 0;
+        //
+        //     return task.save(null, { useMasterKey: true } )
+        // }, {useMasterKey: true})
+        let findTaskGroupStarted = () => {
+            return new TaskGroupStarted_1.TaskGroupStartedQuery().matchingTaskGroup(taskGroup).notEnded().build()
+                .first({ useMasterKey: true });
+        };
+        let findTasks = () => {
+            return new Task_1.TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({ useMasterKey: true });
+        };
+        let resetTask = (task, taskGroupStarted) => {
             task.status = Task_1.TaskStatus.PENDING;
             task.guard = undefined;
             task.timesArrived = 0;
-            return task.save(null, { useMasterKey: true });
-        }, { useMasterKey: true });
+            task.isRunToday = taskGroup.isRunToday();
+            task.taskGroupStarted = taskGroupStarted;
+        };
+        console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
+        let taskGroupStarted;
+        return findTaskGroupStarted().then((foundTaskGroupStarted) => {
+            if (foundTaskGroupStarted) {
+                console.log(`Found taskGroupStarted: ${foundTaskGroupStarted.id}`);
+            }
+            taskGroupStarted = foundTaskGroupStarted;
+            return findTasks();
+        }).then((tasks) => {
+            console.log(`Resetting ${tasks.length} tasks for taskGroup ${taskGroup.name}`);
+            _.forEach(tasks, (task) => {
+                resetTask(task, taskGroupStarted);
+            });
+            return Parse.Object.saveAll(tasks, { useMasterKey: true });
+        }, (e) => {
+            console.error(e);
+            return e;
+        });
     }
 }
 exports.ResetTasks = ResetTasks;

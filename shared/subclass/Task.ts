@@ -3,6 +3,7 @@ import {TaskGroup} from "./TaskGroup";
 import {QueryBuilder} from "../QueryBuilder";
 import {Guard} from "./Guard";
 import * as _ from "lodash";
+import {TaskGroupStarted} from "./TaskGroupStarted";
 
 export enum TaskStatus {
     PENDING = <any> 'pending',
@@ -27,9 +28,12 @@ export class Task extends BaseClass {
     static readonly _status = 'status';
     static readonly _taskType = 'taskType';
     static readonly _taskGroup = 'taskGroup';
+    static readonly _taskGroupStarted = 'taskGroupStarted';
     static readonly _timesArrived = 'timesArrived';
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
+    static readonly _days = 'days';
+    static readonly _isRunToday = 'isRunToday';
 
     constructor() {
         super(Task.className);
@@ -67,6 +71,19 @@ export class Task extends BaseClass {
         this.set(Task._taskGroup, taskGroup);
     }
 
+    get taskGroupStarted(): TaskGroupStarted {
+        return this.get(Task._taskGroupStarted);
+    }
+
+    set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        if (_.isUndefined(taskGroupStarted)) {
+            this.unset(Task._taskGroupStarted);
+            return;
+        }
+
+        this.set(Task._taskGroupStarted, taskGroupStarted);
+    }
+
     get timesArrived(): number {
         return this.get(Task._timesArrived);
     }
@@ -94,6 +111,22 @@ export class Task extends BaseClass {
 
     get clientName(): string {
         return this.get(Task._clientName);
+    }
+
+    set days(days: string[]) {
+        this.set(Task._days, days);
+    }
+
+    get days(): string[] {
+        return this.get(Task._days);
+    }
+
+    set isRunToday(isRunToday: boolean) {
+        this.set(Task._isRunToday, isRunToday);
+    }
+
+    get isRunToday(): boolean {
+        return this.get(Task._isRunToday);
     }
 }
 

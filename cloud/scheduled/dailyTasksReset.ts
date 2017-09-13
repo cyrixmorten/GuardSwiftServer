@@ -41,7 +41,7 @@ Parse.Cloud.job("resetTasks", function (request, status) {
 
     var promises = [];
 
-    promises.push(manageCircuits(now_dayOfWeek, now_hour, forceUpdate));
+    // promises.push(manageCircuits(now_dayOfWeek, now_hour, forceUpdate));
     promises.push(new ResetTasks(forceUpdate).run());
 
     Parse.Promise.when(promises).then(function () {
@@ -49,7 +49,7 @@ Parse.Cloud.job("resetTasks", function (request, status) {
         console.log("all done");
         status.success("completed successfully");
     }, function (error) {
-        console.error("failed - " + error.message);
+        console.error("failed - " + error);
         status.error("an error occurred: " + JSON.stringify(error));
     });
 
