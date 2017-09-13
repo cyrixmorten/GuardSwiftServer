@@ -1,3 +1,5 @@
+import * as _ from "lodash";
+
 export abstract class BaseClass extends Parse.Object {
 
     static readonly _owner = 'owner';
@@ -20,9 +22,11 @@ export abstract class BaseClass extends Parse.Object {
         this.set(BaseClass._archive, archive);
     }
 
-    copyAttributes(fromObject: Parse.Object) {
+    copyAttributes(fromObject: Parse.Object, select?: string[]) {
         Object.keys(fromObject.attributes).forEach((fieldName) => {
-            this.set(fieldName, fromObject.get(fieldName));
+            if (!select || _.includes(select, fieldName)) {
+                this.set(fieldName, fromObject.get(fieldName));
+            }
         });
     }
 }

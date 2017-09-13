@@ -50,7 +50,8 @@ class ResetTasks {
                 if (taskGroup.isRunToday()) {
                     taskGroup.createdDay = this.now_day;
                     let newTaskGroupStarted = new TaskGroupStarted_1.TaskGroupStarted();
-                    newTaskGroupStarted.copyAttributes(taskGroup);
+                    newTaskGroupStarted.taskGroup = taskGroup;
+                    newTaskGroupStarted.copyAttributes(taskGroup, ['name', 'owner', 'ACL']);
                     newTaskGroupStarted.timeEnded = undefined;
                     newTaskGroupStarted.timeStarted = new Date();
                     return Parse.Promise.when([

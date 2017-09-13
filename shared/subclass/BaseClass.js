@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const _ = require("lodash");
 class BaseClass extends Parse.Object {
     get owner() {
         return this.get(BaseClass._owner);
@@ -13,9 +14,11 @@ class BaseClass extends Parse.Object {
     set archive(archive) {
         this.set(BaseClass._archive, archive);
     }
-    copyAttributes(fromObject) {
+    copyAttributes(fromObject, select) {
         Object.keys(fromObject.attributes).forEach((fieldName) => {
-            this.set(fieldName, fromObject.get(fieldName));
+            if (!select || _.includes(select, fieldName)) {
+                this.set(fieldName, fromObject.get(fieldName));
+            }
         });
     }
 }

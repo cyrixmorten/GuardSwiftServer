@@ -1,7 +1,6 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 import {Task, TaskQuery, TaskStatus} from "../../shared/subclass/Task";
-import * as rp from "request-promise";
 import * as _ from "lodash";
 import * as util from "util";
 import IPromise = Parse.IPromise;
@@ -69,7 +68,8 @@ export class ResetTasks {
                         taskGroup.createdDay = this.now_day;
 
                         let newTaskGroupStarted = new TaskGroupStarted();
-                        newTaskGroupStarted.copyAttributes(taskGroup);
+                        newTaskGroupStarted.taskGroup = taskGroup;
+                        newTaskGroupStarted.copyAttributes(taskGroup, ['name', 'owner', 'ACL']);
                         newTaskGroupStarted.timeEnded = undefined;
                         newTaskGroupStarted.timeStarted = new Date();
 
