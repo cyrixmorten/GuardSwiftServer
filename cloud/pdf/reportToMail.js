@@ -17,6 +17,31 @@ var taskSettings = function (report) {
         fileName: ''
     };
 
+    var taskType = report.get('taskType');
+    switch (taskType) {
+        case 'Alarm': {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Alarm"; // TODO: translate
+            break;
+        }
+        case 'Regular': {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Tilsyn"; // TODO: translate
+            break;
+        }
+        case 'Raid': {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Tilsyn"; // TODO: translate
+            break;
+        }
+        case 'Static': {
+            taskSettings.settingsPointerName = 'staticReportSettings';
+            taskSettings.taskType = "Fastvagt"; // TODO: translate
+            break;
+        }
+    }
+
+    // TODO kept for backwards compatibility < 5.0.0 >>
     if (report.get('taskTypeName') === 'ALARM') {
         taskSettings.settingsPointerName = 'regularReportSettings';
         taskSettings.taskType = "Alarm"; // TODO: translate
@@ -39,6 +64,7 @@ var taskSettings = function (report) {
         taskSettings.subject = districtName + ' - ' + taskSettings.taskType + ' ' + createdAt;
         taskSettings.fileName = districtName + '-' + taskSettings.taskType + '-' + createdAt;
     }
+    // << TODO kept for backwards compatibility < 5.0.0
 
     if (taskSettings.taskType) {
         if (!taskSettings.subject) {

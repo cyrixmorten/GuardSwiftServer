@@ -1,4 +1,4 @@
-var reportToPdf = require('../../cloud/pdf/reportToPDF')
+var reportToPdf = require('../../cloud/pdf/reportToPDF');
 
 module.exports = function (req, res) {
 
