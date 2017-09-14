@@ -15,7 +15,7 @@ exports.doc = function (report, timeZone) {
 	return {
 		info: {
 			title: report.get('clientName') + ' ' + moment(report.get('createdAt')).tz(timeZone).format('DD-MM-YYYY'),
-			author: 'GuardSwift'
+			author: 'GuardSwift' // TODO hardcoded - needed?
 		},
 
 		pageMargins: [40, 60, 40, 60]

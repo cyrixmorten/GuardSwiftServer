@@ -10,18 +10,12 @@ var reportUtils = require('../reportUtils.js');
 var fetchReportSettings = function (report) {
 
     var getSettingsColumn = function() {
-        var taskType = report.get('taskTypeName');
-        if (taskType === 'ALARM') {
-            return 'regularReportSettings';
-        }
-        if (taskType === 'REGULAR') {
-            return 'regularReportSettings';
-        }
-        if (taskType === 'RAID') {
-            return 'regularReportSettings';
-        }
-        if (taskType === 'STATIC') {
-            return 'staticReportSettings';
+        var taskType = report.get('taskType');
+        switch (taskType) {
+            case 'Alarm': return 'regularReportSettings';
+            case 'Regular': return 'regularReportSettings';
+            case 'Raid': return 'regularReportSettings';
+            case 'Static': return 'staticReportSettings';
         }
     };
 
