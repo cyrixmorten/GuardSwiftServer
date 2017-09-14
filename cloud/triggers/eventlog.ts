@@ -85,18 +85,14 @@ let writeEventToReport = (EventLog) => {
 
             console.log('No report found');
 
-            return Parse.Promise.error(reportNotFoundError);
-        }, (error)  => {
-            if (error === reportNotFoundError) {
-                return createReport()
+            return createReport()
                 .then(writeEvent)
                 .fail((error) => {
                     console.error('Error while creating report: ' + JSON.stringify(error))
                     return error;
                 });
-            } else {
-                console.error('Unhandled error: ' + JSON.stringify(error));
-            }
+        }, (error)  => {
+            console.error('Unhandled error: ' + JSON.stringify(error));
         })
     } else {
         if (reportId) {
