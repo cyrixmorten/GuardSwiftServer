@@ -3,14 +3,14 @@
  */
 Parse.Cloud.beforeSave("EventType", function (request, response) {
     let EventType = request.object;
+
     let timesUsed = EventType.get('timesUsed');
     if (!timesUsed) {
         let timesUsedCount = (EventType.has('client')) ? 1000 : 0;
         EventType.set('timesUsed', timesUsedCount);
-    }
-    else {
+    } else {
         EventType.increment('timesUsed');
     }
+
     response.success();
 });
-//# sourceMappingURL=eventtype.js.map

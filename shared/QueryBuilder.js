@@ -4,6 +4,10 @@ class QueryBuilder {
     constructor(object) {
         this.query = new Parse.Query(object);
     }
+    matchingOwner(user) {
+        this.query.equalTo('owner', user);
+        return this;
+    }
     build() {
         return this.query;
     }

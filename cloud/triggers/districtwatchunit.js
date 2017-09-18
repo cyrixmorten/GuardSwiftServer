@@ -1,4 +1,4 @@
-var GeoCode = require('../utils/geocode.js');
+var GeoCode = require('../utils/geocode.ts');
 
 /*
  * Sanity check and obtain a GPS position for first addressNumber

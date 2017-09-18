@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const Task_1 = require("../../shared/subclass/Task");
 const _ = require("lodash");
 const moment = require("moment");
+const Guard_1 = require("../../shared/subclass/Guard");
 let cpsms = require('../../api/cpsms');
 let handlers = require('../centrals/all');
 let states = {
@@ -13,28 +14,19 @@ let states = {
     FINISHED: 'finished'
 };
 exports.states = states;
-Parse.Cloud.beforeSave("Task", (request, response) => {
+Parse.Cloud.beforeSave(Task_1.Task, (request, response) => {
     let task = request.object;
     if (!task.existed()) {
-        exports.reset(task);
-        task.has(Task_1.Task._isRaid);
+        task.reset();
     }
     response.success();
 });
-Parse.Cloud.afterSave("Task", (request) => {
-    alarmUpdate(request.object);
+Parse.Cloud.afterSave(Task_1.Task, (request) => {
+    let task = request.object;
+    if (task.isType(Task_1.TaskType.ALARM)) {
+        alarmUpdate(task);
+    }
 });
-exports.reset = (task) => {
-    let isAlarmTask = task.get('taskType') === 'Alarm';
-    task.set('status', states.PENDING);
-    if (isAlarmTask) {
-        task.set('timeStarted', new Date());
-    }
-    else {
-        task.set('timeStarted', new Date(1970));
-        task.set('timeEnded', new Date(1970));
-    }
-};
 let sendNotification = (alarm) => {
     console.log('sendNotification alarm', alarm.id);
     let sendPushNotification = () => {
@@ -67,11 +59,11 @@ let sendNotification = (alarm) => {
     };
     let sendSMS = () => {
         let prefix = alarm.get('status') === states.ABORTED ? 'ANNULERET\n' : '';
-        let Guard = Parse.Object.extend("Guard");
-        let guardQuery = new Parse.Query(Guard);
-        guardQuery.equalTo('owner', alarm.get('owner'));
-        guardQuery.equalTo('alarmSMS', true);
-        guardQuery.include('installation');
+        let guardQuery = new Guard_1.GuardQuery()
+            .matchingOwner(alarm.get('owner'))
+            .whereAlarmSMS(true)
+            .build()
+            .include('installation');
         return guardQuery.find({ useMasterKey: true }).then((guards) => {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
             let smsPromises = [];
@@ -101,9 +93,8 @@ let sendNotification = (alarm) => {
     });
 };
 let alarmUpdate = (task) => {
-    let isAlarmTask = task.get('taskType') === 'Alarm';
     let status = task.get('status');
-    if (isAlarmTask && !_.includes(task.get('knownStatus'), status)) {
+    if (!_.includes(task.get('knownStatus'), status)) {
         switch (status) {
             case states.PENDING: {
                 _.forEach(handlers, (handler) => {

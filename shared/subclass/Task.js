@@ -14,6 +14,7 @@ var TaskStatus;
 var TaskType;
 (function (TaskType) {
     TaskType[TaskType["REGULAR"] = 'Regular'] = "REGULAR";
+    TaskType[TaskType["RAID"] = 'Raid'] = "RAID";
     TaskType[TaskType["STATIC"] = 'Static'] = "STATIC";
     TaskType[TaskType["ALARM"] = 'Alarm'] = "ALARM";
 })(TaskType = exports.TaskType || (exports.TaskType = {}));
@@ -74,8 +75,14 @@ class Task extends BaseClass_1.BaseClass {
     get clientId() {
         return this.get(Task._clientId);
     }
+    set clientId(id) {
+        this.set(Task._clientId, id);
+    }
     get clientName() {
         return this.get(Task._clientName);
+    }
+    set clientName(name) {
+        this.set(Task._clientName, name);
     }
     set days(days) {
         this.set(Task._days, days);
@@ -89,6 +96,36 @@ class Task extends BaseClass_1.BaseClass {
     get isRunToday() {
         return this.get(Task._isRunToday);
     }
+    get timeStarted() {
+        return this.get(Task._timeStarted);
+    }
+    set timeStarted(timeStarted) {
+        this.set(Task._timeStarted, timeStarted);
+    }
+    get timeEnded() {
+        return this.get(Task._timeEnded);
+    }
+    set timeEnded(timeEnded) {
+        this.set(Task._timeEnded, timeEnded);
+    }
+    get position() {
+        return this.get(Task._position);
+    }
+    set position(position) {
+        this.set(Task._position, position);
+    }
+    isType(type) {
+        return this.taskType === type;
+    }
+    reset() {
+        this.status = TaskStatus.PENDING;
+        if (this.taskType === TaskType.ALARM) {
+            this.timeStarted = new Date();
+        }
+        else {
+            this.timeStarted = new Date(1970);
+        }
+    }
 }
 Task.className = 'Task';
 Task._name = 'name';
@@ -98,10 +135,14 @@ Task._taskType = 'taskType';
 Task._taskGroup = 'taskGroup';
 Task._taskGroupStarted = 'taskGroupStarted';
 Task._timesArrived = 'timesArrived';
+Task._client = 'client';
 Task._clientId = 'clientId';
 Task._clientName = 'clientName';
+Task._position = 'position';
 Task._days = 'days';
 Task._isRunToday = 'isRunToday';
+Task._timeStarted = 'timeStarted';
+Task._timeEnded = 'timeEnded';
 exports.Task = Task;
 class TaskQuery extends QueryBuilder_1.QueryBuilder {
     constructor() {
@@ -121,6 +162,10 @@ class TaskQuery extends QueryBuilder_1.QueryBuilder {
     }
     whereTimesArrivedGreaterThan(timesArrived) {
         this.query.greaterThan(Task._timesArrived, timesArrived);
+        return this;
+    }
+    matchingClient(client) {
+        this.query.equalTo(Task._client, client);
         return this;
     }
 }

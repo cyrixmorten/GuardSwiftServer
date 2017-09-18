@@ -1,13 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const _ = require("lodash");
+import * as _ from 'lodash';
+
 /**
  * Returns {lat: latitude, lng: longitude} object
  *
  * @param searchAddress
  * @returns {Parse.Promise}
  */
-exports.lookupAddress = function (searchAddress) {
+export let lookupAddress = function (searchAddress) {
     var promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
@@ -18,16 +17,20 @@ exports.lookupAddress = function (searchAddress) {
         success: function (httpResponse) {
             var data = httpResponse.data;
             if (data.status == "OK") {
+
                 var latlng = data.results[0].geometry.location;
+
                 var lat = latlng.lat;
                 var lng = latlng.lng;
+
                 var point = new Parse.GeoPoint({
                     latitude: lat,
                     longitude: lng
                 });
+
                 promise.resolve(point);
-            }
-            else {
+
+            } else {
                 console.error(httpResponse);
                 promise.reject("Failed to locate coordinate for : "
                     + searchAddress);
@@ -40,6 +43,8 @@ exports.lookupAddress = function (searchAddress) {
     });
     return promise;
 };
+
+
 /**
  * {
  *   placeId: '',
@@ -56,7 +61,8 @@ exports.lookupAddress = function (searchAddress) {
  * @param searchAddress
  * @returns {Parse.Promise}
  */
-exports.lookupPlaceObject = function (searchAddress, retryCount) {
+export let lookupPlaceObject = function (searchAddress, retryCount) {
+
     var promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
@@ -67,13 +73,17 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
         success: function (httpResponse) {
             var data = httpResponse.data;
             if (data.status == "OK") {
+
                 var placeObject = unwrapPlaceObject(data.results[0]);
+
                 console.log('Found placeObject for: ' + searchAddress);
+
                 promise.resolve(placeObject);
-            }
-            else {
-                var errorMsg = "Failed to locate coordinate for : " + searchAddress;
+
+            } else {
+                var errorMsg = "Failed to locate coordinate for : "  + searchAddress;
                 console.error(errorMsg);
+
                 promise.reject(errorMsg);
             }
         },
@@ -81,18 +91,24 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
             promise.reject(httpResponse);
         }
     });
-    return promise.fail(function () {
+
+    return promise.fail(function() {
         if (retryCount) {
             return Parse.Promise.error("Failed to look up address despite retrying");
         }
+
         var searchWords = _.words(searchAddress);
-        var zipcodes = _.filter(searchWords, function (word) {
+
+        var zipcodes = _.filter(searchWords, function(word) {
             return word.length === 4;
         });
+
         var others = _.without(searchWords, zipcodes);
+
         console.log('searchWords: ', searchWords);
         console.log('zipcodes: ', zipcodes);
         console.log('others: ', others);
+
         var newAddress = '';
         if (!_.isEmpty(others)) {
             if (others.length >= 1) {
@@ -104,28 +120,37 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
                 newAddress += " ";
             }
         }
+
         var zipcode = _.last(zipcodes);
         if (zipcode) {
             newAddress += zipcode;
         }
+
         console.log('Retrying with: ' + newAddress);
+
         return exports.lookupPlaceObject(newAddress, 1);
     });
 };
+
 var unwrapPlaceObject = function (placeObject) {
+
     var addressComponentByType = function (components, type) {
         if (_.isEmpty(components)) {
             return '';
         }
+
         var component = _.find(components, function (component) {
             return _.includes(component.types, type);
         });
+
         if (component) {
             return component.long_name;
         }
+
         return '';
     };
-    var object = {};
+
+    var object: any = {};
     object.placeObject = placeObject;
     object.placeId = placeObject.place_id;
     object.formattedAddress = placeObject.formatted_address;
@@ -138,13 +163,12 @@ var unwrapPlaceObject = function (placeObject) {
             latitude: placeObject.geometry.location.lat,
             longitude: placeObject.geometry.location.lng
         });
-    }
-    else {
+    } else {
         object.position = new Parse.GeoPoint({
             latitude: 1,
             longitude: 1
-        });
+        })
     }
+
     return object;
 };
-//# sourceMappingURL=geocode.js.map

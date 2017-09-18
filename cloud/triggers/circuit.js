@@ -1,4 +1,4 @@
-
+// TODO deprecated after 5.0.0
 Parse.Cloud.afterSave("Circuit", function (request) {
     var Circuit = request.object;
     if (!Circuit.has('createdDay')) {
@@ -9,19 +9,4 @@ Parse.Cloud.afterSave("Circuit", function (request) {
     }
 });
 
-Parse.Cloud.afterDelete("Circuit", function(request) {
-  var CircuitStarted = Parse.Object.extend('CircuitStarted');
-  var query = new Parse.Query(CircuitStarted);
-  query.equalTo("circuit", request.object);
-  query.doesNotExist('timeEnded');
-  query.find({ useMasterKey: true }).then(function(circuitsStarted) {
-  		var now = new Date();
-  		circuitsStarted.forEach(function(circuitStarted) {
-  			circuitStarted.set('timeEnded', now);
-  			circuitStarted.save(null, { useMasterKey: true });
-  		});
-  }, function(error) {
-  		console.error("Error finding CircuitStarted " + error.code + ": " + error.message);
-  });
-});
 

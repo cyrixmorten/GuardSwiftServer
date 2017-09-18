@@ -1,7 +1,8 @@
-import {Task} from "../../shared/subclass/Task";
+import {Task, TaskType} from "../../shared/subclass/Task";
 import * as parse from "parse";
 import * as _ from "lodash";
 import * as moment from "moment";
+import {GuardQuery} from "../../shared/subclass/Guard";
 
 let cpsms = require('../../api/cpsms');
 let handlers = require('../centrals/all');
@@ -16,36 +17,25 @@ let states = {
 
 exports.states = states;
 
-Parse.Cloud.beforeSave("Task",  (request, response) => {
+Parse.Cloud.beforeSave(Task,  (request, response) => {
     
     let task = <Task>request.object;
 
     if (!task.existed()) {
-        exports.reset(task);
-
-        task.has(Task._isRaid)
+        task.reset();
     }
 
     response.success();
 
 });
 
-Parse.Cloud.afterSave("Task", (request)  =>{
-    alarmUpdate(request.object);
+Parse.Cloud.afterSave(Task, (request)  => {
+    let task = <Task>request.object;
+    if (task.isType(TaskType.ALARM)) {
+        alarmUpdate(task);
+    }
 });
 
-exports.reset = (task) => {
-    let isAlarmTask = task.get('taskType') === 'Alarm';
-
-    task.set('status', states.PENDING);
-    if (isAlarmTask) {
-        task.set('timeStarted', new Date());
-    } else {
-        task.set('timeStarted', new Date(1970));
-        task.set('timeEnded', new Date(1970));
-    }
-
-};
 
 let sendNotification = (alarm) => {
 
@@ -86,11 +76,12 @@ let sendNotification = (alarm) => {
     let sendSMS =  () => {
         let prefix = alarm.get('status') === states.ABORTED ? 'ANNULERET\n' : '';
 
-        let Guard = Parse.Object.extend("Guard");
-        let guardQuery = new Parse.Query(Guard);
-        guardQuery.equalTo('owner', alarm.get('owner'));
-        guardQuery.equalTo('alarmSMS', true);
-        guardQuery.include('installation');
+        let guardQuery = new GuardQuery()
+            .matchingOwner(alarm.get('owner'))
+            .whereAlarmSMS(true)
+            .build()
+            .include('installation');
+
         return guardQuery.find({ useMasterKey: true }).then( (guards) => {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
 
@@ -128,13 +119,10 @@ let sendNotification = (alarm) => {
     });
 };
 
-let alarmUpdate = (task) => {
-    let isAlarmTask = task.get('taskType') === 'Alarm';
-
-
+let alarmUpdate = (task: Task) => {
     let status = task.get('status');
 
-    if (isAlarmTask && !_.includes(task.get('knownStatus'), status)) {
+    if (!_.includes(task.get('knownStatus'), status)) {
 
         switch (status) {
             case states.PENDING: {

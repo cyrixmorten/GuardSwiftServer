@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var geocode = require('../utils/geocode.js');
+var geocode = require('../utils/geocode.ts');
 
 exports.findAlarm = function (options) {
     console.log('options: ', options);

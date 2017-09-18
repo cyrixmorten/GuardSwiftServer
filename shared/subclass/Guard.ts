@@ -1,11 +1,15 @@
 import {BaseClass} from "./BaseClass";
+import {QueryBuilder} from "../QueryBuilder";
 
 export class Guard extends BaseClass {
 
     static readonly className = 'Guard';
 
+    static readonly _installation = 'installation';
     static readonly _guardId = 'guardId';
     static readonly _name = 'name';
+
+    static readonly _alarmSMS = 'alarmSMS';
 
 
     constructor() {
@@ -27,4 +31,18 @@ export class Guard extends BaseClass {
     set guardId(guardId: number) {
         this.set(Guard._guardId, name);
     }
+}
+
+export class GuardQuery extends QueryBuilder<Guard>{
+
+    constructor() {
+        super(Guard);
+    }
+
+    whereAlarmSMS(value: boolean) {
+        this.query.equalTo(Guard._alarmSMS, value);
+
+        return this;
+    }
+
 }

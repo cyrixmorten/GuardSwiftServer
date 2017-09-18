@@ -4,6 +4,7 @@ import {QueryBuilder} from "../QueryBuilder";
 import {Guard} from "./Guard";
 import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
+import {Client} from "./Client";
 
 export enum TaskStatus {
     PENDING = <any> 'pending',
@@ -15,6 +16,7 @@ export enum TaskStatus {
 
 export enum TaskType {
     REGULAR = <any> 'Regular',
+    RAID = <any> 'Raid',
     STATIC = <any> 'Static',
     ALARM = <any> 'Alarm'
 }
@@ -25,15 +27,24 @@ export class Task extends BaseClass {
 
     static readonly _name = 'name';
     static readonly _guard = 'guard';
+
     static readonly _status = 'status';
+
     static readonly _taskType = 'taskType';
     static readonly _taskGroup = 'taskGroup';
     static readonly _taskGroupStarted = 'taskGroupStarted';
     static readonly _timesArrived = 'timesArrived';
+
+    static readonly _client = 'client';
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
+    static readonly _position = 'position';
+
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
+    static readonly _timeStarted = 'timeStarted';
+    static readonly _timeEnded = 'timeEnded';
+
 
     constructor() {
         super(Task.className);
@@ -109,8 +120,16 @@ export class Task extends BaseClass {
         return this.get(Task._clientId);
     }
 
+    set clientId(id: string) {
+        this.set(Task._clientId, id);
+    }
+
     get clientName(): string {
         return this.get(Task._clientName);
+    }
+
+    set clientName(name: string) {
+        this.set(Task._clientName, name);
     }
 
     set days(days: string[]) {
@@ -127,6 +146,44 @@ export class Task extends BaseClass {
 
     get isRunToday(): boolean {
         return this.get(Task._isRunToday);
+    }
+
+    get timeStarted(): Date {
+        return this.get(Task._timeStarted);
+    }
+
+    set timeStarted(timeStarted: Date) {
+        this.set(Task._timeStarted, timeStarted);
+    }
+
+    get timeEnded(): Date {
+        return this.get(Task._timeEnded);
+    }
+
+    set timeEnded(timeEnded: Date) {
+        this.set(Task._timeEnded, timeEnded);
+    }
+
+    get position(): Parse.GeoPoint {
+        return this.get(Task._position);
+    }
+
+    set position(position: Parse.GeoPoint) {
+        this.set(Task._position, position);
+    }
+
+    isType(type: TaskType) {
+        return this.taskType === type;
+    }
+
+
+    reset() {
+        this.status = TaskStatus.PENDING;
+        if (this.taskType === TaskType.ALARM) {
+            this.timeStarted = new Date();
+        } else {
+            this.timeStarted = new Date(1970);
+        }
     }
 }
 
@@ -156,4 +213,8 @@ export class TaskQuery extends QueryBuilder<Task>{
         return this;
     }
 
+    matchingClient(client: Client) {
+        this.query.equalTo(Task._client, client);
+        return this;
+    }
 }
