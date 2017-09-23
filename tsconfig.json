@@ -1,8 +1,16 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
+    "pretty": true,
     "target": "es6",
-    "sourceMap": true
+    "sourceMap": true,
+    "skipLibCheck": true, // suppress error in parse typings
+    "types": [
+      "parse",
+      "lodash",
+      "sendgrid"
+    ]
   },
   "exclude": [
     "node_modules"

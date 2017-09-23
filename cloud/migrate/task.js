@@ -1,4 +1,6 @@
-let _ = require('lodash');
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const _ = require("lodash");
 let excludeMigrated = function (query) {
     query.notEqualTo('isMigrated', true);
 };

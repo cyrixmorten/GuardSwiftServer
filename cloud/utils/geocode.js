@@ -8,7 +8,7 @@ const _ = require("lodash");
  * @returns {Parse.Promise}
  */
 exports.lookupAddress = function (searchAddress) {
-    var promise = new Parse.Promise();
+    let promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {
@@ -16,12 +16,12 @@ exports.lookupAddress = function (searchAddress) {
             key: process.env.GOOGLE_GEOCODE_API_KEY
         },
         success: function (httpResponse) {
-            var data = httpResponse.data;
+            let data = httpResponse.data;
             if (data.status == "OK") {
-                var latlng = data.results[0].geometry.location;
-                var lat = latlng.lat;
-                var lng = latlng.lng;
-                var point = new Parse.GeoPoint({
+                let latlng = data.results[0].geometry.location;
+                let lat = latlng.lat;
+                let lng = latlng.lng;
+                let point = new Parse.GeoPoint({
                     latitude: lat,
                     longitude: lng
                 });
@@ -54,10 +54,11 @@ exports.lookupAddress = function (searchAddress) {
  *   }
  * }
  * @param searchAddress
+ * @param retryCount
  * @returns {Parse.Promise}
  */
 exports.lookupPlaceObject = function (searchAddress, retryCount) {
-    var promise = new Parse.Promise();
+    let promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {
@@ -65,14 +66,14 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
             key: process.env.GOOGLE_GEOCODE_API_KEY
         },
         success: function (httpResponse) {
-            var data = httpResponse.data;
+            let data = httpResponse.data;
             if (data.status == "OK") {
-                var placeObject = unwrapPlaceObject(data.results[0]);
+                let placeObject = unwrapPlaceObject(data.results[0]);
                 console.log('Found placeObject for: ' + searchAddress);
                 promise.resolve(placeObject);
             }
             else {
-                var errorMsg = "Failed to locate coordinate for : " + searchAddress;
+                let errorMsg = "Failed to locate coordinate for : " + searchAddress;
                 console.error(errorMsg);
                 promise.reject(errorMsg);
             }
@@ -85,15 +86,15 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
         if (retryCount) {
             return Parse.Promise.error("Failed to look up address despite retrying");
         }
-        var searchWords = _.words(searchAddress);
-        var zipcodes = _.filter(searchWords, function (word) {
+        let searchWords = _.words(searchAddress);
+        let zipcodes = _.filter(searchWords, function (word) {
             return word.length === 4;
         });
-        var others = _.without(searchWords, zipcodes);
+        let others = _.without(searchWords, ...zipcodes);
         console.log('searchWords: ', searchWords);
         console.log('zipcodes: ', zipcodes);
         console.log('others: ', others);
-        var newAddress = '';
+        let newAddress = '';
         if (!_.isEmpty(others)) {
             if (others.length >= 1) {
                 newAddress += others[0];
@@ -104,7 +105,7 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
                 newAddress += " ";
             }
         }
-        var zipcode = _.last(zipcodes);
+        let zipcode = _.last(zipcodes);
         if (zipcode) {
             newAddress += zipcode;
         }
@@ -112,12 +113,12 @@ exports.lookupPlaceObject = function (searchAddress, retryCount) {
         return exports.lookupPlaceObject(newAddress, 1);
     });
 };
-var unwrapPlaceObject = function (placeObject) {
-    var addressComponentByType = function (components, type) {
+let unwrapPlaceObject = function (placeObject) {
+    let addressComponentByType = function (components, type) {
         if (_.isEmpty(components)) {
             return '';
         }
-        var component = _.find(components, function (component) {
+        let component = _.find(components, function (component) {
             return _.includes(component.types, type);
         });
         if (component) {
@@ -125,7 +126,7 @@ var unwrapPlaceObject = function (placeObject) {
         }
         return '';
     };
-    var object = {};
+    let object = {};
     object.placeObject = placeObject;
     object.placeId = placeObject.place_id;
     object.formattedAddress = placeObject.formatted_address;

@@ -1,5 +1,8 @@
-module.exports = function (req, res) {
-    var fonts = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const PdfPrinter = require("pdfmake/src/printer");
+exports.pdfMake = (req, res) => {
+    let fonts = {
         Roboto: {
             normal: 'fonts/Roboto-Regular.ttf',
             bold: 'fonts/Roboto-Medium.ttf',
@@ -7,20 +10,15 @@ module.exports = function (req, res) {
             bolditalics: 'fonts/Roboto-Italic.ttf'
         }
     };
-
-    
-    var PdfPrinter = require('pdfmake/src/printer');
-    var printer = new PdfPrinter(fonts);
-
+    let printer = new PdfPrinter(fonts);
     if (!req.body || !req.body.content) {
         res.status(500).send('Document definition missing');
         return;
     }
-
     res.status(200);
     res.set('Content-Type: application/octet-stream');
-
-    var pdfDoc = printer.createPdfKitDocument(req.body);
+    let pdfDoc = printer.createPdfKitDocument(req.body);
     pdfDoc.pipe(res);
     pdfDoc.end();
 };
+//# sourceMappingURL=pdfmake.js.map

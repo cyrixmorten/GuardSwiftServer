@@ -1,68 +1,54 @@
-var _ = require('lodash');
-var geocode = require('../utils/geocode.ts');
-
-exports.findAlarm = function (options) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const _ = require("lodash");
+const geocode_1 = require("../utils/geocode");
+class AlarmUtils {
+}
+AlarmUtils.findAlarm = function (options) {
     console.log('options: ', options);
-
-    var Alarm = Parse.Object.extend('Task');
-    var query = new Parse.Query(Alarm);
+    let Alarm = Parse.Object.extend('Task');
+    let query = new Parse.Query(Alarm);
     query.equalTo('central', options.central);
     query.equalTo('owner', options.user);
     query.equalTo('fullAddress', options.parsed.alarmObject.fullAddress);
-
-    return query.first({useMasterKey: true});
+    return query.first({ useMasterKey: true });
 };
-
-exports.findCentral = function (sender) {
+AlarmUtils.findCentral = function (sender) {
     console.log('findCentral');
-
-    var Central = Parse.Object.extend('Central');
-    var query = new Parse.Query(Central);
+    let Central = Parse.Object.extend('Central');
+    let query = new Parse.Query(Central);
     query.equalTo('sendFrom', sender);
-
-    return query.first({useMasterKey: true});
+    return query.first({ useMasterKey: true });
 };
-
-exports.findUser = function (receiver) {
+AlarmUtils.findUser = function (receiver) {
     console.log('findUser');
-
-    var query = new Parse.Query(Parse.User);
+    let query = new Parse.Query(Parse.User);
     query.equalTo('sendTo', receiver);
-
-    return query.first({useMasterKey: true});
+    return query.first({ useMasterKey: true });
 };
-
-exports.findClient = function (user, queryMap) {
+AlarmUtils.findClient = function (user, queryMap) {
     console.log('findClient', user, queryMap);
-
-    var Client = Parse.Object.extend("Client");
-    var query = new Parse.Query(Client);
+    let Client = Parse.Object.extend("Client");
+    let query = new Parse.Query(Client);
     query.equalTo('owner', user);
-
-    _.forOwn(queryMap, function(value, key) {
+    _.forOwn(queryMap, function (value, key) {
         if (!_.isUndefined(value)) {
             query.equalTo(key, value);
         }
     });
-
-
-    return query.first({useMasterKey: true});
+    return query.first({ useMasterKey: true });
 };
-
-exports.createClient = function (user, alarm) {
+AlarmUtils.createClient = function (user, alarm) {
     console.log('createClient');
-
-    var id = alarm.get('clientId');
-    var name = alarm.get('clientName');
-    var fullAddress = alarm.get('fullAddress');
-
-    return geocode.lookupPlaceObject(fullAddress).then(function (placeObject) {
+    let id = alarm.get('clientId');
+    let name = alarm.get('clientName');
+    let fullAddress = alarm.get('fullAddress');
+    return geocode_1.lookupPlaceObject(fullAddress).then(function (placeObject) {
         return Parse.Promise.as(placeObject);
-    }, function() {
+    }, function () {
         // unable to look up address
         console.log('Failed to look up address for: ' + fullAddress);
-
-        var fakePlaceObject  = {
+        let fakePlaceObject = {
             placeObject: {},
             placeId: '',
             formattedAddress: fullAddress,
@@ -75,26 +61,22 @@ exports.createClient = function (user, alarm) {
                 longitude: 1
             })
         };
-
         return Parse.Promise.as(fakePlaceObject);
-
-    }).then(function(placeObject) {
-        var Client = Parse.Object.extend("Client");
-        var client = new Client();
-
+    }).then(function (placeObject) {
+        let Client = Parse.Object.extend("Client");
+        let client = new Client();
         client.set('clientId', id);
         client.set('automatic', true);
         client.set('name', name);
         client.set('fullAddress', fullAddress);
         client.set('owner', user);
-
-        var acl = new Parse.ACL(user);
+        let acl = new Parse.ACL(user);
         client.setACL(acl);
-
         _.forOwn(placeObject, function (value, key) {
             client.set(key, value);
         });
-
-        return client.save(null, {useMasterKey: true});
-    })
+        return client.save(null, { useMasterKey: true });
+    });
 };
+exports.AlarmUtils = AlarmUtils;
+//# sourceMappingURL=utils.js.map

@@ -4,8 +4,8 @@ import * as _ from "lodash";
 import * as moment from "moment";
 import {GuardQuery} from "../../shared/subclass/Guard";
 
-let cpsms = require('../../api/cpsms');
-let handlers = require('../centrals/all');
+import * as cpsms from '../../api/cpsms';
+import {centrals} from "../centrals/all";
 
 let states = {
     PENDING: 'pending',
@@ -17,7 +17,7 @@ let states = {
 
 exports.states = states;
 
-Parse.Cloud.beforeSave(Task,  (request, response) => {
+Parse.Cloud.beforeSave(Task.className,  (request, response) => {
     
     let task = <Task>request.object;
 
@@ -30,7 +30,9 @@ Parse.Cloud.beforeSave(Task,  (request, response) => {
 });
 
 Parse.Cloud.afterSave(Task, (request)  => {
+
     let task = <Task>request.object;
+
     if (task.isType(TaskType.ALARM)) {
         alarmUpdate(task);
     }
@@ -127,7 +129,7 @@ let alarmUpdate = (task: Task) => {
         switch (status) {
             case states.PENDING: {
 
-                _.forEach(handlers, (handler) => {
+                _.forEach(centrals, (handler) => {
                     handler.handlePending(task);
                 });
 
@@ -140,13 +142,13 @@ let alarmUpdate = (task: Task) => {
                 break;
             }
             case states.ACCEPTED: {
-                _.forEach(handlers, (handler) => {
+                _.forEach(centrals, (handler) => {
                     handler.handleAccepted(task);
                 });
                 break;
             }
             case states.ARRIVED: {
-                _.forEach(handlers, (handler)  => {
+                _.forEach(centrals, (handler)  => {
                     handler.handleArrived(task);
                 });
                 break;
@@ -155,13 +157,13 @@ let alarmUpdate = (task: Task) => {
 
                 sendNotification(task);
 
-                _.forEach(handlers, (handler) => {
+                _.forEach(centrals, (handler) => {
                     handler.handleAborted(task);
                 });
                 break;
             }
             case states.FINISHED: {
-                _.forEach(handlers, (handler)  => {
+                _.forEach(centrals, (handler)  => {
                     handler.handleFinished(task);
                 });
                 break;

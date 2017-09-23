@@ -1,29 +1,28 @@
-var _ = require('lodash');
-
-var regularReport = require('./regularReport.js');
-// var districtReport = require('./districtReport.js');
-var staticReport = require('./staticReport.js');
-
-
-var reportUtils = require('../reportUtils.js');
-
-var fetchReportSettings = function (report) {
-
-    var getSettingsColumn = function () {
-        var taskType = report.get('taskType');
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const reportUtils_1 = require("../reportUtils");
+const Task_1 = require("../../../shared/subclass/Task");
+const _ = require("lodash");
+const regularReport = require("./regularReport");
+const staticReport = require("./staticReport");
+let fetchReportSettings = function (report) {
+    let getSettingsColumn = function () {
+        let taskType = report.get('taskType');
         switch (taskType) {
-            case 'Alarm':
+            case Task_1.TaskType.ALARM:
                 return 'regularReportSettings';
-            case 'Regular':
+            case Task_1.TaskType.REGULAR:
                 return 'regularReportSettings';
-            case 'Raid':
+            case Task_1.TaskType.RAID:
                 return 'regularReportSettings';
-            case 'Static':
+            case Task_1.TaskType.STATIC:
                 return 'staticReportSettings';
+            default: {
+                console.error("fetchReportSettings missing taskType: " + taskType);
+            }
         }
-
         // TODO kept for backwards compatibility < 5.0.0
-        var taskTypeName = report.get('taskTypeName');
+        let taskTypeName = report.get('taskTypeName');
         switch (taskTypeName) {
             case 'ALARM':
                 return 'regularReportSettings';
@@ -35,48 +34,38 @@ var fetchReportSettings = function (report) {
                 return 'staticReportSettings';
         }
     };
-
-    var fetchReportSettings = function () {
-        var settingsCol = getSettingsColumn();
-
+    let fetchReportSettings = function () {
+        let settingsCol = getSettingsColumn();
         console.log('settingsCol: ' + settingsCol);
-
         if (_.isEmpty(settingsCol)) {
             return Parse.Promise.error('No definition matching report');
         }
-
-        return reportUtils.fetchUser(report).then(function (user) {
-            return user.get(settingsCol).fetch({useMasterKey: true});
+        return reportUtils_1.ReportUtils.fetchUser(report).then(function (user) {
+            return user.get(settingsCol).fetch({ useMasterKey: true });
         });
     };
-
-
-    return fetchReportSettings()
+    return fetchReportSettings();
 };
-
 exports.createDoc = function (report) {
-
-    var timeZone;
-
-    return reportUtils.fetchUser(report).then(function (user) {
-
+    let timeZone;
+    return reportUtils_1.ReportUtils.fetchUser(report).then(function (user) {
         timeZone = (user.has('timeZone')) ? user.get('timeZone') : 'Europe/Copenhagen';
-
         return fetchReportSettings(report);
     }).then(function (settings) {
-
-        var taskType = report.get('taskType');
+        let taskType = report.get('taskType');
         switch (taskType) {
-            case 'Alarm':
+            case Task_1.TaskType.ALARM:
                 return regularReport.createDoc(report, settings, timeZone);
-            case 'Regular':
+            case Task_1.TaskType.REGULAR:
                 return regularReport.createDoc(report, settings, timeZone);
-            case 'Raid':
+            case Task_1.TaskType.RAID:
                 return regularReport.createDoc(report, settings, timeZone);
-            case 'Static':
+            case Task_1.TaskType.STATIC:
                 return staticReport.createDoc(report, settings, timeZone);
+            default: {
+                console.error("createDoc missing taskType: " + taskType);
+            }
         }
-
         // TODO kept for backwards compatibility < 5.0.0
         if (report.has('task')) {
             return regularReport.createDoc(report, settings, timeZone);
@@ -88,6 +77,5 @@ exports.createDoc = function (report) {
             return staticReport.createDoc(report, settings, timeZone);
         }
     });
-
-
 };
+//# sourceMappingURL=taskReport.js.map

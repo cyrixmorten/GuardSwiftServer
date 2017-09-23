@@ -1,13 +1,10 @@
-var moment = require('moment-timezone-all');
-var _ = require('lodash');
-
-var pdfUtils = require('../../utils/pdf.js');
-
-
-var docDefaults = require('./docDefaults.js');
-var reportUtils = require('../reportUtils.js');
-
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const moment = require("moment-timezone-all");
+const _ = require("lodash");
+const reportUtils_1 = require("../reportUtils");
+const pdf_1 = require("../../utils/pdf");
+const docDefaults_1 = require("./docDefaults");
 /**
  * Generate regular report doc definition
  *
@@ -16,32 +13,24 @@ var reportUtils = require('../reportUtils.js');
  * @param timeZone
  */
 exports.createDoc = function (report, settings, timeZone) {
-
-    var events = reportUtils.reportEventsMap(report, timeZone);
-
-    var backgroundHeaderImage = docDefaults.backgroundHeaderImage(settings);
-
-    var eventsContent = function () {
-
-        var pruneIndexes = [];
-
-
-        var missingEventName = function() {
-            for (var i = 0; i<events.eventTimestamps.length; i++) {
-                var hasEventName = !!events.eventName[i];
+    let events = reportUtils_1.ReportUtils.reportEventsMap(report, timeZone);
+    let backgroundHeaderImage = docDefaults_1.PDFDefaults.backgroundHeaderImage(settings);
+    let eventsContent = function () {
+        let pruneIndexes = [];
+        let missingEventName = function () {
+            for (let i = 0; i < events.eventTimestamps.length; i++) {
+                let hasEventName = !!events.eventName[i];
                 if (!hasEventName) {
                     pruneIndexes.push(i);
                 }
             }
         };
-
         /*
          * Alarms can be accepted by multiple guards, however there is no reason to write it more than once in the report
          */
-        var onlyWriteAcceptOnce = function() {
-            var hasAccepted = false;
-            for (var i = 0; i<events.eventTimestamps.length; i++) {
-
+        let onlyWriteAcceptOnce = function () {
+            let hasAccepted = false;
+            for (let i = 0; i < events.eventTimestamps.length; i++) {
                 if (events.taskEvents[i] === 'ACCEPT') {
                     if (hasAccepted === true) {
                         pruneIndexes.push(i);
@@ -50,18 +39,15 @@ exports.createDoc = function (report, settings, timeZone) {
                 }
             }
         };
-
-        var preferArrivalsWithinSchedule = function() {
-            var regularTask = report.get('circuitUnit');
+        let preferArrivalsWithinSchedule = function () {
+            let regularTask = report.get('circuitUnit');
             if (!regularTask) {
                 return;
             }
-
-            var supervisionsCount = regularTask.get('supervisions');
-            var arrivalEvents = [];
-
+            let supervisionsCount = regularTask.get('supervisions');
+            let arrivalEvents = [];
             // collect arrival events
-            for (var i = 0; i<events.eventTimestamps.length; i++) {
+            for (let i = 0; i < events.eventTimestamps.length; i++) {
                 if (events.taskEvents[i] === 'ARRIVE') {
                     arrivalEvents.push({
                         event: events.all[i],
@@ -69,53 +55,38 @@ exports.createDoc = function (report, settings, timeZone) {
                     });
                 }
             }
-
-            var extraArrivalsCount = arrivalEvents.length - supervisionsCount;
-
+            let extraArrivalsCount = arrivalEvents.length - supervisionsCount;
             if (extraArrivalsCount > 0) {
-
-                var pruneCount = 0;
-
-                var pruneExtraArrivals = function(ignoreSchedule) {
-                    for (var j = 0; j<arrivalEvents.length; j++) {
-                        var arrivalEvent = arrivalEvents[j];
-
-                        var isWithinSchedule = arrivalEvent.event.get('withinSchedule');
-                        var pruneDueToSchedule = ignoreSchedule || !isWithinSchedule;
+                let pruneCount = 0;
+                let pruneExtraArrivals = function (ignoreSchedule) {
+                    for (let j = 0; j < arrivalEvents.length; j++) {
+                        let arrivalEvent = arrivalEvents[j];
+                        let isWithinSchedule = arrivalEvent.event.get('withinSchedule');
+                        let pruneDueToSchedule = ignoreSchedule || !isWithinSchedule;
                         if (pruneDueToSchedule && pruneCount !== extraArrivalsCount) {
                             pruneIndexes.push(arrivalEvent.index);
                             pruneCount++;
                         }
                     }
                 };
-
-
-                pruneExtraArrivals();
+                pruneExtraArrivals(false);
                 pruneExtraArrivals(true);
-
             }
         };
-
-        var removeDuplicateTexts = function() {
-
+        let removeDuplicateTexts = function () {
             // 1) collect comparables with concatenated text
-            var comparables = [];
-            for (var i = 0; i<events.eventName.length; i++) {
-
-                var event = events.eventName[i];
-
-
+            let comparables = [];
+            for (let i = 0; i < events.eventName.length; i++) {
+                let event = events.eventName[i];
                 // only compare events written by guard
                 if (events.taskEvents[i] !== 'OTHER') {
                     continue;
                 }
-
                 if (event) {
-                    var amount = events.amount[i];
-                    var people = events.people[i];
-                    var location = events.location[i];
-                    var remarks = events.remarks[i];
-
+                    let amount = events.amount[i];
+                    let people = events.people[i];
+                    let location = events.location[i];
+                    let remarks = events.remarks[i];
                     comparables.push({
                         text: _.join(_.compact([event, amount, people, location, remarks]), "_"),
                         index: i,
@@ -123,103 +94,79 @@ exports.createDoc = function (report, settings, timeZone) {
                     });
                 }
             }
-
             // 2) collect duplicates
-            var seenTexts = [];
-            var duplicates = [];
-            _.forEach(comparables, function(comparable) {
-
+            let seenTexts = [];
+            let duplicates = [];
+            _.forEach(comparables, function (comparable) {
                 if (_.includes(seenTexts, comparable.text)) {
                     duplicates.push(comparable);
                 }
-
                 seenTexts.push(comparable.text);
             });
-
             // 3) inspect time distance between duplicates
-            _.forEach(duplicates, function(duplicate) {
-
-                var duplicateTimestamp = moment(duplicate.timestamp);
-
-
-                var matchingComparables = _.filter(comparables, function(comparable) {
-                    var match = comparable.text === duplicate.text;
-                    var isBefore = moment(comparable.timestamp).isBefore(duplicateTimestamp);
-
+            _.forEach(duplicates, function (duplicate) {
+                let duplicateTimestamp = moment(duplicate.timestamp);
+                let matchingComparables = _.filter(comparables, function (comparable) {
+                    let match = comparable.text === duplicate.text;
+                    let isBefore = moment(comparable.timestamp).isBefore(duplicateTimestamp);
                     return match && isBefore;
                 });
-
-                var prune = false;
-                _.forEach(matchingComparables, function(comparable) {
-                    var diffMinutes = moment(comparable.timestamp).diff(duplicateTimestamp, 'minutes');
-
+                let prune = false;
+                _.forEach(matchingComparables, function (comparable) {
+                    let diffMinutes = moment(comparable.timestamp).diff(duplicateTimestamp, 'minutes');
                     if (diffMinutes < 15) {
                         prune = true;
                     }
                 });
-
                 if (prune) {
                     pruneIndexes.push(duplicate.index);
                 }
-            })
-
+            });
         };
-
         missingEventName();
         onlyWriteAcceptOnce();
         preferArrivalsWithinSchedule();
         removeDuplicateTexts();
-
         // uniq in case multiple strategies apply to same index
         pruneIndexes = _.uniq(pruneIndexes);
-
-
         _.pullAt(events.eventTimestamps, pruneIndexes);
         _.pullAt(events.eventName, pruneIndexes);
         _.pullAt(events.amount, pruneIndexes);
         _.pullAt(events.people, pruneIndexes);
         _.pullAt(events.location, pruneIndexes);
         _.pullAt(events.remarks, pruneIndexes);
-
-
         return _.zip(events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
     };
-
-    var reportContent = function () {
-        var content = [];
-
+    let reportContent = function () {
+        let content = [];
         // client info
-        var header = docDefaults.contentHeader(report, backgroundHeaderImage);
-        var arrivalAndReportId = pdfUtils.leftRightAlignedContent({
+        let header = docDefaults_1.PDFDefaults.contentHeader(report, backgroundHeaderImage);
+        let arrivalAndReportId = pdf_1.PDFUtils.leftRightAlignedContent({
             textLeft: [],
-            textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
+            textRight: [{ text: 'Rapport id: ' + report.get('reportId'), color: 'grey' }],
             margin: [0, 10],
-            style: {bold: true}
+            style: { bold: true }
         });
-        var reportedEvents = pdfUtils.tableWithBorder({
+        let reportedEvents = pdf_1.PDFUtils.tableWithBorder({
             widths: [50, '*', 30, '*', '*', '*'],
             header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
             content: eventsContent()
         });
-
         content.push(header);
         content.push(arrivalAndReportId);
         content.push(reportedEvents);
-
-        var eventsWrittenbyGuard = _.compact(events.writtenByGuard);
+        let eventsWrittenbyGuard = _.compact(events.writtenByGuard);
         if (eventsWrittenbyGuard.length === 0) {
-            content.push(
-                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
-            )
+            content.push({ text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0] });
         }
-
         return content;
     };
-    return _.extend(docDefaults.doc(report, timeZone), {
+    return _.extend(docDefaults_1.PDFDefaults.doc(report, timeZone), {
         background: backgroundHeaderImage,
-        header: docDefaults.header(report, timeZone),
+        header: docDefaults_1.PDFDefaults.header(report, timeZone),
         content: reportContent(),
-        footer: docDefaults.footer(report),
-        styles: docDefaults.styles()
+        footer: docDefaults_1.PDFDefaults.footer(report),
+        styles: docDefaults_1.PDFDefaults.styles()
     });
 };
+//# sourceMappingURL=regularReport.js.map

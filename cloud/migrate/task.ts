@@ -1,4 +1,4 @@
-let _ = require('lodash');
+import * as _ from 'lodash'
 
 
 let excludeMigrated = function (query) {

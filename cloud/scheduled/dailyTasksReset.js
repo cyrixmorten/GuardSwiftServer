@@ -28,13 +28,13 @@ Parse.Cloud.job("resetTasks", function (request, status) {
     console.log('----');
     console.log('- resetAllTasks');
     console.log('----\n\n');
-    var forceUpdate = request.params.force;
-    var now = new Date();
-    var now_dayOfWeek = now.getDay();
-    var now_hour = now.getHours();
+    let forceUpdate = request.params.force;
+    let now = new Date();
+    let now_dayOfWeek = now.getDay();
+    let now_hour = now.getHours();
     console.log("manageActiveCircuitsStarted day: " + now_dayOfWeek + " hour: "
         + now_hour + " forced update: " + (forceUpdate == true));
-    var promises = [];
+    let promises = [];
     // promises.push(manageCircuits(now_dayOfWeek, now_hour, forceUpdate));
     promises.push(new ResetTasks_1.ResetTasks(forceUpdate).run());
     Parse.Promise.when(promises).then(function () {
@@ -47,9 +47,9 @@ Parse.Cloud.job("resetTasks", function (request, status) {
     });
 });
 Parse.Cloud.define("createCircuitStarted", function (request, response) {
-    var objectId = request.params.objectId;
-    var Circuit = Parse.Object.extend("Circuit");
-    var query = new Parse.Query(Circuit);
+    let objectId = request.params.objectId;
+    let Circuit = Parse.Object.extend("Circuit");
+    let query = new Parse.Query(Circuit);
     query.get(objectId, { useMasterKey: true }).then(function (circuit) {
         createCircuitStarted(circuit).then(function () {
             response.success("Successfully created circuitStarted");
@@ -60,9 +60,9 @@ Parse.Cloud.define("createCircuitStarted", function (request, response) {
         response.error(error.message);
     });
 });
-var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
-    var promise = new Parse.Promise();
-    var queryCircuits = new Parse.Query("Circuit");
+let manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
+    let promise = new Parse.Promise();
+    let queryCircuits = new Parse.Query("Circuit");
     if (!forceUpdate) {
         queryCircuits.notEqualTo('createdDay', now_dayOfWeek);
     }
@@ -71,16 +71,16 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
         console.log("found circuits " + circuits.length);
         if (circuits.length == 0)
             return Parse.Promise.as('');
-        var promises = [];
+        let promises = [];
         // for each Circuit
         circuits.forEach(function (circuit) {
-            var days = circuit.get('days');
+            let days = circuit.get('days');
             // if run today
             if (_.includes(days, now_dayOfWeek)) {
                 // adjust time according to timeZone
-                var timeResetDate = circuit.get('timeResetDate');
-                var timeEnd = timeResetDate.getHours();
-                var hours_to_restart = timeEnd - now_hour;
+                let timeResetDate = circuit.get('timeResetDate');
+                let timeEnd = timeResetDate.getHours();
+                let hours_to_restart = timeEnd - now_hour;
                 console.log(" -- | "
                     + circuit.get('name')
                     + " | --");
@@ -99,11 +99,11 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
                 if (forceUpdate || hours_to_restart == 0
                     || !circuit.has('createdDay')) {
                     // CircuitStarted matching Circuit
-                    var circuitsStartedPromise = new Parse.Promise();
+                    let circuitsStartedPromise = new Parse.Promise();
                     findActiveCircuitStartedMatching(circuit).then(function (circuitsStarted) {
                         // perform
                         // restart
-                        var promise = Parse.Promise.as(undefined);
+                        let promise = Parse.Promise.as(undefined);
                         promise = promise.then(function () {
                             console.log(" ** RESTARTING CIRCUIT " + circuit.get('name') + " **");
                             console.log('Closing ...');
@@ -132,7 +132,7 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
                 console.log("Not run today: "
                     + now_dayOfWeek + " days: "
                     + days);
-                var closePromise = closeCircuitStartedMatching(circuit);
+                let closePromise = closeCircuitStartedMatching(circuit);
                 promises.push(closePromise);
             }
         });
@@ -148,16 +148,16 @@ var manageCircuits = function (now_dayOfWeek, now_hour, forceUpdate) {
     });
     return promise;
 };
-var closeCircuitStartedMatching = function (circuit) {
+let closeCircuitStartedMatching = function (circuit) {
     return findActiveCircuitStartedMatching(circuit).then(function (circuitsStarted) {
         return closeCircuitsStarted(circuitsStarted);
     });
 };
-var closeCircuitsStarted = function (circuitsStarted) {
+let closeCircuitsStarted = function (circuitsStarted) {
     if (circuitsStarted.length == 0) {
         return Parse.Promise.as(undefined);
     }
-    var promises = [];
+    let promises = [];
     circuitsStarted.forEach(function (circuitStarted) {
         circuitStarted.set('timeEnded', new Date());
         promises.push(circuitStarted.save(null, { useMasterKey: true }));
@@ -165,21 +165,21 @@ var closeCircuitsStarted = function (circuitsStarted) {
     console.log('promises.length: ', promises.length);
     return Parse.Promise.when(promises);
 };
-var resetCircuitUnits = function (circuit) {
+let resetCircuitUnits = function (circuit) {
     console.log("reseting circuitUnits for " + circuit.get('name'));
     console.log("resetCircuitUnits");
-    var promise = new Parse.Promise();
-    var counter = 0;
+    let promise = new Parse.Promise();
+    let counter = 0;
     // TODO backwards compatibility - remove
-    var arrivedQuery = new Parse.Query("CircuitUnit");
+    let arrivedQuery = new Parse.Query("CircuitUnit");
     arrivedQuery.equalTo('status', 'arrived');
-    var abortedQuery = new Parse.Query("CircuitUnit");
+    let abortedQuery = new Parse.Query("CircuitUnit");
     abortedQuery.equalTo('status', 'aborted');
-    var finishedQuery = new Parse.Query("CircuitUnit");
+    let finishedQuery = new Parse.Query("CircuitUnit");
     finishedQuery.equalTo('status', 'finished');
-    var timesArrivedQuery = new Parse.Query("CircuitUnit");
+    let timesArrivedQuery = new Parse.Query("CircuitUnit");
     timesArrivedQuery.greaterThan('timesArrived', 0);
-    var mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
+    let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
     mainQuery.equalTo('circuit', circuit);
     mainQuery.each(function (object) {
         object.set('status', 'pending');
@@ -199,17 +199,17 @@ var resetCircuitUnits = function (circuit) {
     });
     return promise;
 };
-var createCircuitStarted = function (circuit) {
+let createCircuitStarted = function (circuit) {
     console.log("createCircuitStarted");
-    var promises = [];
-    var name = circuit.get('name');
-    var user = circuit.get('owner');
-    var now = new Date();
+    let promises = [];
+    let name = circuit.get('name');
+    let user = circuit.get('owner');
+    let now = new Date();
     circuit.set('createdTime', now);
     circuit.set('createdDay', now.getDay());
-    var ACL = new Parse.ACL(user);
-    var CircuitStarted = Parse.Object.extend("CircuitStarted");
-    var circuitStarted = new CircuitStarted();
+    let ACL = new Parse.ACL(user);
+    let CircuitStarted = Parse.Object.extend("CircuitStarted");
+    let circuitStarted = new CircuitStarted();
     circuitStarted.set('circuit', circuit);
     circuitStarted.set('name', name);
     circuitStarted.set('owner', user);
@@ -220,8 +220,8 @@ var createCircuitStarted = function (circuit) {
     promises.push(resetCircuitUnits(circuit));
     return Parse.Promise.when(promises);
 };
-var findActiveCircuitStartedMatching = function (circuit) {
-    var query = new Parse.Query("CircuitStarted");
+let findActiveCircuitStartedMatching = function (circuit) {
+    let query = new Parse.Query("CircuitStarted");
     query.equalTo('circuit', circuit);
     query.doesNotExist('timeEnded');
     return query.find({ useMasterKey: true });

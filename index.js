@@ -90,18 +90,13 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-apiRouter.get('/report/:id', require('./api/pdf/pdfreport'));
-apiRouter.post('/pdfmake', require('./api/pdf/pdfmake'));
-// apiRouter.post('/sms-send', require('./api/twilio').send);
-apiRouter.post('/twilio',
-    require('twilio').webhook({ validate: false }),
-    require('./api/twilio').receive
-);
+apiRouter.get('/report/:id', require('./api/pdf/pdfreport').toPdf);
+apiRouter.post('/pdfmake', require('./api/pdf/pdfmake').pdfMake);
+
 apiRouter.get('/cpsms',
     require('./api/cpsms').receive
 );
 app.use('/api', apiRouter);
-
 
 
 var port = process.env.PORT || 1337;
@@ -111,6 +106,6 @@ httpServer.listen(port, function() {
 });
 
 // This will enable the Live Query real-time server
-// ParseServer.createLiveQueryServer(httpServer);
+ParseServer.createLiveQueryServer(httpServer);
 
 

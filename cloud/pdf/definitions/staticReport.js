@@ -1,11 +1,9 @@
-var _ = require('lodash');
-
-var pdfUtils = require('../../utils/pdf.js');
-
-var docDefaults = require('./docDefaults.js');
-var reportUtils = require('../reportUtils.js');
-
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const _ = require("lodash");
+const docDefaults_1 = require("./docDefaults");
+const reportUtils_1 = require("../reportUtils");
+const pdf_1 = require("../../utils/pdf");
 /**
  * Generate static report doc definition
  *
@@ -14,27 +12,19 @@ var reportUtils = require('../reportUtils.js');
  * @param timeZone
  */
 exports.createDoc = function (report, settings, timeZone) {
-
-    var events = reportUtils.reportEventsMap(report, timeZone);
-
-    return _.extend(docDefaults.doc(report, timeZone), {
-
-        background: docDefaults.backgroundHeaderImage(settings),
-
-        header: docDefaults.header(report, timeZone),
-
+    let events = reportUtils_1.ReportUtils.reportEventsMap(report, timeZone);
+    return _.extend(docDefaults_1.PDFDefaults.doc(report, timeZone), {
+        background: docDefaults_1.PDFDefaults.backgroundHeaderImage(settings),
+        header: docDefaults_1.PDFDefaults.header(report, timeZone),
         content: [
-            docDefaults.contentHeader(report),
-            pdfUtils.tableNoBorders({
+            docDefaults_1.PDFDefaults.contentHeader(report),
+            pdf_1.PDFUtils.tableNoBorders({
                 widths: [50, '*'],
                 content: _.zip(events.timestamps, events.remarks)
             })
         ],
-
-        footer: docDefaults.footer(report),
-
-
-        styles: docDefaults.styles()
-
+        footer: docDefaults_1.PDFDefaults.footer(report),
+        styles: docDefaults_1.PDFDefaults.styles()
     });
 };
+//# sourceMappingURL=staticReport.js.map

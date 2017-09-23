@@ -4,8 +4,8 @@ const Task_1 = require("../../shared/subclass/Task");
 const _ = require("lodash");
 const moment = require("moment");
 const Guard_1 = require("../../shared/subclass/Guard");
-let cpsms = require('../../api/cpsms');
-let handlers = require('../centrals/all');
+const cpsms = require("../../api/cpsms");
+const all_1 = require("../centrals/all");
 let states = {
     PENDING: 'pending',
     ACCEPTED: 'accepted',
@@ -14,7 +14,7 @@ let states = {
     FINISHED: 'finished'
 };
 exports.states = states;
-Parse.Cloud.beforeSave(Task_1.Task, (request, response) => {
+Parse.Cloud.beforeSave(Task_1.Task.className, (request, response) => {
     let task = request.object;
     if (!task.existed()) {
         task.reset();
@@ -97,7 +97,7 @@ let alarmUpdate = (task) => {
     if (!_.includes(task.get('knownStatus'), status)) {
         switch (status) {
             case states.PENDING: {
-                _.forEach(handlers, (handler) => {
+                _.forEach(all_1.centrals, (handler) => {
                     handler.handlePending(task);
                 });
                 sendNotification(task).then(() => {
@@ -108,26 +108,26 @@ let alarmUpdate = (task) => {
                 break;
             }
             case states.ACCEPTED: {
-                _.forEach(handlers, (handler) => {
+                _.forEach(all_1.centrals, (handler) => {
                     handler.handleAccepted(task);
                 });
                 break;
             }
             case states.ARRIVED: {
-                _.forEach(handlers, (handler) => {
+                _.forEach(all_1.centrals, (handler) => {
                     handler.handleArrived(task);
                 });
                 break;
             }
             case states.ABORTED: {
                 sendNotification(task);
-                _.forEach(handlers, (handler) => {
+                _.forEach(all_1.centrals, (handler) => {
                     handler.handleAborted(task);
                 });
                 break;
             }
             case states.FINISHED: {
-                _.forEach(handlers, (handler) => {
+                _.forEach(all_1.centrals, (handler) => {
                     handler.handleFinished(task);
                 });
                 break;
