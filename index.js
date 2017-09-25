@@ -41,7 +41,7 @@ var api = new ParseServer({
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
   serverURL: process.env.SERVER_URL, // Don't forget to change to https if needed
   liveQuery: {
-    classNames: ["Task"] // List of classes to support for query subscriptions
+    classNames: ["Task", "EventLog", "Guard", "Client"] // List of classes to support for query subscriptions
   },
   filesAdapter: new S3Adapter(
       process.env.S3_KEY,
