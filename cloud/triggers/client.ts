@@ -2,17 +2,18 @@ import * as GeoCode from '../utils/geocode';
 import * as _ from 'lodash';
 import {Client} from "../../shared/subclass/Client";
 import {Task, TaskQuery} from "../../shared/subclass/Task";
+import IPromise = Parse.IPromise;
 
 /*
  * Sanity check and obtain a GPS position for Client
  */
 Parse.Cloud.beforeSave(Client,  (request, response) => {
     
-    let Client = request.object;
+    let client = <Client>request.object;
 
-    let dirtyKeys = Client.dirtyKeys();
+    let dirtyKeys = client.dirtyKeys();
     let lookupAddress = false;
-    let addressKeys = ["cityName", "zipcode", "addressName", "addressNumber"];
+    let addressKeys = [Client._cityName, Client._zipcode, Client._addressName, Client._addressNumber];
     for (let dirtyKey in dirtyKeys) {
         let dirtyValue = dirtyKeys[dirtyKey];
         if (_.includes(addressKeys, dirtyValue)) {
@@ -21,8 +22,15 @@ Parse.Cloud.beforeSave(Client,  (request, response) => {
     }
 
     if (lookupAddress) {
-        console.log("do addAddressToClient");
-        addAddressToClient(Client, response);
+        console.log("lookupAddress");
+        addAddressToClient(client).then((point) => {
+            console.log('setting new position:', point);
+            client.position = point;
+
+            response.success();
+        }, (error) => {
+            response.error(error);
+        });
     } else {
         console.log("no address lookup");
         response.success();
@@ -46,11 +54,7 @@ let updateTasks = (client: Client) => {
         console.log('Updating tasks: ' + tasks.length);
 
         _.forEach(tasks, (task: Task) => {
-
-            task.clientId = client.get('clientId');
-            task.clientName = client.get('clientName');
-            task.position = client.get('position');
-
+            task.client = client;
             task.save(null, {useMasterKey: true});
         });
 
@@ -59,7 +63,7 @@ let updateTasks = (client: Client) => {
     })
 };
 
-let addAddressToClient = function (Client, response) {
+let addAddressToClient = (Client): IPromise<any> => {
 
     let addressName = Client.get("addressName");
     let addressNumber = Client.get("addressNumber");
@@ -72,23 +76,12 @@ let addAddressToClient = function (Client, response) {
         + cityName;
 
     if (addressName.length == 0) {
-        response.error("Address must not be empty");
+        return Parse.Promise.error("Address must not be empty");
     } else if (zipcode == 0) {
         if (cityName.length == 0) {
-            response.error("Zipcode and city name must not be empty");
+            return Parse.Promise.error("Zipcode and city name must not be empty");
         }
     } else {
-        GeoCode.lookupAddress(searchAddress).then(function (point) {
-
-            Client.set("position", point);
-
-            console.log('setting new position:');
-            console.log(point);
-
-            Client.set('positionUpdated', new Date());
-            response.success();
-        }, function (error) {
-            response.error("Address not found: " + searchAddress);
-        });
+        return GeoCode.lookupAddress(searchAddress);
     }
 };

@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import IPromise = Parse.IPromise;
 
 /**
  * Returns {lat: latitude, lng: longitude} object
@@ -6,8 +7,8 @@ import * as _ from 'lodash';
  * @param searchAddress
  * @returns {Parse.Promise}
  */
-export let lookupAddress = function (searchAddress) {
-    let promise = new Parse.Promise();
+export let lookupAddress =  (searchAddress):  IPromise<Parse.GeoPoint> => {
+    let promise = new Parse.Promise<Parse.GeoPoint>();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {

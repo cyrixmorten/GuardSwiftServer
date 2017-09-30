@@ -6,6 +6,12 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         this.query = new Parse.Query(object);
     }
 
+    matchingId(id: string) {
+        this.query.equalTo('objectId', id);
+
+        return this;
+    }
+
     matchingOwner(user: Parse.User) {
         this.query.equalTo('owner', user);
 

@@ -116,6 +116,24 @@ export class Task extends BaseClass {
         return this.get(Task._guard);
     }
 
+    get client(): Client {
+        return this.get(Task._client);
+    }
+
+    set client(client: Client) {
+        this.set(Task._client, client);
+
+        if (client.id) {
+            this.clientId = client.id;
+        }
+        if (client.name) {
+            this.clientName = client.name;
+        }
+        if (client.position) {
+            this.position = client.position;
+        }
+    }
+
     get clientId(): string {
         return this.get(Task._clientId);
     }

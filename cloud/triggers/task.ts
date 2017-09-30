@@ -1,4 +1,4 @@
-import {Task, TaskType} from "../../shared/subclass/Task";
+import {Task, TaskStatus, TaskType} from "../../shared/subclass/Task";
 import * as parse from "parse";
 import * as _ from "lodash";
 import * as moment from "moment";
@@ -6,16 +6,8 @@ import {GuardQuery} from "../../shared/subclass/Guard";
 
 import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
+import {ClientQuery} from "../../shared/subclass/Client";
 
-let states = {
-    PENDING: 'pending',
-    ACCEPTED: 'accepted',
-    ARRIVED: 'arrived',
-    ABORTED: 'aborted',
-    FINISHED: 'finished'
-};
-
-exports.states = states;
 
 Parse.Cloud.beforeSave(Task.className,  (request, response) => {
     
@@ -25,7 +17,23 @@ Parse.Cloud.beforeSave(Task.className,  (request, response) => {
         task.reset();
     }
 
-    response.success();
+    // task is either newly created or pointed to another client
+    if (task.dirty(Task._client)) {
+
+        new ClientQuery().matchingId(task.client.id).build().first({useMasterKey: true}).then((client) => {
+
+            task.client = client;
+
+            response.success();
+
+        }, (error) => {
+            response.error(error);
+        })
+
+    } else {
+
+        response.success();
+    }
 
 });
 
@@ -76,7 +84,7 @@ let sendNotification = (alarm) => {
     };
 
     let sendSMS =  () => {
-        let prefix = alarm.get('status') === states.ABORTED ? 'ANNULERET\n' : '';
+        let prefix = alarm.get('status') === TaskStatus.ABORTED ? 'ANNULERET\n' : '';
 
         let guardQuery = new GuardQuery()
             .matchingOwner(alarm.get('owner'))
@@ -127,7 +135,7 @@ let alarmUpdate = (task: Task) => {
     if (!_.includes(task.get('knownStatus'), status)) {
 
         switch (status) {
-            case states.PENDING: {
+            case TaskStatus.PENDING: {
 
                 _.forEach(centrals, (handler) => {
                     handler.handlePending(task);
@@ -141,19 +149,19 @@ let alarmUpdate = (task: Task) => {
 
                 break;
             }
-            case states.ACCEPTED: {
+            case TaskStatus.ACCEPTED: {
                 _.forEach(centrals, (handler) => {
                     handler.handleAccepted(task);
                 });
                 break;
             }
-            case states.ARRIVED: {
+            case TaskStatus.ARRIVED: {
                 _.forEach(centrals, (handler)  => {
                     handler.handleArrived(task);
                 });
                 break;
             }
-            case states.ABORTED: {
+            case TaskStatus.ABORTED: {
 
                 sendNotification(task);
 
@@ -162,7 +170,7 @@ let alarmUpdate = (task: Task) => {
                 });
                 break;
             }
-            case states.FINISHED: {
+            case TaskStatus.FINISHED: {
                 _.forEach(centrals, (handler)  => {
                     handler.handleFinished(task);
                 });
