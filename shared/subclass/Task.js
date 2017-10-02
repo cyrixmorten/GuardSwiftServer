@@ -77,9 +77,9 @@ class Task extends BaseClass_1.BaseClass {
     }
     set client(client) {
         this.set(Task._client, client);
-        this.clientId = client.clientId || this.clientId;
-        this.clientName = client.name || this.clientId;
-        this.clientAddress = client.fullAddress || this.clientId;
+        this.clientId = client.clientId || '';
+        this.clientName = client.name || '';
+        this.clientAddress = client.fullAddress || '';
         this.position = client.position || this.position;
         console.log('this.clientId: ', this.clientId);
         console.log('this.clientName: ', this.clientName);
