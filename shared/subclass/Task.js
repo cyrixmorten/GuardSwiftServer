@@ -72,6 +72,19 @@ class Task extends BaseClass_1.BaseClass {
     get guard() {
         return this.get(Task._guard);
     }
+    get client() {
+        return this.get(Task._client);
+    }
+    set client(client) {
+        this.set(Task._client, client);
+        this.clientId = client.clientId || this.clientId;
+        this.clientName = client.name || this.clientId;
+        this.clientAddress = client.fullAddress || this.clientId;
+        this.position = client.position || this.position;
+        console.log('this.clientId: ', this.clientId);
+        console.log('this.clientName: ', this.clientName);
+        console.log('this.clientAddress: ', this.clientAddress);
+    }
     get clientId() {
         return this.get(Task._clientId);
     }
@@ -83,6 +96,12 @@ class Task extends BaseClass_1.BaseClass {
     }
     set clientName(name) {
         this.set(Task._clientName, name);
+    }
+    get clientAddress() {
+        return this.get(Task._clientAddress);
+    }
+    set clientAddress(name) {
+        this.set(Task._clientAddress, name);
     }
     set days(days) {
         this.set(Task._days, days);
@@ -138,6 +157,7 @@ Task._timesArrived = 'timesArrived';
 Task._client = 'client';
 Task._clientId = 'clientId';
 Task._clientName = 'clientName';
+Task._clientAddress = 'clientAddress';
 Task._position = 'position';
 Task._days = 'days';
 Task._isRunToday = 'isRunToday';

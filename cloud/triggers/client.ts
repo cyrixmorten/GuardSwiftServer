@@ -58,7 +58,7 @@ let updateTasks = (client: Client) => {
             task.save(null, {useMasterKey: true});
         });
 
-    }, function(error) {
+    }, (error) => {
         console.error('error: ', error);
     })
 };

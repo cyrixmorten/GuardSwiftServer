@@ -7,7 +7,7 @@ const _ = require("lodash");
  * @param searchAddress
  * @returns {Parse.Promise}
  */
-exports.lookupAddress = function (searchAddress) {
+exports.lookupAddress = (searchAddress) => {
     let promise = new Parse.Promise();
     Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',

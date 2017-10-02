@@ -6,20 +6,24 @@ const moment = require("moment");
 const Guard_1 = require("../../shared/subclass/Guard");
 const cpsms = require("../../api/cpsms");
 const all_1 = require("../centrals/all");
-let states = {
-    PENDING: 'pending',
-    ACCEPTED: 'accepted',
-    ARRIVED: 'arrived',
-    ABORTED: 'aborted',
-    FINISHED: 'finished'
-};
-exports.states = states;
+const Client_1 = require("../../shared/subclass/Client");
 Parse.Cloud.beforeSave(Task_1.Task.className, (request, response) => {
     let task = request.object;
     if (!task.existed()) {
         task.reset();
     }
-    response.success();
+    // task is either newly created or pointed to another client
+    if (task.dirty(Task_1.Task._client)) {
+        new Client_1.ClientQuery().matchingId(task.client.id).build().first({ useMasterKey: true }).then((client) => {
+            task.client = client;
+            response.success();
+        }, (error) => {
+            response.error(error);
+        });
+    }
+    else {
+        response.success();
+    }
 });
 Parse.Cloud.afterSave(Task_1.Task, (request) => {
     let task = request.object;
@@ -58,7 +62,7 @@ let sendNotification = (alarm) => {
         });
     };
     let sendSMS = () => {
-        let prefix = alarm.get('status') === states.ABORTED ? 'ANNULERET\n' : '';
+        let prefix = alarm.get('status') === Task_1.TaskStatus.ABORTED ? 'ANNULERET\n' : '';
         let guardQuery = new Guard_1.GuardQuery()
             .matchingOwner(alarm.get('owner'))
             .whereAlarmSMS(true)
@@ -96,7 +100,7 @@ let alarmUpdate = (task) => {
     let status = task.get('status');
     if (!_.includes(task.get('knownStatus'), status)) {
         switch (status) {
-            case states.PENDING: {
+            case Task_1.TaskStatus.PENDING: {
                 _.forEach(all_1.centrals, (handler) => {
                     handler.handlePending(task);
                 });
@@ -107,26 +111,26 @@ let alarmUpdate = (task) => {
                 });
                 break;
             }
-            case states.ACCEPTED: {
+            case Task_1.TaskStatus.ACCEPTED: {
                 _.forEach(all_1.centrals, (handler) => {
                     handler.handleAccepted(task);
                 });
                 break;
             }
-            case states.ARRIVED: {
+            case Task_1.TaskStatus.ARRIVED: {
                 _.forEach(all_1.centrals, (handler) => {
                     handler.handleArrived(task);
                 });
                 break;
             }
-            case states.ABORTED: {
+            case Task_1.TaskStatus.ABORTED: {
                 sendNotification(task);
                 _.forEach(all_1.centrals, (handler) => {
                     handler.handleAborted(task);
                 });
                 break;
             }
-            case states.FINISHED: {
+            case Task_1.TaskStatus.FINISHED: {
                 _.forEach(all_1.centrals, (handler) => {
                     handler.handleFinished(task);
                 });

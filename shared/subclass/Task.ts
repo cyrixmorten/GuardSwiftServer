@@ -38,6 +38,7 @@ export class Task extends BaseClass {
     static readonly _client = 'client';
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
+    static readonly _clientAddress = 'clientAddress';
     static readonly _position = 'position';
 
     static readonly _days = 'days';
@@ -123,15 +124,15 @@ export class Task extends BaseClass {
     set client(client: Client) {
         this.set(Task._client, client);
 
-        if (client.id) {
-            this.clientId = client.id;
-        }
-        if (client.name) {
-            this.clientName = client.name;
-        }
-        if (client.position) {
-            this.position = client.position;
-        }
+        this.clientId = client.clientId || this.clientId;
+        this.clientName = client.name || this.clientId;
+        this.clientAddress = client.fullAddress || this.clientId;
+
+        this.position = client.position || this.position;
+
+        console.log('this.clientId: ', this.clientId);
+        console.log('this.clientName: ', this.clientName);
+        console.log('this.clientAddress: ', this.clientAddress);
     }
 
     get clientId(): string {
@@ -148,6 +149,14 @@ export class Task extends BaseClass {
 
     set clientName(name: string) {
         this.set(Task._clientName, name);
+    }
+
+    get clientAddress(): string {
+        return this.get(Task._clientAddress);
+    }
+
+    set clientAddress(name: string) {
+        this.set(Task._clientAddress, name);
     }
 
     set days(days: string[]) {
