@@ -129,10 +129,6 @@ export class Task extends BaseClass {
         this.clientAddress = client.fullAddress || '';
 
         this.position = client.position || this.position;
-
-        console.log('this.clientId: ', this.clientId);
-        console.log('this.clientName: ', this.clientName);
-        console.log('this.clientAddress: ', this.clientAddress);
     }
 
     get clientId(): string {
