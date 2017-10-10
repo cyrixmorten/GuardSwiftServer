@@ -11,7 +11,7 @@ var request = require('request');
 
 request({
     method: 'POST',
-    url: process.env.SERVER_URL + '/jobs/dailyMailReports',
+    url: process.env.SERVER_URL + '/functions/dailyMailReports',
     headers: {
         'X-Parse-Application-Id': process.env.APP_ID,
         'X-Parse-Master-Key': process.env.MASTER_KEY,

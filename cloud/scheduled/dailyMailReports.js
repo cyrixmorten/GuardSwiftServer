@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
 let reportToMail = require('../pdf/reportToMail');
-Parse.Cloud.job("dailyMailReports", (request, status) => {
+Parse.Cloud.define("dailyMailReports", (request, status) => {
     console.log('dailyMailReports', JSON.stringify(request.params));
     let now = moment();
     let yesterday = moment().subtract(request.params.days || 1, 'days');
@@ -11,7 +11,7 @@ Parse.Cloud.job("dailyMailReports", (request, status) => {
         let promises = [
             sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'ALARM'),
             sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'REGULAR'),
-            sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'DISTRICTWATCH')
+            sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'RAID')
         ];
         //let sendSummaryReportToCompany = sendRegularReportSummaryToCompany(company, yesterday.toDate(), now.toDate());
         return Parse.Promise.when(promises);

@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 let reportToMail = require('../pdf/reportToMail');
 
 
-Parse.Cloud.job("dailyMailReports",  (request, status) => {
+Parse.Cloud.define("dailyMailReports",  (request, status) => {
 
     console.log('dailyMailReports', JSON.stringify(request.params));
 

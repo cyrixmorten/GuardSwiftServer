@@ -15,6 +15,7 @@ let taskSettings = function (report) {
         fileName: ''
     };
     let taskType = report.get('taskType');
+    console.log('taskType: ', taskType);
     switch (taskType) {
         case 'Alarm': {
             taskSettings.settingsPointerName = 'regularReportSettings';
@@ -23,12 +24,12 @@ let taskSettings = function (report) {
         }
         case 'Regular': {
             taskSettings.settingsPointerName = 'regularReportSettings';
-            taskSettings.taskType = "Tilsyn"; // TODO: translate
+            taskSettings.taskType = "Gående tilsyn"; // TODO: translate
             break;
         }
         case 'Raid': {
             taskSettings.settingsPointerName = 'regularReportSettings';
-            taskSettings.taskType = "Tilsyn"; // TODO: translate
+            taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
             break;
         }
         case 'Static': {
@@ -42,6 +43,10 @@ let taskSettings = function (report) {
         taskSettings.settingsPointerName = 'regularReportSettings';
         taskSettings.taskType = "Alarm"; // TODO: translate
     }
+    if (report.get('taskTypeName') === 'RAID') {
+        taskSettings.settingsPointerName = 'regularReportSettings';
+        taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
+    }
     if (report.has('circuitStarted')) {
         taskSettings.settingsPointerName = 'regularReportSettings';
         taskSettings.taskType = "Tilsyn"; // TODO: translate
@@ -49,13 +54,6 @@ let taskSettings = function (report) {
     if (report.has('staticTask')) {
         taskSettings.settingsPointerName = 'staticReportSettings';
         taskSettings.taskType = "Fastvagt"; // TODO: translate
-    }
-    if (report.has('districtWatchStarted')) {
-        let districtName = report.get('districtWatchStarted').get('name');
-        taskSettings.settingsPointerName = 'districtReportSettings';
-        taskSettings.taskType = "Områdevagt"; // TODO: translate
-        taskSettings.subject = districtName + ' - ' + taskSettings.taskType + ' ' + createdAt;
-        taskSettings.fileName = districtName + '-' + taskSettings.taskType + '-' + createdAt;
     }
     // << TODO kept for backwards compatibility < 5.0.0
     if (taskSettings.taskType) {
