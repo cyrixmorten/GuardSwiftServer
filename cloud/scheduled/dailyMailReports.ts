@@ -16,7 +16,7 @@ Parse.Cloud.job("dailyMailReports",  (request, status) => {
             let promises = [
                 sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'ALARM'),
                 sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'REGULAR'),
-                sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'DISTRICTWATCH')
+                sendReportsToClients(company, yesterday.toDate(), now.toDate(), 'RAID')
             ];
 
             //let sendSummaryReportToCompany = sendRegularReportSummaryToCompany(company, yesterday.toDate(), now.toDate());
