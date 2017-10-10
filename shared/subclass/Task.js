@@ -81,9 +81,6 @@ class Task extends BaseClass_1.BaseClass {
         this.clientName = client.name || '';
         this.clientAddress = client.fullAddress || '';
         this.position = client.position || this.position;
-        console.log('this.clientId: ', this.clientId);
-        console.log('this.clientName: ', this.clientName);
-        console.log('this.clientAddress: ', this.clientAddress);
     }
     get clientId() {
         return this.get(Task._clientId);
