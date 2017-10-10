@@ -21,9 +21,15 @@ var taskSettings = function (report) {
         taskSettings.settingsPointerName = 'regularReportSettings';
         taskSettings.taskType = "Alarm"; // TODO: translate
     }
+
     if (report.has('circuitStarted')) {
         taskSettings.settingsPointerName = 'regularReportSettings';
-        taskSettings.taskType = "Tilsyn"; // TODO: translate
+        taskSettings.taskType = "Gående tilsyn"; // TODO: translate
+    }
+
+    if (report.get('taskTypeName') === 'RAID') {
+        taskSettings.settingsPointerName = 'regularReportSettings';
+        taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
     }
 
     if (report.has('staticTask')) {
