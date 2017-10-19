@@ -33,3 +33,6 @@ node_modules
 
 cloud/*.js
 cloud/*.js.map
+
+shared/*.js
+shared/*.js.map
