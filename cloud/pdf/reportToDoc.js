@@ -22,11 +22,14 @@ exports.toDoc = function(reportId) {
 
     return reportUtils.fetchReport(reportId)
     .then(function (report) {
+        if (!report) {
+            throw new Error('Did not find report with id: ' + reportId)
+        }
         return reportToDoc.createDoc(report)
     })
     .fail(function(error) {
         return new Parse.Promise.error({
-            message: 'Error during Document creation',
+            message: error.message || 'Error during Document creation',
             error: error
         });
     });

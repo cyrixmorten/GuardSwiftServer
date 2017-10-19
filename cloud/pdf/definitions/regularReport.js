@@ -52,7 +52,7 @@ exports.createDoc = function (report, settings, timeZone) {
         };
 
         var preferArrivalsWithinSchedule = function() {
-            var regularTask = report.get('circuitUnit');
+            var regularTask = report.get('circuitUnit') || (report.get('taskType') === 'Regular') ?  report.get('task') : undefined;
             if (!regularTask) {
                 return;
             }
@@ -180,9 +180,10 @@ exports.createDoc = function (report, settings, timeZone) {
         _.pullAt(events.people, pruneIndexes);
         _.pullAt(events.location, pruneIndexes);
         _.pullAt(events.remarks, pruneIndexes);
+        _.pullAt(events.guardInitials, pruneIndexes);
 
 
-        return _.zip(events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
+        return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
     };
 
     var reportContent = function () {
@@ -197,8 +198,8 @@ exports.createDoc = function (report, settings, timeZone) {
             style: {bold: true}
         });
         var reportedEvents = pdfUtils.tableWithBorder({
-            widths: [50, '*', 30, '*', '*', '*'],
-            header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
+            widths: [30, 50, '*', 20, '*', '*', '*'],
+            header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
             content: eventsContent()
         });
 
@@ -209,7 +210,7 @@ exports.createDoc = function (report, settings, timeZone) {
         var eventsWrittenbyGuard = _.compact(events.writtenByGuard);
         if (eventsWrittenbyGuard.length === 0) {
             content.push(
-                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
+                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]} // TODO: translate
             )
         }
 

@@ -22,6 +22,20 @@ exports.doc = function (report, timeZone) {
 	}
 };
 
+var findGuardName = function(report) {
+    var guardName = report.get('guardName') || '';
+
+    if (!guardName) {
+        // search eventlogs
+        _.forEach(report.get('eventLogs'), function(log) {
+			if (_.isEmpty(guardName) && log.has('guardName')) {
+				guardName = log.get('guardName');
+			}
+        })
+    }
+
+    return guardName;
+}
 /**
  * Top content of document
  *
@@ -30,15 +44,9 @@ exports.doc = function (report, timeZone) {
  * @returns {{header: {columns: *[], margin: number[]}}}
  */
 exports.header = function (report, timeZone) {
-
-	var guard = {
-		id: report.get('guardId'),
-		name: report.get('guardName')
-	};
-
 	return makePDF.leftRightAlignedContent({
 		textLeft: [
-			{text: 'Vagt: ', bold: true}, guard.name + ' ' + guard.id
+			{text: 'Vagt: ', bold: true}, findGuardName(report)
 		],
 		textRight: 'Dato: ' + moment(report.get('createdAt')).tz(timeZone).format('DD-MM-YYYY'),
 		margin: [10, 10]

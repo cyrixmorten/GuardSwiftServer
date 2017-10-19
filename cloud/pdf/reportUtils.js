@@ -218,6 +218,23 @@ exports.eventsMap = function (eventLogs, timeZone) {
             if (exports.isReportLog(log)) {
                 return log.get('remarks') || '';
             }
+        }),
+
+
+        guardInitials: _.map(eventLogs, function (log) {
+            if (exports.isReportLog(log)) {
+                var guardName = log.get('guardName') || '';
+                if (_.isEmpty(guardName)) {
+                    return guardName;
+                }
+
+                // usually first and last name
+                var nameElements = _.compact(guardName.split(/[ ,]+/));
+
+                // pick the first letter in each name element
+                return _.join(_.map(nameElements, _.first), '');
+
+            }
         })
 
 
