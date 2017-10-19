@@ -31,4 +31,5 @@ node_modules
 
 *.env
 
-
+cloud/*.js
+cloud/*.js.map
