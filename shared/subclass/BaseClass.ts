@@ -5,6 +5,9 @@ export abstract class BaseClass extends Parse.Object {
     static readonly _owner = 'owner';
     static readonly _archive = 'archive';
 
+    constructor(className?: string, options?: any) {
+        super(className, options)
+    }
 
     get owner(): Parse.User {
         return this.get(BaseClass._owner)

@@ -4,6 +4,8 @@ import * as _ from 'lodash';
 import {ReportUtils} from "../reportUtils";
 import {PDFUtils} from "../../utils/pdf";
 import {PDFDefaults} from "./docDefaults";
+import {TaskType} from "../../../shared/subclass/Task";
+import {Report} from "../../../shared/subclass/Report";
 
 
 
@@ -14,18 +16,18 @@ import {PDFDefaults} from "./docDefaults";
  * @param settings
  * @param timeZone
  */
-export let createDoc = function (report, settings, timeZone) {
+export let createDoc =  (report: Report, settings, timeZone)  => {
 
     let events = ReportUtils.reportEventsMap(report, timeZone);
 
     let backgroundHeaderImage = PDFDefaults.backgroundHeaderImage(settings);
 
-    let eventsContent = function () {
+    let eventsContent =  () => {
 
         let pruneIndexes = [];
 
 
-        let missingEventName = function() {
+        let missingEventName = () => {
             for (let i = 0; i<events.eventTimestamps.length; i++) {
                 let hasEventName = !!events.eventName[i];
                 if (!hasEventName) {
@@ -37,7 +39,7 @@ export let createDoc = function (report, settings, timeZone) {
         /*
          * Alarms can be accepted by multiple guards, however there is no reason to write it more than once in the report
          */
-        let onlyWriteAcceptOnce = function() {
+        let onlyWriteAcceptOnce = () => {
             let hasAccepted = false;
             for (let i = 0; i<events.eventTimestamps.length; i++) {
 
@@ -50,8 +52,14 @@ export let createDoc = function (report, settings, timeZone) {
             }
         };
 
-        let preferArrivalsWithinSchedule = function() {
+        let preferArrivalsWithinSchedule = () => {
+            // TODO backwards compatibility < 5
             let regularTask = report.get('circuitUnit');
+
+            if (report.matchingTaskType(TaskType.REGULAR)) {
+                regularTask = report.task;
+            }
+
             if (!regularTask) {
                 return;
             }
@@ -75,7 +83,7 @@ export let createDoc = function (report, settings, timeZone) {
 
                 let pruneCount = 0;
 
-                let pruneExtraArrivals = function(ignoreSchedule) {
+                let pruneExtraArrivals = (ignoreSchedule) => {
                     for (let j = 0; j<arrivalEvents.length; j++) {
                         let arrivalEvent = arrivalEvents[j];
 
@@ -95,7 +103,7 @@ export let createDoc = function (report, settings, timeZone) {
             }
         };
 
-        let removeDuplicateTexts = function() {
+        let removeDuplicateTexts = () => {
 
             // 1) collect comparables with concatenated text
             let comparables = [];
@@ -126,7 +134,7 @@ export let createDoc = function (report, settings, timeZone) {
             // 2) collect duplicates
             let seenTexts = [];
             let duplicates = [];
-            _.forEach(comparables, function(comparable) {
+            _.forEach(comparables, (comparable) => {
 
                 if (_.includes(seenTexts, comparable.text)) {
                     duplicates.push(comparable);
@@ -136,12 +144,12 @@ export let createDoc = function (report, settings, timeZone) {
             });
 
             // 3) inspect time distance between duplicates
-            _.forEach(duplicates, function(duplicate) {
+            _.forEach(duplicates, (duplicate) => {
 
                 let duplicateTimestamp = moment(duplicate.timestamp);
 
 
-                let matchingComparables = _.filter(comparables, function(comparable) {
+                let matchingComparables = _.filter(comparables, (comparable) => {
                     let match = comparable.text === duplicate.text;
                     let isBefore = moment(comparable.timestamp).isBefore(duplicateTimestamp);
 
@@ -149,7 +157,7 @@ export let createDoc = function (report, settings, timeZone) {
                 });
 
                 let prune = false;
-                _.forEach(matchingComparables, function(comparable) {
+                _.forEach(matchingComparables, (comparable) => {
                     let diffMinutes = moment(comparable.timestamp).diff(duplicateTimestamp, 'minutes');
 
                     if (diffMinutes < 15) {
@@ -179,12 +187,15 @@ export let createDoc = function (report, settings, timeZone) {
         _.pullAt(events.people, pruneIndexes);
         _.pullAt(events.location, pruneIndexes);
         _.pullAt(events.remarks, pruneIndexes);
+        _.pullAt(events.guardInitials, pruneIndexes);
 
 
-        return _.zip(events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
+
+        return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
+
     };
 
-    let reportContent = function () {
+    let reportContent =  () => {
         let content = [];
 
         // client info
@@ -196,8 +207,8 @@ export let createDoc = function (report, settings, timeZone) {
             style: {bold: true}
         });
         let reportedEvents = PDFUtils.tableWithBorder({
-            widths: [50, '*', 30, '*', '*', '*'],
-            header: ['Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'],
+            widths: [30, 50, '*', 20, '*', '*', '*'],
+            header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
             content: eventsContent()
         });
 

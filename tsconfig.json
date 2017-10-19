@@ -9,7 +9,8 @@
     "types": [
       "parse",
       "lodash",
-      "sendgrid"
+      "sendgrid",
+      "node"
     ]
   },
   "exclude": [

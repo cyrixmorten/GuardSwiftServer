@@ -1,6 +1,8 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
 import {PDFUtils} from "../../utils/pdf";
+import {Report} from "../../../shared/subclass/Report";
+import {EventLog} from "../../../shared/subclass/EventLog";
 
 
 export class PDFDefaults {
@@ -23,6 +25,20 @@ export class PDFDefaults {
         }
     };
 
+    private static findGuardName = (report: Report) => {
+        let guardName = report.guardName || '';
+
+        if (!guardName) {
+            // search eventlogs
+            let guardEvent = _.find(report.eventLogs, (eventLog: EventLog) => !!eventLog.guardName);
+
+            guardName = guardEvent ? guardEvent.guardName : guardName;
+        }
+
+        return guardName;
+    };
+
+
     /**
      * Top content of document
      *
@@ -32,14 +48,9 @@ export class PDFDefaults {
      */
     static header = function (report, timeZone) {
 
-        let guard = {
-            id: report.get('guardId'),
-            name: report.get('guardName')
-        };
-
         return PDFUtils.leftRightAlignedContent({
             textLeft: [
-                {text: 'Vagt: ', bold: true}, guard.name + ' ' + guard.id
+                {text: 'Vagt: ', bold: true}, PDFDefaults.findGuardName(report)
             ],
             textRight: 'Dato: ' + moment(report.get('createdAt')).tz(timeZone).format('DD-MM-YYYY'),
             margin: [10, 10]

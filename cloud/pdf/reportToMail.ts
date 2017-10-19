@@ -3,11 +3,14 @@ import {ReportUtils} from "./reportUtils";
 import * as reportToPdf from './reportToPDF';
 import * as moment from 'moment';
 import * as _ from 'lodash';
+import * as sendgrid from 'sendgrid';
+
 
 import {Person} from "../../shared/subclass/Person";
 import {Report} from "../../shared/subclass/Report";
+import {Client} from "../../shared/subclass/Client";
 
-let taskSettings = function (report) {
+let taskSettings =  (report) => {
 
     let createdAt = moment(report.get('createdAt')).format('DD-MM-YYYY');
     let clientName = report.get('client').get('name');
@@ -45,24 +48,26 @@ let taskSettings = function (report) {
     }
 
     // TODO kept for backwards compatibility < 5.0.0 >>
-    if (report.get('taskTypeName') === 'ALARM') {
-        taskSettings.settingsPointerName = 'regularReportSettings';
-        taskSettings.taskType = "Alarm"; // TODO: translate
-    }
+    if (!taskSettings.taskType) {
+        if (report.get('taskTypeName') === 'ALARM') {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Alarm"; // TODO: translate
+        }
 
-    if (report.get('taskTypeName') === 'RAID') {
-        taskSettings.settingsPointerName = 'regularReportSettings';
-        taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
-    }
+        if (report.get('taskTypeName') === 'RAID') {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
+        }
 
-    if (report.has('circuitStarted')) {
-        taskSettings.settingsPointerName = 'regularReportSettings';
-        taskSettings.taskType = "Tilsyn"; // TODO: translate
-    }
+        if (report.has('circuitStarted')) {
+            taskSettings.settingsPointerName = 'regularReportSettings';
+            taskSettings.taskType = "Tilsyn"; // TODO: translate
+        }
 
-    if (report.has('staticTask')) {
-        taskSettings.settingsPointerName = 'staticReportSettings';
-        taskSettings.taskType = "Fastvagt"; // TODO: translate
+        if (report.has('staticTask')) {
+            taskSettings.settingsPointerName = 'staticReportSettings';
+            taskSettings.taskType = "Fastvagt"; // TODO: translate
+        }
     }
     // << TODO kept for backwards compatibility < 5.0.0
 
@@ -79,15 +84,15 @@ let taskSettings = function (report) {
     return taskSettings;
 };
 
-Parse.Cloud.define("sendReport", function (request, response) {
-    exports.sendReport(request.params.reportId).then(function () {
+Parse.Cloud.define("sendReport",  (request, response)  => {
+    sendReport(request.params.reportId).then( () => {
         response.success('Report successfully sent!')
-    }).fail(function (error) {
+    },  (error) => {
         response.error(error)
     })
 });
 
-exports.sendReport = function (reportId) {
+export let sendReport =  (reportId) => {
 
     console.log('Send report: ' + reportId);
 
@@ -112,20 +117,22 @@ exports.sendReport = function (reportId) {
     };
 
 
-    return ReportUtils.fetchReport(reportId).then(function (report: Report) {
+    return ReportUtils.fetchReport(reportId).then( (report: Report) => {
         _report = report;
 
+        let client: Client = report.client;
+
         let contacts = _.filter(
-            report.get('client').get('contacts'), function (contact: Person) {
+            client.get('contacts'),  (contact: Person) => {
                 return contact.get('receiveReports')
                     && contact.get('email');
             });
 
 
-        mailSetup.toNames = _.map(contacts, function (contact) {
+        mailSetup.toNames = _.map(contacts,  (contact) => {
             return contact.get('name')
         });
-        mailSetup.toEmails = _.map(contacts, function (contact) {
+        mailSetup.toEmails = _.map(contacts,  (contact) => {
             return contact.get('email')
         });
 
@@ -137,7 +144,7 @@ exports.sendReport = function (reportId) {
         console.log('fetching: ' + taskSettings(report).settingsPointerName);
 
         return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({useMasterKey: true});
-    }).then(function (reportSettings) {
+    }).then( (reportSettings) => {
 
         mailSetup.replytoName = reportSettings.get('replytoName') || '';
         mailSetup.replytoEmail = reportSettings.get('replytoEmail') || '';
@@ -147,18 +154,18 @@ exports.sendReport = function (reportId) {
 
         return reportToPdf.toPdf(reportId);
 
-    }).then(function (httpResponse) {
+    }).then( (httpResponse) => {
 
         let reportSettings = taskSettings(_report);
 
-        let helper = require('sendgrid').mail;
+        let helper = sendgrid.mail;
         let mail = new helper.Mail();
 
         // Tracking
         let tracking_settings = new helper.TrackingSettings();
         let click_tracking = new helper.ClickTracking(false, false);
         tracking_settings.setClickTracking(click_tracking);
-        let open_tracking = new helper.OpenTracking(true);
+        let open_tracking = new helper.OpenTracking(true, 'gs');
         tracking_settings.setOpenTracking(open_tracking);
         mail.addTrackingSettings(tracking_settings);
 
@@ -177,7 +184,7 @@ exports.sendReport = function (reportId) {
         let receivers = [];
 
         // to client receivers
-        _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames), function (mailTo) {
+        _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames),  (mailTo) => {
             let mailAddress = mailTo[0];
             let mailName = mailTo[1];
 
@@ -226,7 +233,7 @@ exports.sendReport = function (reportId) {
         }
 
         // bcc task admins
-        _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames), function (mailBcc) {
+        _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames),  (mailBcc) => {
             let mailAddress = mailBcc[0];
             let mailName = mailBcc[1];
 
@@ -252,26 +259,16 @@ exports.sendReport = function (reportId) {
 
         console.log('Sending to ', receivers);
 
-        let sg = require('sendgrid')(process.env.SENDGRID_API_KEY);
+        let sg = sendgrid(process.env.SENDGRID_API_KEY);
         let request = sg.emptyRequest({
             method: 'POST',
             path: '/v3/mail/send',
             body: mail.toJSON()
         });
 
-        let sendPromise = new Parse.Promise();
+        return sg.API(request);
 
-        sg.API(request, function (err, response) {
-            if (err) {
-                return sendPromise.reject(err);
-            }
-
-            return sendPromise.resolve(response);
-        });
-
-        return sendPromise;
-
-    }).then(function (httpResponse) {
+    }).then( (httpResponse) => {
 
         mailSetup.errors = false;
         mailSetup.status = httpResponse;
@@ -279,7 +276,7 @@ exports.sendReport = function (reportId) {
         _report.set('mailStatus', mailSetup);
 
         return _report.save(null, {useMasterKey: true});
-    }, function (error) {
+    },  (error) => {
 
         console.error(error);
 
@@ -288,7 +285,7 @@ exports.sendReport = function (reportId) {
 
         _report.set('mailStatus', mailSetup);
 
-        return _report.save(null, {useMasterKey: true}).then(function () {
+        return _report.save(null, {useMasterKey: true}).then( () => {
             return Parse.Promise.error(mailSetup);
         });
 

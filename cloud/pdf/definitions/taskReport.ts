@@ -5,12 +5,13 @@ import * as _ from 'lodash'
 
 import * as regularReport from './regularReport'
 import * as staticReport from './staticReport'
+import {Report} from "../../../shared/subclass/Report";
 
 
 
-let fetchReportSettings = function (report) {
+let fetchReportSettings = (report) => {
 
-    let getSettingsColumn = function () {
+    let getSettingsColumn =  () => {
         let taskType: TaskType = report.get('taskType');
         switch (taskType) {
             case TaskType.ALARM:
@@ -40,7 +41,7 @@ let fetchReportSettings = function (report) {
         }
     };
 
-    let fetchReportSettings = function () {
+    let fetchReportSettings =  () => {
         let settingsCol = getSettingsColumn();
 
         console.log('settingsCol: ' + settingsCol);
@@ -49,7 +50,7 @@ let fetchReportSettings = function (report) {
             return Parse.Promise.error('No definition matching report');
         }
 
-        return ReportUtils.fetchUser(report).then(function (user) {
+        return ReportUtils.fetchUser(report).then( (user) => {
             return user.get(settingsCol).fetch({useMasterKey: true});
         });
     };
@@ -58,16 +59,16 @@ let fetchReportSettings = function (report) {
     return fetchReportSettings()
 };
 
-export let createDoc = function (report) {
+export let createDoc =  (report: Report) => {
 
     let timeZone;
 
-    return ReportUtils.fetchUser(report).then(function (user) {
+    return ReportUtils.fetchUser(report).then( (user) => {
 
         timeZone = (user.has('timeZone')) ? user.get('timeZone') : 'Europe/Copenhagen';
 
         return fetchReportSettings(report);
-    }).then(function (settings) {
+    }).then( (settings) => {
 
         let taskType: TaskType = report.get('taskType');
         switch (taskType) {

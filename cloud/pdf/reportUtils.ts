@@ -2,19 +2,20 @@ import * as _ from 'lodash';
 import * as moment from 'moment-timezone-all';
 
 import {EventLog} from "../../shared/subclass/EventLog";
+import {Report, ReportQuery} from "../../shared/subclass/Report";
+import IPromise = Parse.IPromise;
 
 export class ReportUtils {
 
-    static fetchUser = function (report) {
+    static fetchUser = (report) => {
         return report.get('owner').fetch({useMasterKey: true});
     };
 
-    static fetchReport = function (reportId) {
+    static fetchReport = (reportId: string): IPromise<Report> => {
 
         console.log('fetchReport ' + reportId);
 
-        let query = new Parse.Query('Report');
-        query.equalTo('objectId', reportId);
+        let query = new ReportQuery().matchingId(reportId).build();
 
         query.include('owner');
         query.include('client.contacts');
@@ -28,14 +29,20 @@ export class ReportUtils {
         query.include('circuitStarted');
         query.include('districtWatchStarted'); // to be removed
 
-        return query.first({useMasterKey: true});
+        return query.first({useMasterKey: true}).then((report) => {
+            if (!report) {
+                throw new Error(`Report with objectId ${reportId} not found!`);
+            }
+
+            return report;
+        });
     };
 
-    static getPDFUrl = function (report) {
+    static getPDFUrl = (report: Report) => {
         return report.get('pdf').url();
     };
 
-    static hasExistingPDF = function (report) {
+    static hasExistingPDF = (report: Report) => {
 
         let hasPdf = report.has('pdf');
         let pdfCreatedAt = report.get('pdfCreatedAt');
@@ -45,7 +52,7 @@ export class ReportUtils {
         return hasPdf && !pdfOutdated;
     };
 
-    static readExistingPDF = function (report) {
+    static readExistingPDF = (report: Report) => {
 
         return Parse.Cloud.httpRequest({
             method: 'GET',
@@ -56,7 +63,7 @@ export class ReportUtils {
         });
     };
 
-    static deleteExistingPDF = function (report) {
+    static deleteExistingPDF = (report: Report) => {
 
         let promise = Parse.Promise.as('');
 
@@ -67,7 +74,7 @@ export class ReportUtils {
             });
         }
 
-        promise.fail(function (error) {
+        promise.fail((error) => {
             // ignoring any errors
             console.error('Error deleting report', error);
         });
@@ -75,7 +82,7 @@ export class ReportUtils {
         return promise;
     };
 
-    static generatePDF = function (docDefinition) {
+    static generatePDF = (docDefinition) => {
 
         return Parse.Cloud.httpRequest({
             method: 'POST',
@@ -87,7 +94,7 @@ export class ReportUtils {
         })
     };
 
-    static generatePDFParseFile = function (httpResponse) {
+    static generatePDFParseFile = (httpResponse) => {
 
         let file = new Parse.File("report.pdf", {
             base64: httpResponse.buffer.toString('base64', 0, httpResponse.buffer.length)
@@ -100,36 +107,36 @@ export class ReportUtils {
     /**
      * Extracts categorised event information for given report
      */
-    static reportEventsMap = function (report, timeZone) {
+    static reportEventsMap = (report, timeZone) => {
         return ReportUtils.eventsMap(report.get('eventLogs'), timeZone);
     };
 
 
-    static isAcceptEvent = function (eventLog) {
+    static isAcceptEvent = (eventLog) => {
         return eventLog.get('task_event') === 'ACCEPT';
     };
 
-    static isArrivalEvent = function (eventLog) {
+    static isArrivalEvent = (eventLog) => {
         return eventLog.get('task_event') === 'ARRIVE';
     };
 
-    static isAbortEvent = function (eventLog) {
+    static isAbortEvent = (eventLog) => {
         return eventLog.get('task_event') === 'ABORT';
     };
 
-    static isFinishEvent = function (eventLog) {
+    static isFinishEvent = (eventLog) => {
         return eventLog.get('task_event') === 'FINISH';
     };
 
-    static isWrittenByGuard = function (eventLog) {
+    static isWrittenByGuard = (eventLog) => {
         return eventLog.get('task_event') === 'OTHER';
     };
 
-    static isAlarmEvent = function (eventLog) {
+    static isAlarmEvent = (eventLog) => {
         return eventLog.get('taskTypeName') === 'ALARM';
     };
 
-    static isReportLog = function (eventLog) {
+    static isReportLog = (eventLog) => {
         let isArrive = eventLog.get('task_event') === 'ARRIVE';
         let isWritten = eventLog.get('task_event') === 'OTHER';
 
@@ -137,11 +144,11 @@ export class ReportUtils {
         return isArrive || isWritten || ReportUtils.isAlarmEvent(eventLog);
     };
 
-    static eventsMap = function (eventLogs: EventLog[], timeZone) {
+    static eventsMap = (eventLogs: EventLog[], timeZone) => {
 
         let numberOfArrivals = _.filter(eventLogs, ReportUtils.isArrivalEvent).length;
 
-        eventLogs = _.sortBy(eventLogs, function (log) {
+        eventLogs = _.sortBy(eventLogs, (log) => {
             let date = log.get('deviceTimestamp');
 
             if (!ReportUtils.isAlarmEvent(log) && ReportUtils.isArrivalEvent(log) && numberOfArrivals === 1) {
@@ -154,7 +161,7 @@ export class ReportUtils {
 
         return {
             all: eventLogs,
-            writtenByGuard: _.map(eventLogs, function (log) {
+            writtenByGuard: _.map(eventLogs, (log) => {
                 if (ReportUtils.isWrittenByGuard(log)) {
                     return log;
                 }
@@ -162,67 +169,82 @@ export class ReportUtils {
             //
             // arrivedEvents: arrivedEvents,
 
-            taskEvents: _.map(eventLogs, function (log) {
+            taskEvents: _.map(eventLogs, (log) => {
                 return log.get('task_event');
             }),
 
-            eventTimestamps: _.map(eventLogs, function (log) {
+            eventTimestamps: _.map(eventLogs, (log) => {
                 let isAlarmEvent = ReportUtils.isAlarmEvent(log) && (ReportUtils.isAcceptEvent(log) || ReportUtils.isAbortEvent(log) || ReportUtils.isFinishEvent(log));
                 if (ReportUtils.isArrivalEvent(log) || isAlarmEvent) {
                     return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
                 }
             }),
 
-            // arrivedGuardNames: _.map(arrivedEvents, function (log) {
+            // arrivedGuardNames: _.map(arrivedEvents,  (log) {
             //     return log.get('guardName') || '';
             // }),
             //
-            // arrivedClientNames: _.map(arrivedEvents, function (log) {
+            // arrivedClientNames: _.map(arrivedEvents,  (log) {
             //     return log.get('clientName') || '';
             // }),
-            // arrivedClientAddress: _.map(arrivedEvents, function (log) {
+            // arrivedClientAddress: _.map(arrivedEvents,  (log) {
             //     return log.has('clientAddress') ? log.get('clientAddress') + ' ' + log.get('clientAddressNumber') : '';
             // }),
 
 
-            timestamps: _.map(eventLogs, function (log) {
+            timestamps: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
                 }
             }),
 
 
-            eventName: _.map(eventLogs, function (log) {
+            eventName: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return log.get('event') || '';
                 }
             }),
 
-            amount: _.map(eventLogs, function (log) {
+            amount: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return (log.has('amount') && log.get('amount') !== 0) ? log.get('amount').toString() : '';
                 }
             }),
 
-            people: _.map(eventLogs, function (log) {
+            people: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return log.get('people') || '';
                 }
             }),
 
-            location: _.map(eventLogs, function (log) {
+            location: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return log.get('clientLocation') || '';
                 }
             }),
 
-            remarks: _.map(eventLogs, function (log) {
+            remarks: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
                     return log.get('remarks') || '';
                 }
+            }),
+
+            guardInitials: _.map(eventLogs, (log) => {
+                if (ReportUtils.isReportLog(log)) {
+                    let guardName = log.get('guardName') || '';
+                    if (_.isEmpty(guardName)) {
+                        return guardName;
+                    }
+
+                    // usually first and last name
+                    let nameElements = _.compact(guardName.split(/[ ,]+/));
+
+                    // pick the first letter in each name element
+                    return _.join(_.map(nameElements, _.first), '');
+
+                }
             })
 
-
-        };
+        }
     };
 }

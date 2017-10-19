@@ -1,23 +1,24 @@
-import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
+import {EventLog} from "./EventLog";
+import {TaskType} from "./Task";
 
-export class Report extends BaseClass {
+/**
+ * When a new report is created it copies attributes from the eventlog that created the report, hence extending
+ * EventLog
+ */
+export class Report extends EventLog {
 
     static readonly className = 'Report';
 
-    static readonly _name = 'name';
+    static readonly _eventLogs = 'eventLogs';
 
 
     constructor() {
         super(Report.className);
     }
 
-    get name(): string {
-        return this.get(Report._name);
-    }
-
-    set name(name: string) {
-        this.set(Report._name, name);
+    get eventLogs(): EventLog[] {
+        return this.get(Report._eventLogs);
     }
 
 
