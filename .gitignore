@@ -36,3 +36,6 @@ cloud/**/*.js.map
 
 shared/**/*.js
 shared/**/*.js.map
+
+api/**/*.js
+api/**/*.js.map

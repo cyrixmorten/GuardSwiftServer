@@ -3,7 +3,7 @@ import {AlarmDispatcher} from "./dispatcher";
 import * as rp from 'request-promise';
 import * as _ from 'lodash'
 
-let saveSMSLog = function (to, from, message, limit, error?) {
+let saveSMSLog =  (to, from, message, limit, error?) => {
     let SMSLog = Parse.Object.extend('SMSLog');
     let smsLog = new SMSLog();
     smsLog.set('to', to);
@@ -12,12 +12,12 @@ let saveSMSLog = function (to, from, message, limit, error?) {
     smsLog.set('limit', limit);
     smsLog.set('error', error);
 
-    return smsLog.save(null, {useMasterKey: true}).fail(function(e) {
+    return smsLog.save(null, {useMasterKey: true}).fail((e) => {
         console.error('Error saving SMSLog', e);
     });
 };
 
-export let receive = function (req, res) {
+export let receive =  (req, res) => {
     let from = req.query.from;
     let to = req.query.number;
     let body = req.query.message;
@@ -34,7 +34,7 @@ export let receive = function (req, res) {
 };
 
 
-export let send = function (params) {
+export let send =  (params) => {
 
     let to = _.replace(params.to, '+', '');
     let from = _.replace(params.from, '+45', '') || 'GUARDSWIFT';
@@ -58,10 +58,10 @@ export let send = function (params) {
 
     console.log('Sending SMS: ', options.body);
 
-    return rp(options).promise().then(function (parsedBody) {
+    return rp(options).promise().then( (parsedBody) => {
         console.log('SMS sent', options.body);
         saveSMSLog(to, from, message, limit);
-    }).catch(function (err) {
+    }).catch( (err) => {
         console.log('SMS failed', options.body, err);
         saveSMSLog(to, from, message, limit, err);
     });

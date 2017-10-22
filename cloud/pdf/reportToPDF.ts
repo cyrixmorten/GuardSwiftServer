@@ -1,7 +1,7 @@
 import * as reportToDoc from './reportToDoc';
 import {ReportUtils} from "./reportUtils";
 
-Parse.Cloud.define("reportToPDF", function (request, response) {
+Parse.Cloud.define("reportToPDF",  (request, response) => {
 
     console.log('reportToPDF');
 
@@ -10,24 +10,24 @@ Parse.Cloud.define("reportToPDF", function (request, response) {
         return;
     }
 
-    toPdf(request.params.reportId).then(function (res) {
+    toPdf(request.params.reportId).then( (res) => {
         response.success(new Buffer(res.text).toString('base64'));
-    }, function (err) {
+    },  (err) => {
         response.error(err);
     })
 
 });
 
 
-export let toPdf = function (reportId) {
+export let toPdf =  (reportId) => {
 
     if (!reportId) {
         return Parse.Promise.error('toPdf missing reportId');
     }
     return reportToDoc.toDoc(reportId)
-        .then(function (docDefinition) {
+        .then( (docDefinition) => {
             return ReportUtils.generatePDF(docDefinition);
-        }, function (error) {
+        },  (error) => {
             return Parse.Promise.error({
                 message: 'Error during PDF creation',
                 error: error

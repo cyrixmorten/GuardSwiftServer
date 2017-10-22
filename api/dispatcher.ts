@@ -19,9 +19,9 @@ export class AlarmDispatcher {
             receiver: to,
             alarm: body
         })
-            .then(function (response) {
+            .then( (response) => {
                 res.send(response);
-            }, function (error) {
+            },  (error) => {
                 res.status(400).send(error);
             });
     };
