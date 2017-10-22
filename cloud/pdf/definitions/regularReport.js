@@ -198,7 +198,7 @@ exports.createDoc = function (report, settings, timeZone) {
             style: {bold: true}
         });
         var reportedEvents = pdfUtils.tableWithBorder({
-            widths: [30, 50, '*', 20, '*', '*', '*'],
+            widths: [30, 50, '*', 25, '*', '*', '*'],
             header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
             content: eventsContent()
         });
