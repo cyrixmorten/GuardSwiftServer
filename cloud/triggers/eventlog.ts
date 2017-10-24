@@ -28,10 +28,6 @@ Parse.Cloud.afterSave("EventLog", (request) => {
 
 let writeEventToReport = (EventLog) => {
 
-
-    let reportNotFoundError = new Error('Report not found');
-
-
     let findReport =  (reportId) => {
 
         console.log('findReport reportId: ' + reportId);
@@ -67,8 +63,6 @@ let writeEventToReport = (EventLog) => {
         Object.keys(EventLog.attributes).forEach( (fieldName) => {
             report.set(fieldName, EventLog.get(fieldName));
         });
-
-
 
         return report.save(null, { useMasterKey: true });
     };

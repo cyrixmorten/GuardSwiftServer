@@ -3,14 +3,18 @@ import {ReportUtils} from "./reportUtils";
 import * as reportToPdf from './reportToPDF';
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import * as sendgrid from 'sendgrid';
+import sgMail = require("@sendgrid/mail");
 
 
 import {Person} from "../../shared/subclass/Person";
 import {Report} from "../../shared/subclass/Report";
 import {Client} from "../../shared/subclass/Client";
+import IPromise = Parse.IPromise;
+import {RequestResponse} from "request";
+import {AttachmentData} from "@sendgrid/helpers/classes/attachment";
+import {EmailData} from "@sendgrid/helpers/classes/email-address";
 
-let taskSettings =  (report) => {
+let taskSettings = (report) => {
 
     let createdAt = moment(report.get('createdAt')).format('DD-MM-YYYY');
     let clientName = report.get('client').get('name');
@@ -84,15 +88,15 @@ let taskSettings =  (report) => {
     return taskSettings;
 };
 
-Parse.Cloud.define("sendReport",  (request, response)  => {
-    sendReport(request.params.reportId).then( () => {
+Parse.Cloud.define("sendReport", (request, response) => {
+    sendReport(request.params.reportId).then(() => {
         response.success('Report successfully sent!')
-    },  (error) => {
+    }, (error) => {
         response.error(error)
     })
 });
 
-export let sendReport =  (reportId) => {
+export let sendReport = (reportId): IPromise<any> => {
 
     console.log('Send report: ' + reportId);
 
@@ -117,22 +121,22 @@ export let sendReport =  (reportId) => {
     };
 
 
-    return ReportUtils.fetchReport(reportId).then( (report: Report) => {
+    return ReportUtils.fetchReport(reportId).then((report: Report) => {
         _report = report;
 
         let client: Client = report.client;
 
         let contacts = _.filter(
-            client.get('contacts'),  (contact: Person) => {
+            client.get('contacts'), (contact: Person) => {
                 return contact.get('receiveReports')
                     && contact.get('email');
             });
 
 
-        mailSetup.toNames = _.map(contacts,  (contact) => {
+        mailSetup.toNames = _.map(contacts, (contact) => {
             return contact.get('name')
         });
-        mailSetup.toEmails = _.map(contacts,  (contact) => {
+        mailSetup.toEmails = _.map(contacts, (contact) => {
             return contact.get('email')
         });
 
@@ -144,7 +148,7 @@ export let sendReport =  (reportId) => {
         console.log('fetching: ' + taskSettings(report).settingsPointerName);
 
         return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({useMasterKey: true});
-    }).then( (reportSettings) => {
+    }).then((reportSettings) => {
 
         mailSetup.replytoName = reportSettings.get('replytoName') || '';
         mailSetup.replytoEmail = reportSettings.get('replytoEmail') || '';
@@ -154,141 +158,135 @@ export let sendReport =  (reportId) => {
 
         return reportToPdf.toPdf(reportId);
 
-    }).then( (httpResponse) => {
+    }).then((httpResponse) => {
 
         let reportSettings = taskSettings(_report);
 
-        let helper = sendgrid.mail;
-        let mail = new helper.Mail();
+        let receivers: string[] = [];
 
-        // Tracking
-        let tracking_settings = new helper.TrackingSettings();
-        let click_tracking = new helper.ClickTracking(false, false);
-        tracking_settings.setClickTracking(click_tracking);
-        let open_tracking = new helper.OpenTracking(true, 'gs');
-        tracking_settings.setOpenTracking(open_tracking);
-        mail.addTrackingSettings(tracking_settings);
+        let getSubject = (): string => {
+            return reportSettings.subject;
+        };
 
-        let sender = new helper.Email('report@guardswift.com', 'GuardSwift');
-        let replyto = new helper.Email(mailSetup.replytoEmail || 'noreply@guardswift.com');
+        let getText = (): string => {
+            return reportSettings.text;
+        };
 
-        mail.setFrom(sender);
-        mail.setReplyTo(replyto);
-        mail.setSubject(reportSettings.subject);
+        let getFrom = (): EmailData => {
+            return { name: "GuardSwift", email: "report@guardswift.com"};
+        };
 
-        let content = new helper.Content("text/plain", reportSettings.text);
-        mail.addContent(content);
+        let getTo = (): EmailData[] => {
 
-        let personalization = new helper.Personalization();
+            let to: EmailData[] = [];
 
-        let receivers = [];
+            // to client receivers
+            _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames),  (mailTo) => {
+                let mailAddress = mailTo[0];
+                let mailName = mailTo[1];
 
-        // to client receivers
-        _.forEach(_.zip(mailSetup.toEmails, mailSetup.toNames),  (mailTo) => {
-            let mailAddress = mailTo[0];
-            let mailName = mailTo[1];
+                if (!_.includes(receivers, mailAddress)) {
 
-            if (!_.includes(receivers, mailAddress)) {
-                let to = new helper.Email(mailAddress, mailName);
-                personalization.addTo(to);
+                    to.push({name: mailName, email: mailAddress});
+                    receivers.push(mailAddress);
 
-                receivers.push(mailAddress);
+                    console.log('to', mailAddress);
+                }
+            });
 
-                console.log('to', mailAddress);
-            }
-        });
-
-        if (_.isEmpty(mailSetup.toEmails)) {
             // Notify the owner that this report did not reach any clients
+            if (_.isEmpty(mailSetup.toEmails)) {
 
-            console.error('Report is missing receivers! ' + _report.id);
+                console.error('Report is missing receivers! ' + _report.id);
 
-            let ownerEmail = _report.get('owner').get('email');
-            let ownerName = _report.get('owner').get('username');
+                let ownerEmail = _report.get('owner').get('email');
+                let ownerName = _report.get('owner').get('username');
 
-            mailSetup.toEmails = [ownerEmail];
-            mailSetup.toNames = [ownerName];
+                mailSetup.toEmails = [ownerEmail];
+                mailSetup.toNames = [ownerName];
 
-            if (!_.includes(receivers, ownerEmail)) {
+                if (!_.includes(receivers, ownerEmail)) {
 
-                let owner = new helper.Email(ownerEmail, ownerName);
-                personalization.addTo(owner);
+                    to.push({name: ownerName, email: ownerEmail});
+                    receivers.push(ownerEmail);
 
-                receivers.push(ownerEmail);
+                    console.log('to owner', ownerEmail);
+                }
 
-                console.log('to owner', ownerEmail);
             }
 
-        }
+            return to;
+        };
 
-        // always send bcc to developer
-        let developerMail = 'cyrixmorten@gmail.com';
-        if (!_.includes(receivers, developerMail)) {
-            let bccDeveloper = new helper.Email(developerMail);
-            personalization.addBcc(bccDeveloper);
+        let getReplyTo = (): EmailData => {
+            return {name: mailSetup.replytoName, email: mailSetup.replytoEmail}
+        };
 
-            receivers.push(developerMail);
+        let getBccs = (): EmailData[]  => {
 
-            console.log('bcc developer', developerMail);
-        }
+            let bccs: EmailData[] = [];
 
-        // bcc task admins
-        _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames),  (mailBcc) => {
-            let mailAddress = mailBcc[0];
-            let mailName = mailBcc[1];
+            // always send bcc to developer
+            let developerMail = 'cyrixmorten@gmail.com';
+            if (!_.includes(receivers, developerMail)) {
 
-            if (!_.includes(receivers, mailAddress)) {
-                let bcc = new helper.Email(mailAddress, mailName);
-                personalization.addBcc(bcc);
 
-                receivers.push(mailAddress);
+                bccs.push(developerMail);
+                receivers.push(developerMail);
 
-                console.log('bcc', mailAddress);
+                console.log('bcc developer', developerMail);
             }
-        });
 
-        mail.addPersonalization(personalization);
+            // bcc task admins
+            _.forEach(_.zip(mailSetup.bccEmails, mailSetup.bccNames),  (mailBcc) => {
+                let mailAddress = mailBcc[0];
+                let mailName = mailBcc[1];
 
-        let attachment = new helper.Attachment();
-        attachment.setContent(new Buffer(httpResponse.buffer).toString('base64'));
-        attachment.setType('application/pdf');
-        attachment.setFilename(reportSettings.fileName + '.pdf');
-        attachment.setDisposition('attachment');
-        mail.addAttachment(attachment);
+                if (!_.includes(receivers, mailAddress)) {
+                    let bcc = {name: mailName, email: mailAddress};
 
+                    bccs.push(developerMail);
+                    receivers.push(developerMail);
 
-        console.log('Sending to ', receivers);
+                    console.log('bcc', mailAddress);
+                }
+            });
 
-        let sg = sendgrid(process.env.SENDGRID_API_KEY);
-        let request = sg.emptyRequest({
-            method: 'POST',
-            path: '/v3/mail/send',
-            body: mail.toJSON()
-        });
+            return bccs;
+        };
 
-        return sg.API(request);
+        let getAttachments = (): AttachmentData[] => {
+            return [
+                {
+                    filename: reportSettings.fileName + '.pdf',
+                    type: 'application/pdf',
+                    disposition: 'attachment',
+                    content: new Buffer(httpResponse.buffer).toString('base64')
+                },
+            ]
+        };
 
-    }).then( (httpResponse) => {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-        mailSetup.errors = false;
-        mailSetup.status = httpResponse;
+        return sgMail.sendMultiple({
+            from: getFrom(),
+            to: getTo(),
+            replyTo: getReplyTo(),
+            subject: getSubject(),
+            text: getText(),
+            attachments: getAttachments()
+        })
+
+    }).then((result: [RequestResponse, {}]) => {
+
+        let httpResponse = result[0];
+
+        console.log(' -- Save report:', _report.id);
+        mailSetup.errors = httpResponse.statusCode < 200 || httpResponse.statusCode > 300;
 
         _report.set('mailStatus', mailSetup);
 
         return _report.save(null, {useMasterKey: true});
-    },  (error) => {
-
-        console.error(error);
-
-        mailSetup.errors = true;
-        mailSetup.status = error;
-
-        _report.set('mailStatus', mailSetup);
-
-        return _report.save(null, {useMasterKey: true}).then( () => {
-            return Parse.Promise.error(mailSetup);
-        });
-
     });
 };
 

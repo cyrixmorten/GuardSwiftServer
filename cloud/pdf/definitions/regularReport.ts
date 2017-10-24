@@ -207,7 +207,7 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
             style: {bold: true}
         });
         let reportedEvents = PDFUtils.tableWithBorder({
-            widths: [30, 50, '*', 25, '*', '*', '*'],
+            widths: [30, 50, '*', 30, '*', '*', '*'],
             header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
             content: eventsContent()
         });

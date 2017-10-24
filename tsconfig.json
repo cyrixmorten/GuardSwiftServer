@@ -3,13 +3,12 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "pretty": true,
-    "target": "es6",
+    "target": "es5",
     "sourceMap": true,
     "skipLibCheck": true, // suppress error in parse typings
     "types": [
       "parse",
       "lodash",
-      "sendgrid",
       "node"
     ]
   },

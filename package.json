@@ -15,7 +15,9 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@sendgrid/mail": "^6.1.4",
     "@types/lodash": "^4.14.76",
+    "@types/node": "^8.0.46",
     "@types/parse": "^2.2.0",
     "@types/request": "^2.0.0",
     "@types/request-promise": "^4.1.38",
@@ -36,14 +38,10 @@
     "request-promise": "^4.2.1",
     "require-environment-variables": "^1.1.2",
     "require-glob": "^3.2.0",
-    "sendgrid": "^4.7.1",
     "twilio": "^2.11.0",
     "typescript": "^2.5.3"
   },
   "engines": {
     "node": "^8.2.1"
-  },
-  "devDependencies": {
-    "@types/node": "^8.0.46"
   }
 }
