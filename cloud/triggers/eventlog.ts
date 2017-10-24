@@ -1,7 +1,9 @@
 
+import {EventLog} from "../../shared/subclass/EventLog";
+
 Parse.Cloud.beforeSave("EventLog",  (request, response) => {
 
-    let EventLog = request.object;
+    let EventLog = <EventLog>request.object;
 
     // avoid 'undefined' for automatic
     let automatic = EventLog.has('automatic');
@@ -9,6 +11,9 @@ Parse.Cloud.beforeSave("EventLog",  (request, response) => {
     if (!automatic) {
         EventLog.set('automatic', false);
     }
+
+    console.log('EventLog.taskType: ', EventLog.taskType);
+    console.log('EventLog.taskTypeName: ', EventLog.taskTypeName);
 
     response.success();
 

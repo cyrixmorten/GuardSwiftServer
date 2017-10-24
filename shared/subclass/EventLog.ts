@@ -9,6 +9,7 @@ export class EventLog extends BaseClass {
 
     static readonly _name = 'name';
     static readonly _taskType = 'taskType';
+    static readonly _taskTypeName = 'taskTypeName';
     static readonly _task = 'task';
     
     static readonly _guardName = 'guardName';
@@ -61,6 +62,14 @@ export class EventLog extends BaseClass {
 
     set client(client: Client) {
         this.set(EventLog._client, client);
+    }
+
+    get taskTypeName(): string {
+        return this.get(EventLog._taskTypeName);
+    }
+
+    set taskTypeName(taskTypeName: string) {
+        this.set(EventLog._taskTypeName, taskTypeName);
     }
 }
 

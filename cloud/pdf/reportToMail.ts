@@ -145,7 +145,6 @@ export let sendReport = (reportId): IPromise<any> => {
             throw new Error('Unable to get taskSettings');
         }
 
-        console.log('fetching: ' + taskSettings(report).settingsPointerName);
 
         return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({useMasterKey: true});
     }).then((reportSettings) => {
@@ -281,7 +280,6 @@ export let sendReport = (reportId): IPromise<any> => {
 
         let httpResponse = result[0];
 
-        console.log(' -- Save report:', _report.id);
         mailSetup.errors = httpResponse.statusCode < 200 || httpResponse.statusCode > 300;
 
         _report.set('mailStatus', mailSetup);
