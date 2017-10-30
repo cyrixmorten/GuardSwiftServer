@@ -7,18 +7,18 @@ import {TaskGroupStarted} from "./TaskGroupStarted";
 import {Client} from "./Client";
 
 export enum TaskStatus {
-    PENDING = <any> 'pending',
-    ACCEPTED = <any> 'accepted',
-    ARRIVED = <any> 'arrived',
-    ABORTED = <any> 'aborted',
-    FINISHED = <any> 'finished'
+    PENDING = 'pending',
+    ACCEPTED = 'accepted',
+    ARRIVED = 'arrived',
+    ABORTED = 'aborted',
+    FINISHED = 'finished'
 }
 
 export enum TaskType {
-    REGULAR = <any> 'Regular',
-    RAID = <any> 'Raid',
-    STATIC = <any> 'Static',
-    ALARM = <any> 'Alarm'
+    REGULAR = 'Regular',
+    RAID = 'Raid',
+    STATIC = 'Static',
+    ALARM = 'Alarm'
 }
 
 export class Task extends BaseClass {
@@ -43,8 +43,6 @@ export class Task extends BaseClass {
 
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
-    static readonly _timeStarted = 'timeStarted';
-    static readonly _timeEnded = 'timeEnded';
 
 
     constructor() {
@@ -171,22 +169,6 @@ export class Task extends BaseClass {
         return this.get(Task._isRunToday);
     }
 
-    get timeStarted(): Date {
-        return this.get(Task._timeStarted);
-    }
-
-    set timeStarted(timeStarted: Date) {
-        this.set(Task._timeStarted, timeStarted);
-    }
-
-    get timeEnded(): Date {
-        return this.get(Task._timeEnded);
-    }
-
-    set timeEnded(timeEnded: Date) {
-        this.set(Task._timeEnded, timeEnded);
-    }
-
     get position(): Parse.GeoPoint {
         return this.get(Task._position);
     }
@@ -200,12 +182,15 @@ export class Task extends BaseClass {
     }
 
 
-    reset() {
+    reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted) {
         this.status = TaskStatus.PENDING;
-        if (this.taskType === TaskType.ALARM) {
-            this.timeStarted = new Date();
-        } else {
-            this.timeStarted = new Date(1970);
+        this.guard = undefined;
+        this.timesArrived = 0;
+        if (taskGroup) {
+            this.isRunToday = taskGroup.isRunToday();
+        }
+        if (taskGroupStarted) {
+            this.taskGroupStarted = taskGroupStarted;
         }
     }
 }

@@ -10,7 +10,7 @@ let markMigratedAndSave = function (object) {
     return object.save(null, {useMasterKey: true});
 };
 
-let migratePointer = function (pointer, toClass, toColName, object) {
+let migratePointer = function (pointer: Parse.Object, toClass, toColName, object) {
 
     console.log('migratePointer', pointer, toClass, toColName);
 
@@ -44,8 +44,8 @@ let migrateRegularTasks = function(forClass) {
     excludeMigrated(query);
     return query.each(function (object) {
 
-        return migratePointer('circuitStarted', 'TaskGroupStarted', 'taskGroupStarted', object)
-            .then(migratePointer('circuitUnit', 'Task', 'task', object))
+        return migratePointer(object.get('circuitStarted'), 'TaskGroupStarted', 'taskGroupStarted', object)
+            .then(migratePointer(object.get('circuitUnit'), 'Task', 'task', object))
             .then(function (task) {
                 if (task) {
                     object.set('taskType', task.get('taskType'))
@@ -61,7 +61,7 @@ let migrateStaticTasks = function(forClass) {
     let query = new Parse.Query(forClass);
     excludeMigrated(query);
     return query.each(function (object) {
-        return migratePointer('staticTask', 'Task', 'task', object)
+        return migratePointer(object.get('staticTask'), 'Task', 'task', object)
             .then(function (task) {
                 if (task) {
                     object.set('taskType', task.get('taskType'))
@@ -199,7 +199,7 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
         if (newTask.get('isRaid')) {
             newTask.set('taskType', 'Raid');
         }
-        return migratePointer('circuitUnit', 'Task', 'task', newTask);
+        return migratePointer(circuitUnit, 'Task', 'task', newTask);
     }).then(function () {
         status.success("completed successfully.");
     }, function (err) {

@@ -29,7 +29,7 @@ export class Guard extends BaseClass {
     }
 
     set guardId(guardId: number) {
-        this.set(Guard._guardId, name);
+        this.set(Guard._guardId, guardId);
     }
 }
 

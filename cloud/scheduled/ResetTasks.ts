@@ -1,9 +1,11 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
-import {Task, TaskQuery, TaskStatus} from "../../shared/subclass/Task";
+import {Task, TaskQuery} from "../../shared/subclass/Task";
+import IPromise = Parse.IPromise;
 import * as _ from "lodash";
 import * as util from "util";
-import IPromise = Parse.IPromise;
+import "tslib";
+
 
 export class ResetTasks {
 
@@ -18,28 +20,30 @@ export class ResetTasks {
         this.now_day = now.getDay();
     }
 
-    public run(): PromiseLike<any> {
-        return this.ensureMigrated().then(() => {
+    async run(): Promise<any> {
 
-            let queryTaskGroups = new Parse.Query(TaskGroup);
-            if (!this.force) {
-                queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
+        // TODO skip after successful migration to 5.0
+        await this.ensureMigrated();
+
+
+        let queryTaskGroups = new Parse.Query(TaskGroup);
+        if (!this.force) {
+            queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
+        }
+        queryTaskGroups.doesNotExist(TaskGroup._archive);
+        return queryTaskGroups.each((taskGroup: TaskGroup) => {
+
+            console.log('------');
+            console.log('Resetting TaskGroup: ', taskGroup.name);
+            console.log('Is run today: ', taskGroup.isRunToday());
+            console.log('Hours until reset: ', taskGroup.hoursUntilReset());
+
+            if (this.force || taskGroup.resetNow()) {
+                return this.resetTaskGroupsStartedMatching(taskGroup)
+                    .then(() => this.resetRegularTasksMatching(taskGroup));
             }
-            queryTaskGroups.doesNotExist(TaskGroup._archive);
-            return queryTaskGroups.each((taskGroup: TaskGroup) => {
 
-                console.log('------');
-                console.log('Resetting TaskGroup: ', taskGroup.name);
-                console.log('Is run today: ', taskGroup.isRunToday());
-                console.log('Hours until reset: ', taskGroup.hoursUntilReset());
-
-                if (this.force || taskGroup.resetNow()) {
-                    return this.resetTaskGroupsStartedMatching(taskGroup)
-                        .then(() => this.resetRegularTasksMatching(taskGroup));
-                }
-
-            }, {useMasterKey: true})
-        });
+        }, {useMasterKey: true})
     }
 
     // TODO remove when Circuit tasks are no longer being used
@@ -56,7 +60,7 @@ export class ResetTasks {
 
                 console.log('Resetting active groups: ', _.map(activeTaskGroupStarted, 'name'));
 
-                _.forEach(activeTaskGroupStarted, (taskGroupStarted) => {
+                _.forEach<TaskGroupStarted[]>(activeTaskGroupStarted, (taskGroupStarted: TaskGroupStarted) => {
                     taskGroupStarted.timeEnded = new Date();
                 });
 
@@ -115,14 +119,6 @@ export class ResetTasks {
             return new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true})
         };
 
-        let resetTask = (task: Task, taskGroupStarted: TaskGroupStarted) => {
-            task.status = TaskStatus.PENDING;
-            task.guard = undefined;
-            task.timesArrived = 0;
-            task.isRunToday = taskGroup.isRunToday();
-            task.taskGroupStarted = taskGroupStarted;
-        };
-
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
         let taskGroupStarted: TaskGroupStarted;
@@ -138,7 +134,7 @@ export class ResetTasks {
             console.log(`Resetting ${tasks.length} tasks for taskGroup ${taskGroup.name}`);
 
             _.forEach(tasks, (task: Task) => {
-                resetTask(task, taskGroupStarted);
+                task.reset(taskGroup, taskGroupStarted);
             });
 
             return Parse.Object.saveAll(tasks, {useMasterKey: true});
