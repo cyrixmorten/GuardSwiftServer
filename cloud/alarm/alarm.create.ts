@@ -3,12 +3,13 @@ import {AlarmUtils} from "./utils";
 import {Client} from '../../shared/subclass/Client';
 import {Central} from "../../shared/subclass/Central";
 import {IParsedAlarm} from "./alarm.parse";
+import {User} from "../../shared/subclass/User";
 
 export interface IAlarmOptions {
     sender: string,
     receiver: string,
     central: Central,
-    user: Parse.User,
+    user: User,
     parsedAlarm: IParsedAlarm
 }
 
