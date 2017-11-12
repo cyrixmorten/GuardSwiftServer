@@ -1,6 +1,21 @@
 import * as _ from 'lodash';
 import {centrals} from "../centrals/all";
 
+
+export interface IParsedAlarm {
+    action: string,
+    alarmMsg: string,
+    alarmObject: {
+        clientId: string;
+        clientName: string,
+        fullAddress: string,
+        priority: string,
+        signalStatus: string,
+        remarks: string,
+        keybox: string
+    }
+}
+
 export let parseAlarm = function(central, alarmMsg) {
 
     let promise = new Parse.Promise();

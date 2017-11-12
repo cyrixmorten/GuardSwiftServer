@@ -1,7 +1,18 @@
 import * as _ from 'lodash';
 import {AlarmUtils} from "./utils";
+import {Client} from '../../shared/subclass/Client';
+import {Central} from "../../shared/subclass/Central";
+import {IParsedAlarm} from "./alarm.parse";
 
-export let createAlarm = function (options) {
+export interface IAlarmOptions {
+    sender: string,
+    receiver: string,
+    central: Central,
+    user: Parse.User,
+    parsedAlarm: IParsedAlarm
+}
+
+export let createAlarm = function (options: IAlarmOptions) {
 
     let Alarm = Parse.Object.extend("Task");
     let alarm = new Alarm();
@@ -42,10 +53,10 @@ export let createAlarm = function (options) {
         console.log('existing client');
 
         // client already exists
-        return Parse.Promise.as(client);
-    }).then(function (client) {
+        return client;
+    }).then(function (client: Client) {
 
-        console.log('client: ' + client.get('name'));
+        console.log('client: ' + JSON.stringify(client.toJSON()));
 
         alarm.set('client', client);
 
