@@ -56,7 +56,7 @@ let handleAlarmRequest = function (request): IPromise<any> {
 
         return AlarmUtils.findUser(receiver);
     }).then(function (userObj: User) {
-        if (_.isEmpty(userObj)) {
+        if (!userObj) {
             return Parse.Promise.error('Unable to find user with sendTo value: ' + receiver);
         }
         user = userObj;

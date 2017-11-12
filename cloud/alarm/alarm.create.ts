@@ -57,11 +57,18 @@ export let createAlarm = function (options: IAlarmOptions) {
         return client;
     }).then(function (client: Client) {
 
-        console.log('client: ' + JSON.stringify(client.toJSON()));
+        console.log('client: ' + client.name);
 
         alarm.set('client', client);
 
-        let acl = new Parse.ACL(options.user);
+        let acl = new Parse.ACL();
+        acl.setReadAccess(options.user.id, true);
+        acl.setWriteAccess(options.user.id, true);
+        acl.setPublicReadAccess(false);
+        acl.setPublicWriteAccess(false);
+
+        console.log('acl.toJSON(): ', acl.toJSON());
+
         alarm.setACL(acl);
 
         // copy client attributes to alarm and save
