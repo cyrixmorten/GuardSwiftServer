@@ -2,7 +2,7 @@ import * as _ from 'lodash'
 
 
 let excludeMigrated = function (query) {
-    query.notEqualTo('isMigrated', true);
+    query.doesNotExist('isMigrated');
 };
 
 let markMigratedAndSave = function (object) {
@@ -80,7 +80,7 @@ let migrate = function (options, beforeAttr?, beforeSave?) {
 
     return prevQuery.each(function (prevObject) {
 
-        console.log('Look for existing', options.toClass, options.toClass);
+        console.log('Look for existing', options.toClass, prevObject.id);
 
         let existingQuery = new Parse.Query(options.toClass);
         existingQuery.equalTo('prevId', prevObject.id);
@@ -199,7 +199,7 @@ Parse.Cloud.define("MigrateCircuitUnit", function (request, status) {
         if (newTask.get('isRaid')) {
             newTask.set('taskType', 'Raid');
         }
-        return migratePointer(circuitUnit, 'Task', 'task', newTask);
+        return migratePointer(circuitUnit.get('circuit'), 'TaskGroup', 'taskGroup', newTask);
     }).then(function () {
         status.success("completed successfully.");
     }, function (err) {
@@ -249,11 +249,6 @@ Parse.Cloud.define("MigrateCircuitStarted", function (request, status) {
         return attr;
 
     }, function (circuitStarted, taskGroupStarted) {
-
-        console.log('circuitStarted: ', circuitStarted);
-        console.log('taskGroupStarted: ', taskGroupStarted);
-        console.log('circuitStarted.get(circuit): ', circuitStarted.get('circuit'));
-
         return migratePointer(circuitStarted.get('circuit'), 'TaskGroup', 'taskGroup', taskGroupStarted);
     }).then(function () {
         status.success("completed successfully.");

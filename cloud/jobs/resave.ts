@@ -1,5 +1,7 @@
 
 
+import {TaskStatus, TaskType} from "../../shared/subclass/Task";
+
 Parse.Cloud.define("re-save", function(request, status)  {
 
     let className = request.params.class;

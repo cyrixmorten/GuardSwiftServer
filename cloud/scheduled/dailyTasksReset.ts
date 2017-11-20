@@ -2,10 +2,10 @@ import * as _ from "lodash"
 import * as rp from "request-promise";
 import {ResetTasks} from "./ResetTasks";
 
-Parse.Cloud.job("forceResetTasks", function(request, status) {
+Parse.Cloud.define("forceResetTasks", function(request, status) {
     return rp({
         method: "POST",
-        url: process.env.SERVER_URL + '/jobs/resetTasks',
+        url: process.env.SERVER_URL + '/functions/resetTasks',
         headers: {
 			'X-Parse-Application-Id': process.env.APP_ID,
 			'X-Parse-Master-Key': process.env.MASTER_KEY,
@@ -24,7 +24,7 @@ Parse.Cloud.job("forceResetTasks", function(request, status) {
 	});
 });
 
-Parse.Cloud.job("resetTasks", function (request, status) {
+Parse.Cloud.define("resetTasks", function (request, status) {
 
     console.log('----');
     console.log('- resetAllTasks');
