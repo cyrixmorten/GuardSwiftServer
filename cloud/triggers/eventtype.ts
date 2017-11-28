@@ -2,6 +2,12 @@
  * Auto set timesUsed to 0 if not defined
  */
 Parse.Cloud.beforeSave("EventType", function (request, response) {
+    if (!request.user) {
+        // not saved by user
+        response.success();
+        return;
+    }
+
     let EventType = request.object;
 
     let timesUsed = EventType.get('timesUsed');
