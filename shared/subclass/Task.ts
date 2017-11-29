@@ -153,11 +153,11 @@ export class Task extends BaseClass {
         this.set(Task._clientAddress, name);
     }
 
-    set days(days: string[]) {
+    set days(days: number[]) {
         this.set(Task._days, days);
     }
 
-    get days(): string[] {
+    get days(): number[] {
         return this.get(Task._days);
     }
 
@@ -182,12 +182,20 @@ export class Task extends BaseClass {
     }
 
 
+
+    isTaskRunToday() {
+        // TODO check against holidays
+        return _.includes(this.days, new Date().getDay())
+    }
+
     reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted) {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
         this.timesArrived = 0;
+
+
         if (taskGroup) {
-            this.isRunToday = taskGroup.isRunToday();
+            this.isRunToday = taskGroup.isRunToday() && this.isTaskRunToday();
         }
         if (taskGroupStarted) {
             this.taskGroupStarted = taskGroupStarted;

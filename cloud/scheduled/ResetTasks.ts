@@ -116,6 +116,7 @@ export class ResetTasks {
         };
 
         let findTasks = (): Parse.Promise<Task[]> => {
+            // TODO: hard limit of 1000 tasks per group
             return new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true})
         };
 
