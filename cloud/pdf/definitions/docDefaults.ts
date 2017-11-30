@@ -28,14 +28,18 @@ export class PDFDefaults {
     private static findGuardName = (report: Report) => {
         let guardName = report.guardName || '';
 
-        if (!guardName) {
-            // search eventlogs
-            let guardEvent = _.find(report.eventLogs, (eventLog: EventLog) => !!eventLog.guardName);
+        // take first event with guard name attached
+        let guardEvent = _.find(report.eventLogs, (eventLog: EventLog) => !!eventLog.guardName);
 
-            guardName = guardEvent ? guardEvent.guardName : guardName;
-        }
+        _.forEach(report.eventLogs, (eventLog: EventLog) => {
+            if (eventLog.taskEvent === 'ARRIVE' && !!eventLog.guardName) {
+                // swap with arrival
+                guardEvent = eventLog;
+            }
+        });
 
-        return guardName;
+        // prefer guard from eventlog otherwise use name of guard creating the report
+        return guardEvent ? guardEvent.guardName : guardName;
     };
 
 

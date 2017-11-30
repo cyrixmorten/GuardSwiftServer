@@ -2,12 +2,14 @@ import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
+import * as _ from "lodash";
 
 export class EventLog extends BaseClass {
 
     static className = 'EventLog';
 
     static readonly _name = 'name';
+    static readonly _taskEvent = 'task_event';
     static readonly _taskType = 'taskType';
     static readonly _taskTypeName = 'taskTypeName';
     static readonly _task = 'task';
@@ -36,8 +38,8 @@ export class EventLog extends BaseClass {
         this.set(EventLog._taskType, taskType);
     }
 
-    matchingTaskType(taskType: TaskType): boolean {
-        return this.taskType === taskType;
+    matchingTaskType(...taskType: TaskType[]): boolean {
+        return _.includes(taskType, this.taskType);
     }
 
     get task(): Task {
@@ -70,6 +72,14 @@ export class EventLog extends BaseClass {
 
     set taskTypeName(taskTypeName: string) {
         this.set(EventLog._taskTypeName, taskTypeName);
+    }
+
+    get taskEvent(): string {
+        return this.get(EventLog._taskEvent);
+    }
+
+    set taskEvent(taskEvent: string) {
+        this.set(EventLog._taskEvent, taskEvent);
     }
 }
 

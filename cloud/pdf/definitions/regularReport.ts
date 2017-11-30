@@ -53,16 +53,12 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         };
 
         let preferArrivalsWithinSchedule = () => {
-            // TODO backwards compatibility < 5
-            let regularTask = report.get('circuitUnit');
 
-            if (report.matchingTaskType(TaskType.REGULAR)) {
-                regularTask = report.task;
-            }
-
-            if (!regularTask) {
+            if (!report.matchingTaskType(TaskType.REGULAR, TaskType.RAID)) {
                 return;
             }
+
+            let regularTask = report.task;
 
             let supervisionsCount = regularTask.get('supervisions');
             let arrivalEvents = [];
@@ -180,6 +176,8 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         // uniq in case multiple strategies apply to same index
         pruneIndexes = _.uniq(pruneIndexes);
 
+        console.log('events.guardInitials: ', events.guardInitials);
+        console.log('pruneIndexes: ', pruneIndexes);
 
         _.pullAt(events.eventTimestamps, pruneIndexes);
         _.pullAt(events.eventName, pruneIndexes);
@@ -188,7 +186,6 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         _.pullAt(events.location, pruneIndexes);
         _.pullAt(events.remarks, pruneIndexes);
         _.pullAt(events.guardInitials, pruneIndexes);
-
 
 
         return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
