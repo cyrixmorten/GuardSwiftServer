@@ -6,10 +6,10 @@ import IPromise = Parse.IPromise;
 import {User} from "../../shared/subclass/User";
 import {Central} from "../../shared/subclass/Central";
 
-Parse.Cloud.define("alarm", function (request, response) {
-    handleAlarmRequest(request).then(function (res) {
+Parse.Cloud.define("alarm",  (request, response) => {
+    handleAlarmRequest(request).then( (res) => {
         response.success(res);
-    }, function (error) {
+    }, (error) => {
         console.error(error);
 
         response.error(error);

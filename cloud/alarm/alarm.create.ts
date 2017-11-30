@@ -67,7 +67,6 @@ export let createAlarm = function (options: IAlarmOptions) {
         acl.setPublicReadAccess(false);
         acl.setPublicWriteAccess(false);
 
-        console.log('acl.toJSON(): ', acl.toJSON());
 
         alarm.setACL(acl);
 

@@ -10,7 +10,7 @@ let matchesCentral = function (alarmOrCentral) {
 
 
 export let parse = function (central, alarmMsg) {
-    console.log('matchesCentral(alarm): ', matchesCentral(central));
+    console.log('G4S Alarm: ', matchesCentral(central));
     if (!matchesCentral(central)) {
         return;
     }

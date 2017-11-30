@@ -90,7 +90,12 @@ export class AlarmUtils {
             client.set('fullAddress', fullAddress);
             client.set('owner', user);
 
-            let acl = new Parse.ACL(user);
+            let acl = new Parse.ACL();
+            acl.setReadAccess(user.id, true);
+            acl.setWriteAccess(user.id, true);
+            acl.setPublicReadAccess(false);
+            acl.setPublicWriteAccess(false);
+
             client.setACL(acl);
 
             _.forOwn(placeObject, function (value, key) {
