@@ -40,6 +40,7 @@ var api = new ParseServer({
   fileKey: process.env.FILE_KEY,
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
   serverURL: process.env.SERVER_URL, // Don't forget to change to https if needed
+  enableSingleSchemaCache: true, // Should decrease memory usage
   liveQuery: {
     classNames: ["Task", "EventLog", "Guard", "Client"] // List of classes to support for query subscriptions
   },

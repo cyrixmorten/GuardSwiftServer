@@ -31,7 +31,7 @@
     "lodash": "^4.16.4",
     "moment-timezone-all": "^0.5.5",
     "parse": "~1.8.0",
-    "parse-server": "^2.6.2",
+    "parse-server": "^2.6.3",
     "parse-server-push-adapter": "^1.1.0",
     "pdfmake": "^0.1.33",
     "request": "^2.83.0",
