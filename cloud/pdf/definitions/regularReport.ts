@@ -52,15 +52,9 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
             }
         };
 
-<<<<<<< HEAD:cloud/pdf/definitions/regularReport.js
-        var preferArrivalsWithinSchedule = function() {
-            var regularTask = report.get('circuitUnit') || (report.get('taskType') === 'Regular') ?  report.get('task') : undefined;
-            if (!regularTask) {
-=======
         let preferArrivalsWithinSchedule = () => {
 
             if (!report.matchingTaskType(TaskType.REGULAR, TaskType.RAID)) {
->>>>>>> join-tasks:cloud/pdf/definitions/regularReport.ts
                 return;
             }
 
@@ -192,17 +186,10 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         _.pullAt(events.location, pruneIndexes);
         _.pullAt(events.remarks, pruneIndexes);
         _.pullAt(events.guardInitials, pruneIndexes);
-<<<<<<< HEAD:cloud/pdf/definitions/regularReport.js
-=======
 
->>>>>>> join-tasks:cloud/pdf/definitions/regularReport.ts
 
         return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
 
-<<<<<<< HEAD:cloud/pdf/definitions/regularReport.js
-        return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
-=======
->>>>>>> join-tasks:cloud/pdf/definitions/regularReport.ts
     };
 
     let reportContent =  () => {
@@ -216,11 +203,7 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
             margin: [0, 10],
             style: {bold: true}
         });
-<<<<<<< HEAD:cloud/pdf/definitions/regularReport.js
-        var reportedEvents = pdfUtils.tableWithBorder({
-=======
         let reportedEvents = PDFUtils.tableWithBorder({
->>>>>>> join-tasks:cloud/pdf/definitions/regularReport.ts
             widths: [30, 50, '*', 30, '*', '*', '*'],
             header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
             content: eventsContent()
@@ -233,7 +216,7 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         let eventsWrittenbyGuard = _.compact(events.writtenByGuard);
         if (eventsWrittenbyGuard.length === 0) {
             content.push(
-                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]} // TODO: translate
+                {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
             )
         }
 
