@@ -40,9 +40,10 @@ var api = new ParseServer({
   fileKey: process.env.FILE_KEY,
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
   serverURL: process.env.SERVER_URL, // Don't forget to change to https if needed
-  // liveQuery: {
-  //   classNames: ["Posts", "Comments"] // List of classes to support for query subscriptions
-  // },
+  enableSingleSchemaCache: true, // Should decrease memory usage
+  liveQuery: {
+    classNames: ["Task", "EventLog", "Guard", "Client"] // List of classes to support for query subscriptions
+  },
   filesAdapter: new S3Adapter(
       process.env.S3_KEY,
       process.env.S3_SECRET,
@@ -90,27 +91,22 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-apiRouter.get('/report/:id', require('./api/pdf/pdfreport'));
-apiRouter.post('/pdfmake', require('./api/pdf/pdfmake'));
-// apiRouter.post('/sms-send', require('./api/twilio').send);
-apiRouter.post('/twilio',
-    require('twilio').webhook({ validate: false }),
-    require('./api/twilio').receive
-);
+apiRouter.get('/report/:id', require('./api/pdf/pdfreport').toPdf);
+apiRouter.post('/pdfmake', require('./api/pdf/pdfmake').pdfMake);
+
 apiRouter.get('/cpsms',
     require('./api/cpsms').receive
 );
 app.use('/api', apiRouter);
 
 
-
 var port = process.env.PORT || 1337;
 var httpServer = require('http').createServer(app);
 httpServer.listen(port, function() {
-    console.log('parse-server-example running on port ' + port + '.');
+    console.log('GuardSwift server running on port ' + port + '.');
 });
 
 // This will enable the Live Query real-time server
-// ParseServer.createLiveQueryServer(httpServer);
+//ParseServer.createLiveQueryServer(httpServer);
 
 

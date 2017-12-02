@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "pretty": true,
+    "target": "es5",
+    "sourceMap": true,
+    "skipLibCheck": true, // suppress error in parse typings
+    "importHelpers": true,
+    "lib": ["es6"],
+    "types": [
+      "tslib",
+      "parse",
+      "lodash",
+      "node"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

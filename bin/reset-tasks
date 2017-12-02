@@ -1,29 +1,32 @@
 #!/usr/bin/env node
 require("dotenv").config({ path: '../local.env' });
+
 var requireEnv = require("require-environment-variables");
 requireEnv([
     'APP_ID',
     'MASTER_KEY'
 ]);
 
-var http = require('http-request');
+var request = require('request');
 var _ = require('lodash');
 
 
 var task = (_.includes(process.argv, '-f')) ? 'forceResetTasks' : 'resetTasks';
 
-http.post({
-    url: process.env.SERVER_URL + '/jobs/' + task,
+
+request({
+    method: 'POST',
+    url: process.env.SERVER_URL + '/functions/' + task,
     headers: {
         'X-Parse-Application-Id': process.env.APP_ID,
         'X-Parse-Master-Key': process.env.MASTER_KEY,
         'Content-Type': "application/json"
     }
-}, function (err, res) {
+}, function (err, res, body) {
     if (err) {
         console.error(err);
         return;
     }
 
-    console.log(res.code, res.headers, res.file);
+    console.log(res.code, res.headers, body);
 });
