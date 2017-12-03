@@ -1,9 +1,10 @@
 import {ReportUtils} from "./reportUtils";
 
 import * as reportToDoc from './definitions/taskReport';
+import {ReportSettings} from "../../shared/subclass/ReportSettings";
 
 
-Parse.Cloud.define("reportToDoc", function (request, response) {
+Parse.Cloud.define("reportToDoc",  (request, response) => {
 
     console.log('reportToDoc');
 
@@ -15,7 +16,7 @@ Parse.Cloud.define("reportToDoc", function (request, response) {
 
 });
 
-export let toDoc = function(reportId) {
+export let toDoc = (reportId: string, reportSettings?: ReportSettings) => {
 
     if (!reportId) {
         return Parse.Promise.error('toDoc missing reportId');
@@ -26,7 +27,7 @@ export let toDoc = function(reportId) {
         if (!report) {
             throw new Error('Did not find report with id: ' + reportId)
         }
-        return reportToDoc.createDoc(report)
+        return reportToDoc.createDoc(report, reportSettings)
     },function(error) {
         return Parse.Promise.error({
             message: error.message || 'Error during Document creation',

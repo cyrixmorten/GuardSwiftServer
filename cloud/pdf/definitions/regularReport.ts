@@ -6,6 +6,7 @@ import {PDFUtils} from "../../utils/pdf";
 import {PDFDefaults} from "./docDefaults";
 import {TaskType} from "../../../shared/subclass/Task";
 import {Report} from "../../../shared/subclass/Report";
+import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 
 
 
@@ -16,7 +17,7 @@ import {Report} from "../../../shared/subclass/Report";
  * @param settings
  * @param timeZone
  */
-export let createDoc =  (report: Report, settings, timeZone)  => {
+export let createDoc =  (report: Report, settings: ReportSettings, timeZone)  => {
 
     let events = ReportUtils.reportEventsMap(report, timeZone);
 

@@ -1,100 +1,39 @@
 import {ReportUtils} from "../reportUtils";
 import {TaskType} from "../../../shared/subclass/Task";
-
 import * as _ from 'lodash'
 
 import * as regularReport from './regularReport'
 import * as staticReport from './staticReport'
 import {Report} from "../../../shared/subclass/Report";
+import {ReportSettings, ReportSettingsQuery} from "../../../shared/subclass/ReportSettings";
 
-
-
-let fetchReportSettings = (report) => {
-
-    let getSettingsColumn =  () => {
-        let taskType: TaskType = report.get('taskType');
-        switch (taskType) {
-            case TaskType.ALARM:
-                return 'regularReportSettings';
-            case TaskType.REGULAR:
-                return 'regularReportSettings';
-            case TaskType.RAID:
-                return 'regularReportSettings';
-            case TaskType.STATIC:
-                return 'staticReportSettings';
-            default: {
-                console.error("fetchReportSettings missing taskType: " + taskType)
-            }
-        }
-
-        // TODO kept for backwards compatibility < 5.0.0
-        let taskTypeName = report.get('taskTypeName');
-        switch (taskTypeName) {
-            case 'ALARM':
-                return 'regularReportSettings';
-            case 'REGULAR':
-                return 'regularReportSettings';
-            case 'RAID':
-                return 'regularReportSettings';
-            case 'STATIC':
-                return 'staticReportSettings';
-        }
-    };
-
-    let fetchReportSettings =  () => {
-        let settingsCol = getSettingsColumn();
-
-        console.log('settingsCol: ' + settingsCol);
-
-        if (_.isEmpty(settingsCol)) {
-            return Parse.Promise.error('No definition matching report');
-        }
-
-        return ReportUtils.fetchUser(report).then( (user) => {
-            return user.get(settingsCol).fetch({useMasterKey: true});
-        });
-    };
-
-
-    return fetchReportSettings()
-};
-
-export let createDoc =  (report: Report) => {
-
-    let timeZone;
+export let createDoc =  (report: Report, reportSettings?: ReportSettings) => {
 
     return ReportUtils.fetchUser(report).then( (user) => {
 
-        timeZone = (user.has('timeZone')) ? user.get('timeZone') : 'Europe/Copenhagen';
+        return (user.has('timeZone')) ? user.get('timeZone') : 'Europe/Copenhagen';
 
-        return fetchReportSettings(report);
-    }).then( (settings) => {
+    }).then(async (timeZone) => {
 
-        let taskType: TaskType = report.get('taskType');
+        let taskType: TaskType = report.taskType;
+
+        reportSettings = reportSettings ? reportSettings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(taskType).build().first({useMasterKey: true});
+
         switch (taskType) {
             case TaskType.ALARM:
-                return regularReport.createDoc(report, settings, timeZone);
+                return regularReport.createDoc(report, reportSettings, timeZone);
             case TaskType.REGULAR:
-                return regularReport.createDoc(report, settings, timeZone);
+                return regularReport.createDoc(report, reportSettings, timeZone);
             case TaskType.RAID:
-                return regularReport.createDoc(report, settings, timeZone);
+                return regularReport.createDoc(report, reportSettings, timeZone);
             case TaskType.STATIC:
-                return staticReport.createDoc(report, settings, timeZone);
+                return staticReport.createDoc(report, reportSettings, timeZone);
             default: {
                 console.error("createDoc missing taskType: " + taskType)
             }
         }
 
-        // TODO kept for backwards compatibility < 5.0.0
-        if (report.has('task')) {
-            return regularReport.createDoc(report, settings, timeZone);
-        }
-        if (report.has('circuitUnit')) {
-            return regularReport.createDoc(report, settings, timeZone);
-        }
-        if (report.has('staticTask')) {
-            return staticReport.createDoc(report, settings, timeZone);
-        }
+
     });
 
 

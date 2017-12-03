@@ -1,5 +1,6 @@
 import * as reportToDoc from './reportToDoc';
 import {ReportUtils} from "./reportUtils";
+import {ReportSettings} from "../../shared/subclass/ReportSettings";
 
 Parse.Cloud.define("reportToPDF",  (request, response) => {
 
@@ -19,12 +20,12 @@ Parse.Cloud.define("reportToPDF",  (request, response) => {
 });
 
 
-export let toPdf =  (reportId) => {
+export let toPdf =  (reportId: string, reportSettings?: ReportSettings) => {
 
     if (!reportId) {
         return Parse.Promise.error('toPdf missing reportId');
     }
-    return reportToDoc.toDoc(reportId)
+    return reportToDoc.toDoc(reportId, reportSettings)
         .then( (docDefinition) => {
             return ReportUtils.generatePDF(docDefinition);
         },  (error) => {

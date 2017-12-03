@@ -123,7 +123,7 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
         mailSetup.bccNames = reportSettings.bccNames;
         mailSetup.bccEmails = reportSettings.bccEmails;
 
-        return reportToPdf.toPdf(reportId);
+        return reportToPdf.toPdf(reportId, reportSettings);
 
     }).then((httpResponse) => {
 
