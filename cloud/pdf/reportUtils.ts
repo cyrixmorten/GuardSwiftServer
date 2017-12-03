@@ -4,6 +4,7 @@ import * as moment from 'moment-timezone-all';
 import {EventLog} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import IPromise = Parse.IPromise;
+import {TaskStatus} from "../../shared/subclass/Task";
 
 export class ReportUtils {
 
@@ -11,23 +12,23 @@ export class ReportUtils {
         return report.get('owner').fetch({useMasterKey: true});
     };
 
+    /**
+     * @param {string} reportId can either be objectId or reportId
+     * @returns {Parse.IPromise<Report>}
+     */
     static fetchReport = (reportId: string): IPromise<Report> => {
 
         console.log('fetchReport ' + reportId);
 
-        let query = new ReportQuery().matchingId(reportId).build();
+        let queryObjectId = new ReportQuery().matchingId(reportId).build();
+        let queryReportId = new ReportQuery().matchingReportId(reportId).build();
+
+        let query = Parse.Query.or(queryObjectId, queryReportId);
 
         query.include('owner');
         query.include('client.contacts');
         query.include('eventLogs');
-
-
-        query.include('staticTask');    // Static
-        query.include('circuitUnit');   // Regular
-        query.include('task');          // Alarms
-
-        query.include('circuitStarted');
-        query.include('districtWatchStarted'); // to be removed
+        query.include('task');
 
         return query.first({useMasterKey: true}).then((report) => {
             if (!report) {
@@ -36,50 +37,6 @@ export class ReportUtils {
 
             return report;
         });
-    };
-
-    static getPDFUrl = (report: Report) => {
-        return report.get('pdf').url();
-    };
-
-    static hasExistingPDF = (report: Report) => {
-
-        let hasPdf = report.has('pdf');
-        let pdfCreatedAt = report.get('pdfCreatedAt');
-        let updatedAt = report.get('updatedAt');
-        let pdfOutdated = pdfCreatedAt && Math.abs(moment(pdfCreatedAt).diff(moment(updatedAt), 'seconds')) > 5;
-
-        return hasPdf && !pdfOutdated;
-    };
-
-    static readExistingPDF = (report: Report) => {
-
-        return Parse.Cloud.httpRequest({
-            method: 'GET',
-            url: ReportUtils.getPDFUrl(report),
-            headers: {
-                'Content-Type': 'application/pdf'
-            }
-        });
-    };
-
-    static deleteExistingPDF = (report: Report) => {
-
-        let promise = Parse.Promise.as('');
-
-        if (report.has('pdf')) {
-
-            promise = Parse.Cloud.run('fileDelete', {
-                file: report.get('pdf')
-            });
-        }
-
-        promise.fail((error) => {
-            // ignoring any errors
-            console.error('Error deleting report', error);
-        });
-
-        return promise;
     };
 
     static generatePDF = (docDefinition) => {
@@ -94,51 +51,42 @@ export class ReportUtils {
         })
     };
 
-    static generatePDFParseFile = (httpResponse) => {
-
-        let file = new Parse.File("report.pdf", {
-            base64: httpResponse.buffer.toString('base64', 0, httpResponse.buffer.length)
-        }, 'application/pdf');
-
-        return file.save();
-
-    };
 
     /**
      * Extracts categorised event information for given report
      */
-    static reportEventsMap = (report, timeZone) => {
-        return ReportUtils.eventsMap(report.get('eventLogs'), timeZone);
+    static reportEventsMap = (report: Report, timeZone) => {
+        return ReportUtils.eventsMap(report.eventLogs, timeZone);
     };
 
 
     static isAcceptEvent = (eventLog) => {
-        return eventLog.get('task_event') === 'ACCEPT';
+        return eventLog.get(EventLog._taskEvent) === 'ACCEPT';
     };
 
     static isArrivalEvent = (eventLog) => {
-        return eventLog.get('task_event') === 'ARRIVE';
+        return eventLog.get(EventLog._taskEvent) === 'ARRIVE';
     };
 
     static isAbortEvent = (eventLog) => {
-        return eventLog.get('task_event') === 'ABORT';
+        return eventLog.get(EventLog._taskEvent) === 'ABORT';
     };
 
     static isFinishEvent = (eventLog) => {
-        return eventLog.get('task_event') === 'FINISH';
+        return eventLog.get(EventLog._taskEvent) === 'FINISH';
     };
 
     static isWrittenByGuard = (eventLog) => {
-        return eventLog.get('task_event') === 'OTHER';
+        return eventLog.get(EventLog._taskEvent) === 'OTHER';
     };
 
     static isAlarmEvent = (eventLog) => {
-        return eventLog.get('taskTypeName') === 'ALARM';
+        return eventLog.get(EventLog._taskTypeName) === 'ALARM';
     };
 
     static isReportLog = (eventLog) => {
-        let isArrive = eventLog.get('task_event') === 'ARRIVE';
-        let isWritten = eventLog.get('task_event') === 'OTHER';
+        let isArrive = eventLog.get(EventLog._taskEvent) === 'ARRIVE';
+        let isWritten = eventLog.get(EventLog._taskEvent) === 'OTHER';
 
 
         return isArrive || isWritten || ReportUtils.isAlarmEvent(eventLog);
@@ -149,7 +97,7 @@ export class ReportUtils {
         let numberOfArrivals = _.filter(eventLogs, ReportUtils.isArrivalEvent).length;
 
         eventLogs = _.sortBy(eventLogs, (log) => {
-            let date = log.get('deviceTimestamp');
+            let date = log.get(EventLog._deviceTimeStamp);
 
             if (!ReportUtils.isAlarmEvent(log) && ReportUtils.isArrivalEvent(log) && numberOfArrivals === 1) {
                 return Number.MIN_VALUE;
@@ -166,72 +114,59 @@ export class ReportUtils {
                     return log;
                 }
             }),
-            //
-            // arrivedEvents: arrivedEvents,
 
             taskEvents: _.map(eventLogs, (log) => {
-                return log.get('task_event');
+                return log.get(EventLog._taskEvent);
             }),
 
             eventTimestamps: _.map(eventLogs, (log) => {
                 let isAlarmEvent = ReportUtils.isAlarmEvent(log) && (ReportUtils.isAcceptEvent(log) || ReportUtils.isAbortEvent(log) || ReportUtils.isFinishEvent(log));
                 if (ReportUtils.isArrivalEvent(log) || isAlarmEvent) {
-                    return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+                    return moment(log.get(EventLog._deviceTimeStamp)).tz(timeZone).format('HH:mm');
                 }
             }),
-
-            // arrivedGuardNames: _.map(arrivedEvents,  (log) {
-            //     return log.get('guardName') || '';
-            // }),
-            //
-            // arrivedClientNames: _.map(arrivedEvents,  (log) {
-            //     return log.get('clientName') || '';
-            // }),
-            // arrivedClientAddress: _.map(arrivedEvents,  (log) {
-            //     return log.has('clientAddress') ? log.get('clientAddress') + ' ' + log.get('clientAddressNumber') : '';
-            // }),
 
 
             timestamps: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return moment(log.get('deviceTimestamp')).tz(timeZone).format('HH:mm');
+                    return moment(log.get(EventLog._deviceTimeStamp)).tz(timeZone).format('HH:mm');
                 }
             }),
 
 
             eventName: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return log.get('event') || '';
+                    return log.get(EventLog._event) || '';
                 }
             }),
 
             amount: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return (log.has('amount') && log.get('amount') !== 0) ? log.get('amount').toString() : '';
+                    return (log.has(EventLog._amount) && log.get(EventLog._amount) !== 0) ? log.get(EventLog._amount).toString() : '';
                 }
             }),
 
             people: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return log.get('people') || '';
+                    return log.get(EventLog._people) || '';
                 }
             }),
 
             location: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return log.get('clientLocation') || '';
+                    return log.get(EventLog._clientLocation) || '';
                 }
             }),
 
             remarks: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    return log.get('remarks') || '';
+                    return log.get(EventLog._remarks) || '';
                 }
             }),
 
             guardInitials: _.map(eventLogs, (log) => {
                 if (ReportUtils.isReportLog(log)) {
-                    let guardName = log.get('guardName') || '';
+                    let guardName = log.get(EventLog._guardName) || '';
                     if (_.isEmpty(guardName)) {
                         return guardName;
                     }

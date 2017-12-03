@@ -176,9 +176,6 @@ export let createDoc =  (report: Report, settings, timeZone)  => {
         // uniq in case multiple strategies apply to same index
         pruneIndexes = _.uniq(pruneIndexes);
 
-        console.log('events.guardInitials: ', events.guardInitials);
-        console.log('pruneIndexes: ', pruneIndexes);
-
         _.pullAt(events.eventTimestamps, pruneIndexes);
         _.pullAt(events.eventName, pruneIndexes);
         _.pullAt(events.amount, pruneIndexes);

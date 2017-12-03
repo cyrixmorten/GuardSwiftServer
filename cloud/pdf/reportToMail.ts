@@ -13,67 +13,40 @@ import IPromise = Parse.IPromise;
 import {RequestResponse} from "request";
 import {AttachmentData} from "@sendgrid/helpers/classes/attachment";
 import {EmailData} from "@sendgrid/helpers/classes/email-address";
+import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
+import {TaskType} from "../../shared/subclass/Task";
 
-let taskSettings = (report) => {
+let taskSettings = (report: Report) => {
 
     let createdAt = moment(report.get('createdAt')).format('DD-MM-YYYY');
     let clientName = report.get('client').get('name');
 
     let taskSettings = {
-        settingsPointerName: '',
         taskType: '',
         subject: '',
         text: 'Rapporten er vedhæftet som PDF dokument',
         fileName: ''
     };
 
-    let taskType = report.get('taskType');
-    switch (taskType) {
-        case 'Alarm': {
-            taskSettings.settingsPointerName = 'regularReportSettings';
+    switch (report.taskType) {
+        case TaskType.ALARM: {
             taskSettings.taskType = "Alarm"; // TODO: translate
             break;
         }
-        case 'Regular': {
-            taskSettings.settingsPointerName = 'regularReportSettings';
+        case TaskType.REGULAR: {
             taskSettings.taskType = "Gående tilsyn"; // TODO: translate
             break;
         }
-        case 'Raid': {
-            taskSettings.settingsPointerName = 'regularReportSettings';
+        case TaskType.RAID: {
             taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
             break;
         }
-        case 'Static': {
-            taskSettings.settingsPointerName = 'staticReportSettings';
+        case TaskType.STATIC: {
             taskSettings.taskType = "Fastvagt"; // TODO: translate
             break;
         }
     }
 
-    // TODO kept for backwards compatibility < 5.0.0 >>
-    if (!taskSettings.taskType) {
-        if (report.get('taskTypeName') === 'ALARM') {
-            taskSettings.settingsPointerName = 'regularReportSettings';
-            taskSettings.taskType = "Alarm"; // TODO: translate
-        }
-
-        if (report.get('taskTypeName') === 'RAID') {
-            taskSettings.settingsPointerName = 'regularReportSettings';
-            taskSettings.taskType = "Kørende tilsyn"; // TODO: translate
-        }
-
-        if (report.has('circuitStarted')) {
-            taskSettings.settingsPointerName = 'regularReportSettings';
-            taskSettings.taskType = "Tilsyn"; // TODO: translate
-        }
-
-        if (report.has('staticTask')) {
-            taskSettings.settingsPointerName = 'staticReportSettings';
-            taskSettings.taskType = "Fastvagt"; // TODO: translate
-        }
-    }
-    // << TODO kept for backwards compatibility < 5.0.0
 
     if (taskSettings.taskType) {
         if (!taskSettings.subject) {
@@ -96,7 +69,7 @@ Parse.Cloud.define("sendReport", (request, response) => {
     })
 });
 
-export let sendReport = (reportId): IPromise<any> => {
+export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPromise<any> => {
 
     console.log('Send report: ' + reportId);
 
@@ -126,34 +99,28 @@ export let sendReport = (reportId): IPromise<any> => {
 
         let client: Client = report.client;
 
-        let contacts = _.filter(
-            client.get('contacts'), (contact: Person) => {
-                return contact.get('receiveReports')
-                    && contact.get('email');
+        let contacts: Person[] = _.filter(
+            client.contacts, (contact: Person) => {
+                return contact.receiveReports && !!contact.email;
             });
 
 
-        mailSetup.toNames = _.map(contacts, (contact) => {
-            return contact.get('name')
+        mailSetup.toNames = _.map(contacts, (contact: Person) => {
+            return contact.name
         });
-        mailSetup.toEmails = _.map(contacts, (contact) => {
-            return contact.get('email')
+        mailSetup.toEmails = _.map(contacts, (contact: Person) => {
+            return contact.email
         });
 
 
-        if (!taskSettings(report).settingsPointerName) {
-            throw new Error('Unable to get taskSettings');
-        }
+        return reportSettings ? reportSettings : new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(report.taskType).build().first({useMasterKey: true})
+    }).then((reportSettings: ReportSettings) => {
 
+        mailSetup.replytoName = reportSettings.replyToName;
+        mailSetup.replytoEmail = reportSettings.replyToEmail;
 
-        return report.get('owner').get(taskSettings(report).settingsPointerName).fetch({useMasterKey: true});
-    }).then((reportSettings) => {
-
-        mailSetup.replytoName = reportSettings.get('replytoName') || '';
-        mailSetup.replytoEmail = reportSettings.get('replytoEmail') || '';
-
-        mailSetup.bccNames = reportSettings.get('bccNames') || [];
-        mailSetup.bccEmails = reportSettings.get('bccEmails') || [];
+        mailSetup.bccNames = reportSettings.bccNames;
+        mailSetup.bccEmails = reportSettings.bccEmails;
 
         return reportToPdf.toPdf(reportId);
 
@@ -226,7 +193,7 @@ export let sendReport = (reportId): IPromise<any> => {
             let bccs: EmailData[] = [];
 
             // always send bcc to developer
-            let developerMail = 'cyrixmorten@gmail.com';
+            let developerMail = 'cyrixmorten@gmail.com'; // TODO environment variable
             if (!_.includes(receivers, developerMail)) {
 
 
@@ -270,6 +237,7 @@ export let sendReport = (reportId): IPromise<any> => {
         return sgMail.sendMultiple({
             from: getFrom(),
             to: getTo(),
+            bcc: getBccs(),
             replyTo: getReplyTo(),
             subject: getSubject(),
             text: getText(),

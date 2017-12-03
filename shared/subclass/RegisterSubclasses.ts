@@ -8,6 +8,7 @@ import {EventLog} from "./EventLog";
 import {Central} from "./Central";
 import {Person} from "./Person";
 import {Report} from "./Report";
+import {ReportSettings} from "./ReportSettings";
 
 export class RegisterSubclasses {
 
@@ -22,5 +23,6 @@ export class RegisterSubclasses {
         Parse.Object.registerSubclass(Central.className, Central);
         Parse.Object.registerSubclass(Person.className, Person);
         Parse.Object.registerSubclass(Report.className, Report);
+        Parse.Object.registerSubclass(ReportSettings.className, ReportSettings);
     }
 }

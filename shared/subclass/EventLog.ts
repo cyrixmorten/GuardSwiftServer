@@ -13,10 +13,19 @@ export class EventLog extends BaseClass {
     static readonly _taskType = 'taskType';
     static readonly _taskTypeName = 'taskTypeName';
     static readonly _task = 'task';
-    
+
+    static readonly _deviceTimeStamp = 'deviceTimestamp';
+
     static readonly _guardName = 'guardName';
 
     static readonly _client = 'client';
+
+    static readonly _event = 'event';
+    static readonly _amount = 'amount';
+    static readonly _people = 'people';
+    static readonly _clientLocation = 'clientLocation';
+    static readonly _remarks = 'remarks';
+
 
     constructor(className?: string) {
         super(className || EventLog.className);
