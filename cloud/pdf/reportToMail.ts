@@ -15,6 +15,7 @@ import {AttachmentData} from "@sendgrid/helpers/classes/attachment";
 import {EmailData} from "@sendgrid/helpers/classes/email-address";
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {TaskType} from "../../shared/subclass/Task";
+import {ClientContact} from "../../shared/subclass/ClientContact";
 
 let taskSettings = (report: Report) => {
 
@@ -99,16 +100,16 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
 
         let client: Client = report.client;
 
-        let contacts: Person[] = _.filter(
-            client.contacts, (contact: Person) => {
+        let contacts: ClientContact[] = _.filter(
+            client.contacts, (contact: ClientContact) => {
                 return contact.receiveReports && !!contact.email;
             });
 
 
-        mailSetup.toNames = _.map(contacts, (contact: Person) => {
+        mailSetup.toNames = _.map(contacts, (contact: ClientContact) => {
             return contact.name
         });
-        mailSetup.toEmails = _.map(contacts, (contact: Person) => {
+        mailSetup.toEmails = _.map(contacts, (contact: ClientContact) => {
             return contact.email
         });
 

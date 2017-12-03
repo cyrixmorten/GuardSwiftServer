@@ -1,6 +1,7 @@
 import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
 import {Person} from "./Person";
+import {ClientContact} from "./ClientContact";
 
 export class Client extends BaseClass {
 
@@ -58,11 +59,11 @@ export class Client extends BaseClass {
         this.set(Client._position, position);
     }
 
-    get contacts(): Person[] {
+    get contacts(): ClientContact[] {
         return this.get(Client._contacts);
     }
 
-    set contacts(contacts: Person[]) {
+    set contacts(contacts: ClientContact[]) {
         this.set(Client._contacts, contacts);
     }
 
