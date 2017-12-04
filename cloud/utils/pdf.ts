@@ -60,26 +60,8 @@ export class PDFUtils {
     };
 
 
-    static contentWithHeader = function (reportHeader, reportContent) {
-        // define header
-        let tableHeader = [];
 
-        _.forEach(reportHeader, function (header) {
-            tableHeader.push(
-                {text: header, style: 'tableHeader'}
-            );
-        });
-
-        // insert header
-        if (!_.isEmpty(tableHeader)) {
-            reportContent.unshift(tableHeader);
-        }
-
-        return reportContent;
-    };
-
-
-    static tableWithBorder = function (options) {
+    static table = (options: {widths: Array<'*' | number>, header?: string[], content: any[], layout?: 'noBorders' | 'headerLineOnly' | 'lightHorizontalLines' }) => {
 
         //options = {
         //	widths : ['*','*', '50'],
@@ -87,38 +69,33 @@ export class PDFUtils {
         //	content : [['col1'], ['col2'], ['col3']]
         //};
 
+        // define header
+        let tableHeader = [];
+
+        _.forEach(options.header, function (header) {
+            tableHeader.push(
+                {text: header, style: 'tableHeader'}
+            );
+        });
+
+        // insert header
+        if (!_.isEmpty(tableHeader)) {
+            options.content.unshift(tableHeader);
+        }
 
         return {
             table: {
                 widths: options.widths,
                 headerRows: options.header ? 1 : 0,
-                body: _.isEmpty(options.content) ? [[]] : PDFUtils.contentWithHeader(options.header, options.content)
+                body: _.isEmpty(options.content) ? [[]] : options.content
             },
-            layout: 'lightHorizontalLines',
-            margin: [0, 30]
-        }
-    };
-
-    static tableNoBorders = function (options) {
-
-        //options = {
-        //	widths : ['*','*', '50'],
-        //	content : [['col1'], ['col2'], ['col3']]
-        //};
-
-        return {
-            table: {
-                widths: options.widths,
-                headerRows: options.header ? 1 : 0,
-                body: _.isEmpty(options.content) ? [[]] : PDFUtils.contentWithHeader(options.header, options.content)
-            },
-            layout: 'noBorders',
+            layout: options.layout,
             margin: [0, 30]
         }
     };
 
 
-    static defaultStyles = function () {
+    static defaultStyles = () => {
         return {
             header: {
                 fontSize: 22,

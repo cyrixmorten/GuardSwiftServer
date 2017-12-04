@@ -1,3 +1,5 @@
+import * as _ from "lodash";
+
 export abstract class QueryBuilder<T extends Parse.Object> {
 
     protected query: Parse.Query<T>;
@@ -9,6 +11,14 @@ export abstract class QueryBuilder<T extends Parse.Object> {
 
     constructor(object: new(...args: any[]) => T) {
         this.query = new Parse.Query(object);
+    }
+
+    include(...includes: Array<keyof T>) {
+        _.forEach(includes, (include: string) => {
+            this.query.include(include)
+        });
+
+        return this;
     }
 
     matchingId(id: string) {

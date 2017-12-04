@@ -186,7 +186,16 @@ export let createDoc =  (report: Report, settings: ReportSettings, timeZone)  =>
         _.pullAt(events.guardInitials, pruneIndexes);
 
 
-        return _.zip(events.guardInitials, events.eventTimestamps, events.eventName, events.amount, events.people, events.location, events.remarks);
+        return {
+            guardInitials: events.guardInitials,
+            eventTimestamps: events.eventTimestamps,
+            eventNames: events.eventName,
+            amounts: events.amount,
+            people: events.people,
+            locations: events.location,
+            remarks: events.remarks,
+            length: events.remarks.length // can pick either, all same length
+        };
 
     };
 
@@ -201,10 +210,34 @@ export let createDoc =  (report: Report, settings: ReportSettings, timeZone)  =>
             margin: [0, 10],
             style: {bold: true}
         });
-        let reportedEvents = PDFUtils.tableWithBorder({
-            widths: [30, 50, '*', 30, '*', '*', '*'],
-            header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering', 'Bemærkninger'], // TODO translate
-            content: eventsContent()
+
+        let eventContents = eventsContent();
+        let tableContent = [];
+        for (let i = 0; i < eventContents.length; i++) {
+            let baseRow = [
+                eventContents.guardInitials[i],
+                eventContents.eventTimestamps[i],
+                eventContents.eventNames[i],
+                eventContents.amounts[i],
+                eventContents.people[i],
+                eventContents.locations[i]
+            ];
+
+            tableContent.push(baseRow);
+
+            let remarks = eventContents.remarks[i];
+            if (!_.isEmpty(remarks)) {
+                tableContent.push(['','', {text: remarks, colSpan: 4, fillColor: '#eeeeee'}]);
+            }
+        }
+
+
+
+        let reportedEvents = PDFUtils.table({
+            widths: [30, 50, 75, 30, '*', '*'],
+            header: ['Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering'], // TODO translate
+            content: tableContent,
+            layout: "headerLineOnly"
         });
 
         content.push(header);

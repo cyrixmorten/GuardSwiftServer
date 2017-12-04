@@ -24,9 +24,10 @@ export let createDoc = function (report, settings, timeZone) {
 
         content: [
             PDFDefaults.contentHeader(report),
-            PDFUtils.tableNoBorders({
+            PDFUtils.table({
                 widths: [50, '*'],
-                content: _.zip(events.timestamps, events.remarks)
+                content: _.zip(events.timestamps, events.remarks),
+                layout: 'noBorders'
             })
         ],
 
