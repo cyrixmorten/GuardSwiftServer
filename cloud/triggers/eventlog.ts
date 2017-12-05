@@ -1,5 +1,6 @@
 
 import {EventLog} from "../../shared/subclass/EventLog";
+import {Report} from "../../shared/subclass/Report";
 
 Parse.Cloud.beforeSave("EventLog",  (request, response) => {
 
@@ -12,9 +13,6 @@ Parse.Cloud.beforeSave("EventLog",  (request, response) => {
         EventLog.set('automatic', false);
     }
 
-    console.log('EventLog.taskType: ', EventLog.taskType);
-    console.log('EventLog.taskTypeName: ', EventLog.taskTypeName);
-
     response.success();
 
 
@@ -22,7 +20,7 @@ Parse.Cloud.beforeSave("EventLog",  (request, response) => {
 
 Parse.Cloud.afterSave("EventLog", (request) => {
 
-    let EventLog = request.object;
+    let EventLog = <EventLog>request.object;
 
     // wrieEventToSession(EventLog);
     writeEventToReport(EventLog);
@@ -31,7 +29,7 @@ Parse.Cloud.afterSave("EventLog", (request) => {
 });
 
 
-let writeEventToReport = (EventLog) => {
+let writeEventToReport = (EventLog: EventLog) => {
 
     let findReport =  (reportId) => {
 
@@ -43,7 +41,7 @@ let writeEventToReport = (EventLog) => {
         return query.first({ useMasterKey: true });
     };
 
-    let writeEvent =  (report) => {
+    let writeEvent =  async (report: Report) => {
         console.log('Writing event to report: ' + report.id);
         console.log('At client:  ' + report.get('clientAddress'));
 
@@ -53,6 +51,7 @@ let writeEventToReport = (EventLog) => {
 
         EventLog.set('reported', true);
 
+        report.addUnique('tasks', EventLog.task);
         report.addUnique('eventLogs', EventLog);
         report.increment('eventCount');
 
@@ -76,7 +75,7 @@ let writeEventToReport = (EventLog) => {
 
     if (reportId && !EventLog.get('reported')) {
         findReport(reportId)
-        .then((report) => {
+        .then((report: Report) => {
             if (report) {
                 console.log('Found report: ' + report.id );
                 return writeEvent(report);
