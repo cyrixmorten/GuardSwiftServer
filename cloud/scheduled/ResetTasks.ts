@@ -22,9 +22,6 @@ export class ResetTasks {
 
     async run(): Promise<any> {
 
-        // TODO skip after successful migration to 5.0
-        await this.ensureMigrated();
-
 
         let queryTaskGroups = new Parse.Query(TaskGroup);
         if (!this.force) {
@@ -46,10 +43,7 @@ export class ResetTasks {
         }, {useMasterKey: true})
     }
 
-    // TODO remove when Circuit tasks are no longer being used
-    private ensureMigrated(): PromiseLike<any> {
-        return Parse.Cloud.run('MigrateAll');
-    }
+
 
     private resetTaskGroupsStartedMatching(taskGroup: TaskGroup): IPromise<void> {
         return new TaskGroupStartedQuery()
