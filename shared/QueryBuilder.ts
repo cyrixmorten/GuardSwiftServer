@@ -41,7 +41,15 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    createdAfter(object: Parse.Object) {
+    createdAfter(date: Date) {
+        if (date) {
+            this.query.greaterThan(QueryBuilder._createdAt, date);
+        }
+
+        return this;
+    }
+
+    createdAfterObject(object: Parse.Object) {
         if (object && object.createdAt) {
             this.query.greaterThan(QueryBuilder._createdAt, object.createdAt);
         }

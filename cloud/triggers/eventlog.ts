@@ -42,7 +42,7 @@ let writeEventToReport = (eventLog: EventLog) => {
 
             return new ReportQuery()
                 .matchingClient(eventLog.client)
-                .createdAfter(taskGroupStarted)
+                .createdAfterObject(taskGroupStarted)
                 .build()
                 .first({ useMasterKey: true });
         }
@@ -76,7 +76,7 @@ let writeEventToReport = (eventLog: EventLog) => {
         return report.save(null, { useMasterKey: true });
     };
 
-    let createReport =  () => {
+    let createReport = async () => {
         console.log('createReport');
 
         let Report = Parse.Object.extend('Report');
