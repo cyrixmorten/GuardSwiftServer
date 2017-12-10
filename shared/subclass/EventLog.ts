@@ -3,6 +3,7 @@ import {QueryBuilder} from "../QueryBuilder";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
 import * as _ from "lodash";
+import {TaskGroupStarted} from "./TaskGroupStarted";
 
 export class EventLog extends BaseClass {
 
@@ -12,7 +13,9 @@ export class EventLog extends BaseClass {
     static readonly _taskEvent = 'task_event';
     static readonly _taskType = 'taskType';
     static readonly _taskTypeName = 'taskTypeName';
+
     static readonly _task = 'task';
+    static readonly _taskGroupStarted = 'taskGroupStarted';
 
     static readonly _deviceTimeStamp = 'deviceTimestamp';
 
@@ -57,6 +60,14 @@ export class EventLog extends BaseClass {
 
     set task(task: Task) {
         this.set(EventLog._task, task);
+    }
+
+    get taskGroupStarted(): TaskGroupStarted {
+        return this.get(EventLog._taskGroupStarted);
+    }
+
+    set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        this.set(EventLog._taskGroupStarted, taskGroupStarted);
     }
 
     get guardName(): string {
