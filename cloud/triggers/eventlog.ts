@@ -1,7 +1,7 @@
 
 import {EventLog} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {Task} from "../../shared/subclass/Task";
+import {Task, TaskType} from "../../shared/subclass/Task";
 import {TaskGroupStarted} from "../../shared/subclass/TaskGroupStarted";
 
 Parse.Cloud.beforeSave("EventLog",  (request, response) => {
@@ -33,13 +33,24 @@ Parse.Cloud.afterSave("EventLog", (request) => {
 
 let writeEventToReport = (eventLog: EventLog) => {
 
-    let findReport =  (task: Task, taskGroupStarted?: TaskGroupStarted) => {
+    let findReport =  async (eventLog: EventLog) => {
 
-        console.log(`findReport TaskGroupStarted: ${taskGroupStarted ? taskGroupStarted.id: ''} task: ${task.id}`);
+        if (eventLog.taskGroupStarted) {
+            let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
+
+            console.log(`findReport TaskGroupStarted: ${taskGroupStarted.id} Task: ${task.id}`);
+
+            return new ReportQuery()
+                .matchingClient(eventLog.client)
+                .createdAfter(taskGroupStarted)
+                .build()
+                .first({ useMasterKey: true });
+        }
+
+        console.log(`findReport Task: ${task.id}`);
 
         return new ReportQuery()
             .matchingTask(task)
-            .matchingTaskGroupStarted(taskGroupStarted)
             .build()
             .first({ useMasterKey: true });
     };
@@ -54,11 +65,10 @@ let writeEventToReport = (eventLog: EventLog) => {
 
         eventLog.set('reported', true);
 
-        report.addUnique(Report._tasks, eventLog.task);
         report.addUnique(Report._eventLogs, eventLog);
 
-        if (eventLog.taskGroupStarted) {
-            report.addUnique(Report._taskGroups, eventLog.taskGroupStarted);
+        if (eventLog.task) {
+            report.addUnique(Report._tasks, eventLog.task);
         }
 
         report.increment('eventCount');
@@ -82,7 +92,7 @@ let writeEventToReport = (eventLog: EventLog) => {
     let task: Task = eventLog.task;
 
     if (task && !eventLog.get('reported')) {
-        findReport(task, eventLog.taskGroupStarted)
+        findReport(eventLog)
         .then((report: Report) => {
             if (report) {
                 console.log('Found report: ' + report.id );
