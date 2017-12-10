@@ -79,14 +79,15 @@ let writeEventToReport = (eventLog: EventLog) => {
     let createReport = async () => {
         console.log('createReport');
 
-        let Report = Parse.Object.extend('Report');
-        let report = new Report();
+        // let report = new Report();
+        //
+        // Object.keys(eventLog.attributes).forEach( (fieldName) => {
+        //     report.set(fieldName, eventLog.get(fieldName));
+        // });
+        //
+        // return report.save(null, { useMasterKey: true });
 
-        Object.keys(eventLog.attributes).forEach( (fieldName) => {
-            report.set(fieldName, eventLog.get(fieldName));
-        });
-
-        return report.save(null, { useMasterKey: true });
+        return new Report().save(eventLog.attributes, { useMasterKey: true });
     };
 
     let task: Task = eventLog.task;
