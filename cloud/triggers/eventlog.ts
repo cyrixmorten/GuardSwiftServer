@@ -1,10 +1,9 @@
-
 import {EventLog} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import {Task, TaskType} from "../../shared/subclass/Task";
 import {TaskGroupStarted} from "../../shared/subclass/TaskGroupStarted";
 
-Parse.Cloud.beforeSave("EventLog",  (request, response) => {
+Parse.Cloud.beforeSave("EventLog", (request, response) => {
 
     let EventLog = <EventLog>request.object;
 
@@ -31,9 +30,9 @@ Parse.Cloud.afterSave("EventLog", (request) => {
 });
 
 
-let writeEventToReport = (eventLog: EventLog) => {
+let writeEventToReport = async (eventLog: EventLog) => {
 
-    let findReport =  async (eventLog: EventLog) => {
+    let findReport = async (eventLog: EventLog) => {
 
         if (eventLog.taskGroupStarted) {
             let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
@@ -44,7 +43,7 @@ let writeEventToReport = (eventLog: EventLog) => {
                 .matchingClient(eventLog.client)
                 .createdAfterObject(taskGroupStarted)
                 .build()
-                .first({ useMasterKey: true });
+                .first({useMasterKey: true});
         }
 
         console.log(`findReport Task: ${task.id}`);
@@ -52,10 +51,10 @@ let writeEventToReport = (eventLog: EventLog) => {
         return new ReportQuery()
             .matchingTask(task)
             .build()
-            .first({ useMasterKey: true });
+            .first({useMasterKey: true});
     };
 
-    let writeEvent =  async (report: Report) => {
+    let writeEvent = async (report: Report, eventLog: EventLog) => {
         console.log('Writing event to report: ' + report.id);
         console.log('At client:  ' + report.get('clientAddress'));
 
@@ -73,10 +72,10 @@ let writeEventToReport = (eventLog: EventLog) => {
 
         report.increment('eventCount');
 
-        return report.save(null, { useMasterKey: true });
+        return report.save(null, {useMasterKey: true});
     };
 
-    let createReport = async () => {
+    let createReport = async (eventLog: EventLog) => {
         console.log('createReport');
 
         // let report = new Report();
@@ -87,36 +86,37 @@ let writeEventToReport = (eventLog: EventLog) => {
         //
         // return report.save(null, { useMasterKey: true });
 
-        return new Report().save(eventLog.attributes, { useMasterKey: true });
+        let report: Report = await new Report().save(eventLog.attributes, {useMasterKey: true});
+
+        await writeEvent(report, eventLog);
     };
 
     let task: Task = eventLog.task;
 
     if (task && !eventLog.get('reported')) {
-        findReport(eventLog)
-        .then((report: Report) => {
+        try {
+            let report: Report = await findReport(eventLog);
+
             if (report) {
-                console.log('Found report: ' + report.id );
-                return writeEvent(report);
+                console.log('Found report: ' + report.id);
+                await writeEvent(report, eventLog);
+            }
+            else {
+                try {
+                    await createReport(eventLog);
+                } catch (e) {
+                    console.error('Error while creating report: ' + JSON.stringify(e));
+                }
             }
 
-            console.log('No report found');
-
-            return createReport()
-                .then(writeEvent)
-                .fail((error) => {
-                    console.error('Error while creating report: ' + JSON.stringify(error))
-                    return error;
-                });
-        }, (error)  => {
-            console.error('Unhandled error: ' + JSON.stringify(error));
-        })
-    } else {
-        if (task) {
-            console.log('Already written to report');
-        } else {
-            console.log('Not a report event');
+        } catch (e) {
+            console.error('Unhandled error: ' + JSON.stringify(e));
         }
+    }
+    else if (task) {
+        console.log('Already written to report');
+    } else {
+        console.log('Not a report event');
     }
 
 };
