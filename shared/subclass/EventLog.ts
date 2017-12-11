@@ -29,6 +29,7 @@ export class EventLog extends BaseClass {
     static readonly _clientLocation = 'clientLocation';
     static readonly _remarks = 'remarks';
 
+    static readonly _automatic = 'automatic';
 
     constructor(className?: string) {
         super(className || EventLog.className);
@@ -100,6 +101,14 @@ export class EventLog extends BaseClass {
 
     set taskEvent(taskEvent: string) {
         this.set(EventLog._taskEvent, taskEvent);
+    }
+
+    get automatic(): boolean {
+        return this.get(EventLog._automatic);
+    }
+
+    set automatic(automatic: boolean) {
+        this.set(EventLog._automatic, automatic);
     }
 }
 

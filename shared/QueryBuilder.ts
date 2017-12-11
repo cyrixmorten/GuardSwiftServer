@@ -51,7 +51,11 @@ export abstract class QueryBuilder<T extends Parse.Object> {
 
     createdAfterObject(object: Parse.Object) {
         if (object && object.createdAt) {
+            console.log('created after', object.createdAt);
+
             this.query.greaterThan(QueryBuilder._createdAt, object.createdAt);
+        } else {
+            console.error('createdAfterObject called with non parse object', object);
         }
 
         return this;

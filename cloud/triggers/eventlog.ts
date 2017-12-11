@@ -1,17 +1,13 @@
 import {EventLog} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {Task, TaskType} from "../../shared/subclass/Task";
-import {TaskGroupStarted} from "../../shared/subclass/TaskGroupStarted";
+import {Task} from "../../shared/subclass/Task";
 
 Parse.Cloud.beforeSave("EventLog", (request, response) => {
 
-    let EventLog = <EventLog>request.object;
+    let eventLog = <EventLog>request.object;
 
-    // avoid 'undefined' for automatic
-    let automatic = EventLog.has('automatic');
-    console.log('hasAutomatic: ', automatic);
-    if (!automatic) {
-        EventLog.set('automatic', false);
+    if (!eventLog.automatic) {
+        eventLog.automatic = false;
     }
 
     response.success();
@@ -76,8 +72,6 @@ let writeEventToReport = async (eventLog: EventLog) => {
     };
 
     let createReport = async (eventLog: EventLog) => {
-        console.log('createReport');
-
         // let report = new Report();
         //
         // Object.keys(eventLog.attributes).forEach( (fieldName) => {
@@ -103,6 +97,7 @@ let writeEventToReport = async (eventLog: EventLog) => {
             }
             else {
                 try {
+                    console.log('createReport');
                     await createReport(eventLog);
                 } catch (e) {
                     console.error('Error while creating report: ' + JSON.stringify(e));
