@@ -20,10 +20,12 @@ export class ReportUtils {
 
         console.log('fetchReport ' + reportId);
 
-        let queryObjectId = new ReportQuery().matchingId(reportId).build();
-        let queryReportId = new ReportQuery().matchingReportId(reportId).build();
+        // let queryObjectId = new ReportQuery().matchingId(reportId).build();
+        // let queryReportId = new ReportQuery().matchingReportId(reportId).build();
 
-        let query = Parse.Query.or(queryObjectId, queryReportId);
+        // let query = Parse.Query.or(queryObjectId, queryReportId);
+
+        let query = new ReportQuery().matchingId(reportId).build();
 
         query.include('owner');
         query.include('client.contacts');

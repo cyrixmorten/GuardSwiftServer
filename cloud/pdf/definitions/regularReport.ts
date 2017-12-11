@@ -206,7 +206,7 @@ export let createDoc =  (report: Report, settings: ReportSettings, timeZone)  =>
         let header = PDFDefaults.contentHeader(report, backgroundHeaderImage);
         let arrivalAndReportId = PDFUtils.leftRightAlignedContent({
             textLeft: [],
-            textRight: [{text: 'Rapport id: ' + report.get('reportId'), color: 'grey'}],
+            textRight: [{text: 'Rapport id: ' + report.id, color: 'grey'}],
             margin: [0, 10],
             style: {bold: true}
         });
