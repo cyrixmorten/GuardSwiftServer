@@ -14,7 +14,7 @@ import {PDFUtils} from "../../utils/pdf";
  */
 export let createDoc = function (report, settings, timeZone) {
 
-    let events = ReportUtils.reportEventsMap(report, timeZone);
+    let events = ReportUtils.eventsMap(report.eventLogs, timeZone);
 
     return _.extend(PDFDefaults.doc(report, timeZone), {
 
