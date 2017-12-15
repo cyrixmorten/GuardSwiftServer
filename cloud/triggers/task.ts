@@ -134,6 +134,8 @@ let alarmUpdate = (task: Task) => {
 
     if (!_.includes(task.get('knownStatus'), status)) {
 
+        console.log('ALARM UPDATE ' + status);
+
         switch (status) {
             case TaskStatus.PENDING: {
 

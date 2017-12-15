@@ -68,6 +68,7 @@ let findGuardMobile = function (alarm) {
     return fallback;
 };
 export let handlePending = function (alarm) {
+    console.log('G4S handlePending', !matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         return;
     }
@@ -75,6 +76,7 @@ export let handlePending = function (alarm) {
 };
 
 export let handleAccepted = function (alarm) {
+    console.log('G4S handleAccepted', !matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         return;
     }
@@ -83,6 +85,7 @@ export let handleAccepted = function (alarm) {
 };
 
 export let handleArrived = function (alarm) {
+    console.log('G4S handleArrived', !matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         return;
     }
@@ -91,6 +94,7 @@ export let handleArrived = function (alarm) {
 };
 
 export let handleAborted = function (alarm) {
+    console.log('G4S handleAborted', !matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         return;
     }
@@ -98,6 +102,7 @@ export let handleAborted = function (alarm) {
 };
 
 export let handleFinished = function (alarm) {
+    console.log('G4S handleFinished', !matchesCentral(alarm));
     if (!matchesCentral(alarm)) {
         return;
     }
