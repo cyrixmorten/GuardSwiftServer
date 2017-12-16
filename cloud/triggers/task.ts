@@ -179,6 +179,9 @@ let alarmUpdate = (task: Task) => {
                 });
                 break;
             }
+            default: {
+                console.error('Failed to match alarm status:', status);
+            }
         }
 
         task.addUnique('knownStatus', status);
