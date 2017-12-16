@@ -132,9 +132,10 @@ let sendNotification = (alarm) => {
 let alarmUpdate = (task: Task) => {
     let status = task.get('status');
 
+    console.log('ALARM UPDATE ', status, !_.includes(task.get('knownStatus'), status));
+
     if (!_.includes(task.get('knownStatus'), status)) {
 
-        console.log('ALARM UPDATE ' + status);
 
         switch (status) {
             case TaskStatus.PENDING: {
