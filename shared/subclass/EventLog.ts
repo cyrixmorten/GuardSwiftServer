@@ -3,8 +3,19 @@ import {QueryBuilder} from "../QueryBuilder";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
 import * as _ from "lodash";
+import {TaskGroupStarted} from "./TaskGroupStarted";
+
+
+export enum TaskEvent {
+    ACCEPT = 'ACCEPT',
+    ARRIVE = 'ARRIVE',
+    ABORT = 'ABORT',
+    FINISH = 'FINISH',
+    OTHER = 'OTHER'
+}
 
 export class EventLog extends BaseClass {
+
 
     static className = 'EventLog';
 
@@ -12,9 +23,11 @@ export class EventLog extends BaseClass {
     static readonly _taskEvent = 'task_event';
     static readonly _taskType = 'taskType';
     static readonly _taskTypeName = 'taskTypeName';
-    static readonly _task = 'task';
 
-    static readonly _deviceTimeStamp = 'deviceTimestamp';
+    static readonly _task = 'task';
+    static readonly _taskGroupStarted = 'taskGroupStarted';
+
+    static readonly _deviceTimestamp = 'deviceTimestamp';
 
     static readonly _guardName = 'guardName';
 
@@ -26,6 +39,7 @@ export class EventLog extends BaseClass {
     static readonly _clientLocation = 'clientLocation';
     static readonly _remarks = 'remarks';
 
+    static readonly _automatic = 'automatic';
 
     constructor(className?: string) {
         super(className || EventLog.className);
@@ -59,6 +73,14 @@ export class EventLog extends BaseClass {
         this.set(EventLog._task, task);
     }
 
+    get taskGroupStarted(): TaskGroupStarted {
+        return this.get(EventLog._taskGroupStarted);
+    }
+
+    set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        this.set(EventLog._taskGroupStarted, taskGroupStarted);
+    }
+
     get guardName(): string {
         return this.get(EventLog._guardName);
     }
@@ -89,6 +111,67 @@ export class EventLog extends BaseClass {
 
     set taskEvent(taskEvent: string) {
         this.set(EventLog._taskEvent, taskEvent);
+    }
+
+    matchingTaskEvent(...taskEvent: TaskEvent[]) {
+        return _.includes(taskEvent, this.taskEvent);
+    }
+
+    get event(): string {
+        return this.get(EventLog._event);
+    }
+
+    set event(event: string) {
+        this.set(EventLog._event, event);
+    }
+
+    get people(): string {
+        return this.get(EventLog._people);
+    }
+
+    set people(people: string) {
+        this.set(EventLog._people, people);
+    }
+
+    get clientLocation(): string {
+        return this.get(EventLog._clientLocation);
+    }
+
+    set clientLocation(clientLocation: string) {
+        this.set(EventLog._clientLocation, clientLocation);
+    }
+
+    get remarks(): string {
+        return this.get(EventLog._remarks);
+    }
+
+    set remarks(remarks: string) {
+        this.set(EventLog._remarks, remarks);
+    }
+
+
+    get amount(): number {
+        return this.get(EventLog._amount);
+    }
+
+    set amount(amount: number) {
+        this.set(EventLog._amount, amount);
+    }
+    
+    get automatic(): boolean {
+        return this.get(EventLog._automatic);
+    }
+
+    set automatic(automatic: boolean) {
+        this.set(EventLog._automatic, automatic);
+    }
+
+    get deviceTimestamp(): string {
+        return this.get(EventLog._deviceTimestamp);
+    }
+
+    set deviceTimestamp(deviceTimestamp: string) {
+        this.set(EventLog._deviceTimestamp, deviceTimestamp);
     }
 }
 

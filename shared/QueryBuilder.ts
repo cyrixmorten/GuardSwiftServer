@@ -34,13 +34,29 @@ export abstract class QueryBuilder<T extends Parse.Object> {
     }
 
     createdBefore(date: Date) {
-        this.query.lessThan(QueryBuilder._createdAt, date);
+        if (date) {
+            this.query.lessThan(QueryBuilder._createdAt, date);
+        }
 
         return this;
     }
 
     createdAfter(date: Date) {
-        this.query.greaterThan(QueryBuilder._createdAt, date);
+        if (date) {
+            this.query.greaterThan(QueryBuilder._createdAt, date);
+        }
+
+        return this;
+    }
+
+    createdAfterObject(object: Parse.Object) {
+        if (object && object.createdAt) {
+            console.log('created after', object.createdAt);
+
+            this.query.greaterThan(QueryBuilder._createdAt, object.createdAt);
+        } else {
+            console.error('createdAfterObject called with non parse object', object);
+        }
 
         return this;
     }

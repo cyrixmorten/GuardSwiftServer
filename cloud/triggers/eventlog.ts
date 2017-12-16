@@ -1,16 +1,13 @@
-
 import {EventLog} from "../../shared/subclass/EventLog";
-import {Report} from "../../shared/subclass/Report";
+import {Report, ReportQuery} from "../../shared/subclass/Report";
+import {Task} from "../../shared/subclass/Task";
 
-Parse.Cloud.beforeSave("EventLog",  (request, response) => {
+Parse.Cloud.beforeSave("EventLog", (request, response) => {
 
-    let EventLog = <EventLog>request.object;
+    let eventLog = <EventLog>request.object;
 
-    // avoid 'undefined' for automatic
-    let automatic = EventLog.has('automatic');
-    console.log('hasAutomatic: ', automatic);
-    if (!automatic) {
-        EventLog.set('automatic', false);
+    if (!eventLog.automatic) {
+        eventLog.automatic = false;
     }
 
     response.success();
@@ -29,75 +26,92 @@ Parse.Cloud.afterSave("EventLog", (request) => {
 });
 
 
-let writeEventToReport = (EventLog: EventLog) => {
+let writeEventToReport = async (eventLog: EventLog) => {
 
-    let findReport =  (reportId) => {
+    let findReport = async (eventLog: EventLog) => {
 
-        console.log('findReport reportId: ' + reportId);
+        if (eventLog.taskGroupStarted) {
+            let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
 
-        let query = new Parse.Query('Report');
-        query.equalTo('reportId', reportId);
+            console.log(`findReport TaskGroupStarted: ${taskGroupStarted.id} Task: ${task.id}`);
 
-        return query.first({ useMasterKey: true });
+            return new ReportQuery()
+                .matchingClient(eventLog.client)
+                .createdAfterObject(taskGroupStarted)
+                .build()
+                .first({useMasterKey: true});
+        }
+
+        console.log(`findReport Task: ${task.id}`);
+
+        return new ReportQuery()
+            .matchingTask(task)
+            .build()
+            .first({useMasterKey: true});
     };
 
-    let writeEvent =  async (report: Report) => {
+    let writeEvent = async (report: Report, eventLog: EventLog) => {
         console.log('Writing event to report: ' + report.id);
         console.log('At client:  ' + report.get('clientAddress'));
 
-        if (EventLog.get('eventCode') === 105) {
-            report.set('extraTimeSpent', EventLog.get('amount'));
+        if (eventLog.get('eventCode') === 105) {
+            report.set('extraTimeSpent', eventLog.get('amount'));
         }
 
-        EventLog.set('reported', true);
+        eventLog.set('reported', true);
 
-        report.addUnique('tasks', EventLog.task);
-        report.addUnique('eventLogs', EventLog);
+        report.addUnique(Report._eventLogs, eventLog);
+
+        if (eventLog.task) {
+            report.addUnique(Report._tasks, eventLog.task);
+        }
+
         report.increment('eventCount');
 
-        return report.save(null, { useMasterKey: true });
+        return report.save(null, {useMasterKey: true});
     };
 
-    let createReport =  () => {
-        console.log('createReport');
+    let createReport = async (eventLog: EventLog) => {
+        // let report = new Report();
+        //
+        // Object.keys(eventLog.attributes).forEach( (fieldName) => {
+        //     report.set(fieldName, eventLog.get(fieldName));
+        // });
+        //
+        // return report.save(null, { useMasterKey: true });
 
-        let Report = Parse.Object.extend('Report');
-        let report = new Report();
+        let report: Report = await new Report().save(eventLog.attributes, {useMasterKey: true});
 
-        Object.keys(EventLog.attributes).forEach( (fieldName) => {
-            report.set(fieldName, EventLog.get(fieldName));
-        });
-
-        return report.save(null, { useMasterKey: true });
+        await writeEvent(report, eventLog);
     };
 
-    let reportId = EventLog.get('reportId');
+    let task: Task = eventLog.task;
 
-    if (reportId && !EventLog.get('reported')) {
-        findReport(reportId)
-        .then((report: Report) => {
+    if (task && !eventLog.get('reported')) {
+        try {
+            let report: Report = await findReport(eventLog);
+
             if (report) {
-                console.log('Found report: ' + report.id );
-                return writeEvent(report);
+                console.log('Found report: ' + report.id);
+                await writeEvent(report, eventLog);
+            }
+            else {
+                try {
+                    console.log('createReport');
+                    await createReport(eventLog);
+                } catch (e) {
+                    console.error('Error while creating report: ' + JSON.stringify(e));
+                }
             }
 
-            console.log('No report found');
-
-            return createReport()
-                .then(writeEvent)
-                .fail((error) => {
-                    console.error('Error while creating report: ' + JSON.stringify(error))
-                    return error;
-                });
-        }, (error)  => {
-            console.error('Unhandled error: ' + JSON.stringify(error));
-        })
-    } else {
-        if (reportId) {
-            console.log('Already written to report');
-        } else {
-            console.log('Not a report event');
+        } catch (e) {
+            console.error('Unhandled error: ' + JSON.stringify(e));
         }
+    }
+    else if (task) {
+        console.log('Already written to report');
+    } else {
+        console.log('Not a report event');
     }
 
 };

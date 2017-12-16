@@ -1,6 +1,7 @@
 import {QueryBuilder} from "../QueryBuilder";
 import {EventLog} from "./EventLog";
-import {TaskType} from "./Task";
+import {Task, TaskType} from "./Task";
+import {Client} from "./Client";
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -10,8 +11,10 @@ export class Report extends EventLog {
 
     static readonly className = 'Report';
 
+    // static readonly _reportId = 'reportId';
+
+    static readonly _tasks = 'tasks';
     static readonly _eventLogs = 'eventLogs';
-    static readonly _reportId = 'reportId';
 
 
     constructor() {
@@ -31,8 +34,20 @@ export class ReportQuery extends QueryBuilder<Report> {
         super(Report);
     }
 
-    matchingReportId(reportId: string): ReportQuery {
-        this.query.equalTo(Report._reportId, reportId);
+    // matchingReportId(reportId: string): ReportQuery {
+    //     this.query.equalTo(Report._reportId, reportId);
+    //
+    //     return this;
+    // }
+
+    matchingClient(client: Client): ReportQuery {
+        this.query.equalTo(Report._client, client);
+
+        return this;
+    }
+
+    matchingTask(task: Task): ReportQuery {
+        this.query.equalTo(Report._tasks, task);
 
         return this;
     }

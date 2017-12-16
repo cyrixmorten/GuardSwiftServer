@@ -2,6 +2,9 @@ import * as _ from "lodash";
 
 export abstract class BaseClass extends Parse.Object {
 
+    static readonly _createdAt = 'createdAt';
+    static readonly _updatedAt = '_updatedAt';
+
     static readonly _owner = 'owner';
     static readonly _archive = 'archive';
 
@@ -32,4 +35,5 @@ export abstract class BaseClass extends Parse.Object {
             }
         });
     }
+
 }
