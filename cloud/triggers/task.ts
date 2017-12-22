@@ -9,8 +9,8 @@ import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
 
 
-Parse.Cloud.beforeSave(Task.className,  (request, response) => {
-    
+Parse.Cloud.beforeSave(Task.className, (request, response) => {
+
     let task = <Task>request.object;
 
     if (!task.existed()) {
@@ -30,20 +30,31 @@ Parse.Cloud.beforeSave(Task.className,  (request, response) => {
             response.error(error);
         })
 
-    } else {
+    }
+    else {
 
         response.success();
     }
 
 });
 
-Parse.Cloud.afterSave(Task, (request)  => {
+Parse.Cloud.afterSave(Task, (request) => {
 
     let task = <Task>request.object;
 
-    if (task.isType(TaskType.ALARM)) {
-        alarmUpdate(task);
+    let status = task.get('status');
+
+    if (!_.includes(task.get('knownStatus'), status)) {
+
+        if (task.isType(TaskType.ALARM)) {
+            alarmUpdate(task, status);
+        }
+
+        task.addUnique('knownStatus', status);
+        task.save(null, {useMasterKey: true});
     }
+
+
 });
 
 
@@ -51,7 +62,7 @@ let sendNotification = (alarm) => {
 
     console.log('sendNotification alarm', alarm.id);
 
-    let sendPushNotification = ()  => {
+    let sendPushNotification = () => {
         console.log('sendPushNotification');
 
         let installationQuery = new Parse.Query(Parse.Installation);
@@ -59,31 +70,31 @@ let sendNotification = (alarm) => {
         installationQuery.equalTo('channels', 'alarm');
         installationQuery.greaterThan('updatedAt', moment().subtract(7, 'days').toDate());
 
-        return installationQuery.find({ useMasterKey: true })
-            .then((installations)  => {
-            console.log('Sending push to installations', installations.length);
-            _.forEach(installations, (installation) => {
-                console.log('installation: ', installation.get('name'), installation.id);
-            });
+        return installationQuery.find({useMasterKey: true})
+            .then((installations) => {
+                console.log('Sending push to installations', installations.length);
+                _.forEach(installations, (installation) => {
+                    console.log('installation: ', installation.get('name'), installation.id);
+                });
 
-            return Parse.Promise.when();
-        }).then(()  => {
-            return Parse.Push.send({
-                where: installationQuery,
-                expiration_interval: 600,
-                data: {
-                    alarmId: alarm.id
-                }
-            }, { useMasterKey: true })
-            .then(() => {
-                console.log('Push notification successfully sent for alarm', alarm.id);
-            }, (e) => {
-                console.error('Error sending push notification', e);
-            })
-        });
+                return Parse.Promise.when();
+            }).then(() => {
+                return Parse.Push.send({
+                    where: installationQuery,
+                    expiration_interval: 600,
+                    data: {
+                        alarmId: alarm.id
+                    }
+                }, {useMasterKey: true})
+                    .then(() => {
+                        console.log('Push notification successfully sent for alarm', alarm.id);
+                    }, (e) => {
+                        console.error('Error sending push notification', e);
+                    })
+            });
     };
 
-    let sendSMS =  () => {
+    let sendSMS = () => {
         let prefix = alarm.get('status') === TaskStatus.ABORTED ? 'ANNULERET\n' : '';
 
         let guardQuery = new GuardQuery()
@@ -92,7 +103,7 @@ let sendNotification = (alarm) => {
             .build()
             .include('installation');
 
-        return guardQuery.find({ useMasterKey: true }).then( (guards) => {
+        return guardQuery.find({useMasterKey: true}).then((guards) => {
             console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
 
             let smsPromises = [];
@@ -102,7 +113,7 @@ let sendNotification = (alarm) => {
                 let guardMobile = guard.get('mobileNumber');
                 let installationMobile = installation ? installation.get('mobileNumber') : '';
 
-                console.log('Sending to',  guard.get('name'), guardMobile, installationMobile);
+                console.log('Sending to', guard.get('name'), guardMobile, installationMobile);
 
                 if (guardMobile || installationMobile) {
                     let sendTo = (installationMobile) ? installationMobile : guardMobile;
@@ -114,7 +125,8 @@ let sendNotification = (alarm) => {
                     });
 
                     smsPromises.push(smsPromise)
-                } else {
+                }
+                else {
                     console.error('Unable to send SMS to guard', guard.get('name'), 'no mobile number for installation or guard');
                 }
             });
@@ -129,81 +141,60 @@ let sendNotification = (alarm) => {
     });
 };
 
-let alarmUpdate = (task: Task) => {
-    let status = task.get('status');
+let alarmUpdate = (task: Task, status: string) => {
 
-    console.log('ALARM UPDATE ', status, !_.includes(task.get('knownStatus'), status));
 
-    if (!_.includes(task.get('knownStatus'), status)) {
+    console.log('ALARM UPDATE ', status);
 
-        console.log('SWITCH');
+    switch (status) {
+        case TaskStatus.PENDING: {
 
-        switch (status) {
-            case TaskStatus.PENDING: {
+            _.forEach(centrals, (central) => {
+                central.handlePending(task);
+            });
 
-                console.log('PENDING');
+            sendNotification(task).then(() => {
+                console.log('Done sending notification for alarm', task.id);
+            }, (e) => {
+                console.error('Error sending notification for alarm', task.id, e);
+            });
 
-                _.forEach(centrals, (central) => {
-                    console.log('central.getName(): ', central.getName());
-                    central.handlePending(task);
-                });
-
-                sendNotification(task).then(() =>{
-                    console.log('Done sending notification for alarm', task.id);
-                }, (e) => {
-                    console.error('Error sending notification for alarm', task.id, e);
-                });
-
-                break;
-            }
-            case TaskStatus.ACCEPTED: {
-
-                console.log('ACCEPTED');
-
-                _.forEach(centrals, (central) => {
-                    console.log('central.getName(): ', central.getName());
-                    central.handleAccepted(task);
-                });
-                break;
-            }
-            case TaskStatus.ARRIVED: {
-
-                console.log('ARRIVED');
-
-                _.forEach(centrals, (central)  => {
-                    console.log('central.getName(): ', central.getName());
-                    central.handleArrived(task);
-                });
-                break;
-            }
-            case TaskStatus.ABORTED: {
-
-                console.log('ABORTED');
-
-                sendNotification(task);
-
-                _.forEach(centrals, (central) => {
-                    console.log('central.getName(): ', central.getName());
-                    central.handleAborted(task);
-                });
-                break;
-            }
-            case TaskStatus.FINISHED: {
-
-                console.log('FINISHED');
-
-                _.forEach(centrals, (central)  => {
-                    console.log('central.getName(): ', central.getName());
-                    central.handleFinished(task);
-                });
-                break;
-            }
-            default: {
-                console.error('Failed to match alarm status:', status);
-            }
+            break;
         }
+        case TaskStatus.ACCEPTED: {
 
-        task.addUnique('knownStatus', status);
-        task.save(null, {useMasterKey: true});
+            _.forEach(centrals, (central) => {
+                central.handleAccepted(task);
+            });
+            break;
+        }
+        case TaskStatus.ARRIVED: {
+
+            _.forEach(centrals, (central) => {
+                central.handleArrived(task);
+            });
+            break;
+        }
+        case TaskStatus.ABORTED: {
+
+            sendNotification(task);
+
+            _.forEach(centrals, (central) => {
+                central.handleAborted(task);
+            });
+            break;
+        }
+        case TaskStatus.FINISHED: {
+
+            _.forEach(centrals, (central) => {
+                central.handleFinished(task);
+            });
+            break;
+        }
+        default: {
+            console.error('Failed to match alarm status:', status);
+        }
     }
+
+
 };
