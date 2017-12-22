@@ -136,12 +136,16 @@ let alarmUpdate = (task: Task) => {
 
     if (!_.includes(task.get('knownStatus'), status)) {
 
+        console.log('SWITCH');
 
         switch (status) {
             case TaskStatus.PENDING: {
 
-                _.forEach(centrals, (handler) => {
-                    handler.handlePending(task);
+                console.log('PENDING');
+
+                _.forEach(centrals, (central) => {
+                    console.log('central.getName(): ', central.getName());
+                    central.handlePending(task);
                 });
 
                 sendNotification(task).then(() =>{
@@ -153,29 +157,44 @@ let alarmUpdate = (task: Task) => {
                 break;
             }
             case TaskStatus.ACCEPTED: {
-                _.forEach(centrals, (handler) => {
-                    handler.handleAccepted(task);
+
+                console.log('ACCEPTED');
+
+                _.forEach(centrals, (central) => {
+                    console.log('central.getName(): ', central.getName());
+                    central.handleAccepted(task);
                 });
                 break;
             }
             case TaskStatus.ARRIVED: {
-                _.forEach(centrals, (handler)  => {
-                    handler.handleArrived(task);
+
+                console.log('ARRIVED');
+
+                _.forEach(centrals, (central)  => {
+                    console.log('central.getName(): ', central.getName());
+                    central.handleArrived(task);
                 });
                 break;
             }
             case TaskStatus.ABORTED: {
 
+                console.log('ABORTED');
+
                 sendNotification(task);
 
-                _.forEach(centrals, (handler) => {
-                    handler.handleAborted(task);
+                _.forEach(centrals, (central) => {
+                    console.log('central.getName(): ', central.getName());
+                    central.handleAborted(task);
                 });
                 break;
             }
             case TaskStatus.FINISHED: {
-                _.forEach(centrals, (handler)  => {
-                    handler.handleFinished(task);
+
+                console.log('FINISHED');
+
+                _.forEach(centrals, (central)  => {
+                    console.log('central.getName(): ', central.getName());
+                    central.handleFinished(task);
                 });
                 break;
             }

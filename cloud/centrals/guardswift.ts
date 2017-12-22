@@ -8,11 +8,15 @@ let cpsms = require('../../api/cpsms');
 
 export class GuardswiftCentral implements ICentral{
 
+    getName() {
+        return "GuardSwift";
+    }
+
     matchesCentral(alarmOrCentral) {
 
         let centralName =  alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
 
-        return centralName === 'GuardSwift'
+        return centralName === this.getName();
     };
 
 

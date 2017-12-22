@@ -1,4 +1,5 @@
 export interface ICentral {
+    getName(): string;
     matchesCentral(alarmOrCentral): boolean;
 
     parse(central, alarmMsg): Object;

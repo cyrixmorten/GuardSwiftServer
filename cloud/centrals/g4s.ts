@@ -4,11 +4,15 @@ let cpsms = require('../../api/cpsms');
 
 export class G4SCentral implements ICentral {
 
+    getName() {
+        return "G4S";
+    }
+
     matchesCentral(alarmOrCentral) {
 
         let centralName =  alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
 
-        return centralName === 'G4S'
+        return centralName === this.getName();
     };
 
 
