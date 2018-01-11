@@ -35,11 +35,15 @@ let writeEventToReport = async (eventLog: EventLog) => {
 
             console.log(`findReport TaskGroupStarted: ${taskGroupStarted.id} Task: ${task.id}`);
 
-            return new ReportQuery()
-                .matchingClient(eventLog.client)
-                .createdAfterObject(taskGroupStarted)
-                .build()
-                .first({useMasterKey: true});
+            let query = new Parse.Query('Report');
+            query.equalTo('reportId', eventLog.get('reportId'));
+
+            return query.first({ useMasterKey: true });
+            // return new ReportQuery()
+            //     .matchingClient(eventLog.client)
+            //     .createdAfterObject(taskGroupStarted)
+            //     .build()
+            //     .first({useMasterKey: true});
         }
 
         console.log(`findReport Task: ${task.id}`);
