@@ -59,7 +59,6 @@ export class ReportSettings extends BaseClass {
     }
 
     get replyToEmail(): string {
-        console.log('this.get("replytoEmail"): ', this.get("replytoEmail"));
         return this.get(ReportSettings._replyToEmail) || '';
     }
 

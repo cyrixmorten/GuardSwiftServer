@@ -37,8 +37,6 @@ export class ReportUtils {
      */
     static fetchReport = (reportId: string): IPromise<Report> => {
 
-        console.log('fetchReport ' + reportId);
-
         let query = new ReportQuery().matchingId(reportId).build();
 
         query.include('owner');

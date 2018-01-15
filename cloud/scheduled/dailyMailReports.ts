@@ -1,8 +1,9 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import {TaskType} from "../../shared/subclass/Task";
-import {ReportQuery} from "../../shared/subclass/Report";
+import {Report, ReportQuery} from "../../shared/subclass/Report";
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
+import {User} from "../../shared/subclass/User";
 
 let reportToMail = require('../pdf/reportToMail');
 
@@ -17,6 +18,7 @@ Parse.Cloud.define("dailyMailReports",  (request, status) => {
     let taskTypes = [TaskType.ALARM, TaskType.REGULAR, TaskType.RAID];
 
     let query = new Parse.Query(Parse.User);
+    query.equalTo(User._active, true);
     query.each( (user) =>  {
 
             console.log('Sending daily reports for user: ', user.get('username'));
@@ -59,8 +61,12 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
         .createdBefore(toDate)
         .build();
 
-    return reportQuery.each( (report) => {
-        return reportToMail.sendReport(report.id, reportSettings);
+    await reportQuery.each( async (report: Report) => {
+        try {
+            await reportToMail.sendReport(report.id, reportSettings);
+        } catch (e) {
+            console.error('Error sending report', report.id, e);
+        }
     }, { useMasterKey: true });
 };
 

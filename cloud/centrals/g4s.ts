@@ -17,7 +17,6 @@ export class G4SCentral implements ICentral {
 
 
     parse(central, alarmMsg) {
-        console.log('G4S Alarm: ', this.matchesCentral(central));
         if (!this.matchesCentral(central)) {
             return;
         }
@@ -76,7 +75,6 @@ export class G4SCentral implements ICentral {
     };
     
     handlePending(alarm) {
-        console.log('G4S handlePending', !this.matchesCentral(alarm));
         if (!this.matchesCentral(alarm)) {
             return;
         }
@@ -84,7 +82,6 @@ export class G4SCentral implements ICentral {
     };
 
     handleAccepted(alarm) {
-        console.log('G4S handleAccepted', !this.matchesCentral(alarm));
         if (!this.matchesCentral(alarm)) {
             return;
         }
@@ -93,7 +90,6 @@ export class G4SCentral implements ICentral {
     };
 
     handleArrived(alarm) {
-        console.log('G4S handleArrived', !this.matchesCentral(alarm));
         if (!this.matchesCentral(alarm)) {
             return;
         }
@@ -102,7 +98,6 @@ export class G4SCentral implements ICentral {
     };
 
     handleAborted(alarm) {
-        console.log('G4S handleAborted', !this.matchesCentral(alarm));
         if (!this.matchesCentral(alarm)) {
             return;
         }
@@ -110,7 +105,6 @@ export class G4SCentral implements ICentral {
     };
 
     handleFinished(alarm) {
-        console.log('G4S handleFinished', !this.matchesCentral(alarm));
         if (!this.matchesCentral(alarm)) {
             return;
         }

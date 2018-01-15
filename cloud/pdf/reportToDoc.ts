@@ -6,8 +6,6 @@ import {ReportSettings} from "../../shared/subclass/ReportSettings";
 
 Parse.Cloud.define("reportToDoc",  (request, response) => {
 
-    console.log('reportToDoc');
-
     toDoc(request.params.reportId).then(function(res) {
         response.success(res);
     }, function(err) {

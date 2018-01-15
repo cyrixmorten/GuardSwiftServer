@@ -34,12 +34,6 @@ export class ReportQuery extends QueryBuilder<Report> {
         super(Report);
     }
 
-    // matchingReportId(reportId: string): ReportQuery {
-    //     this.query.equalTo(Report._reportId, reportId);
-    //
-    //     return this;
-    // }
-
     matchingClient(client: Client): ReportQuery {
         this.query.equalTo(Report._client, client);
 

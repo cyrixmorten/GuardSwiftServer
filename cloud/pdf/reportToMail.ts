@@ -72,8 +72,6 @@ Parse.Cloud.define("sendReport", (request, response) => {
 
 export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPromise<any> => {
 
-    console.log('Send report: ' + reportId);
-
     if (!reportId) {
         return Parse.Promise.error('missing reportId');
     }
@@ -157,7 +155,6 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
                     to.push({name: mailName, email: mailAddress});
                     receivers.push(mailAddress);
 
-                    console.log('to', mailAddress);
                 }
             });
 
@@ -177,7 +174,6 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
                     to.push({name: ownerName, email: ownerEmail});
                     receivers.push(ownerEmail);
 
-                    console.log('to owner', ownerEmail);
                 }
 
             }
@@ -201,7 +197,6 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
                 bccs.push(developerMail);
                 receivers.push(developerMail);
 
-                console.log('bcc developer', developerMail);
             }
 
             // bcc task admins
@@ -215,7 +210,6 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
                     bccs.push(developerMail);
                     receivers.push(developerMail);
 
-                    console.log('bcc', mailAddress);
                 }
             });
 
@@ -235,7 +229,7 @@ export let sendReport = (reportId: string, reportSettings?: ReportSettings): IPr
 
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-        return sgMail.sendMultiple({
+        return sgMail.send({
             from: getFrom(),
             to: getTo(),
             bcc: getBccs(),

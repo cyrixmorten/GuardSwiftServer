@@ -4,8 +4,6 @@ import {ReportSettings} from "../../shared/subclass/ReportSettings";
 
 Parse.Cloud.define("reportToPDF",  (request, response) => {
 
-    console.log('reportToPDF');
-
     if (!request.params.reportId) {
         response.error('missing reportId');
         return;
