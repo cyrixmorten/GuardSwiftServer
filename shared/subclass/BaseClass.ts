@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import {User} from "./User";
 
 export abstract class BaseClass extends Parse.Object {
 
@@ -12,11 +13,11 @@ export abstract class BaseClass extends Parse.Object {
         super(className, options)
     }
 
-    get owner(): Parse.User {
+    get owner(): User {
         return this.get(BaseClass._owner)
     }
 
-    set owner(user: Parse.User) {
+    set owner(user: User) {
         this.set(BaseClass._owner, user);
     }
 

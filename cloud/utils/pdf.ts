@@ -39,7 +39,6 @@ export class PDFUtils {
             }
         };
 
-
         if (options.textLeft) {
             content.columns.push(leftContent())
         }

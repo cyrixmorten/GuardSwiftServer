@@ -16,13 +16,53 @@ export class Report extends EventLog {
     static readonly _tasks = 'tasks';
     static readonly _eventLogs = 'eventLogs';
 
+    static readonly _clientName = 'clientName';
+    static readonly _clientAddress = 'clientAddress';
+    static readonly _clientAddressNumber = 'clientAddressNumber';
+    static readonly _clientFullAddress = 'clientFullAddress';
 
     constructor() {
         super(Report.className);
     }
 
+    get tasks(): Task[] {
+        return this.get(Report._tasks);
+    }
+
     get eventLogs(): EventLog[] {
         return this.get(Report._eventLogs);
+    }
+
+    get clientName(): string {
+        return this.get(Report._clientName);
+    }
+
+    set clientName(clientName: string) {
+        this.set(Report._clientName, clientName);
+    }
+
+    get clientAddress(): string {
+        return this.get(Report._clientAddress);
+    }
+
+    set clientAddress(clientAddress: string) {
+        this.set(Report._clientAddress, clientAddress);
+    }
+
+    get clientAddressNumber(): string {
+        return this.get(Report._clientAddressNumber);
+    }
+
+    set clientAddressNumber(clientAddressNumber: string) {
+        this.set(Report._clientAddressNumber, clientAddressNumber);
+    }
+
+    get clientFullAddress(): string {
+        return this.get(Report._clientFullAddress);
+    }
+
+    set clientFullAddress(clientFullAddress: string) {
+        this.set(Report._clientFullAddress, clientFullAddress);
     }
 
 

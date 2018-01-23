@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import {PDFUtils} from "../../utils/pdf";
 import {Report} from "../../../shared/subclass/Report";
 import {EventLog} from "../../../shared/subclass/EventLog";
+import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 
 
 export class PDFDefaults {
@@ -69,12 +70,12 @@ export class PDFDefaults {
      * @param settings
      * @returns {{}}
      */
-    static backgroundHeaderImage = function (settings) {
+    static backgroundHeaderImage = function (settings: ReportSettings) {
 
         let result = <any>{};
 
         if (settings.has('headerLogo')) {
-            let headerLogo = settings.get('headerLogo');
+            let headerLogo = settings.headerLogo;
 
             if (headerLogo.datauri) {
                 result = {

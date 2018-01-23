@@ -1,11 +1,11 @@
 import {ReportUtils} from "../reportUtils";
 import {TaskType} from "../../../shared/subclass/Task";
-import * as _ from 'lodash'
-
 import * as regularReport from './regularReport'
 import * as staticReport from './staticReport'
 import {Report} from "../../../shared/subclass/Report";
 import {ReportSettings, ReportSettingsQuery} from "../../../shared/subclass/ReportSettings";
+
+import * as _ from 'lodash'
 
 export let createDoc =  (report: Report, reportSettings?: ReportSettings) => {
 

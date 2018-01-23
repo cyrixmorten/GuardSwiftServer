@@ -30,6 +30,7 @@ export class Task extends BaseClass {
 
     static readonly _status = 'status';
 
+    static readonly _type = 'type';
     static readonly _taskType = 'taskType';
     static readonly _taskGroup = 'taskGroup';
     static readonly _taskGroupStarted = 'taskGroupStarted';
@@ -43,12 +44,21 @@ export class Task extends BaseClass {
 
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
+    static readonly _supervisions = 'supervisions';
 
 
     constructor() {
         super(Task.className);
     }
 
+    get type(): string {
+        return this.get(Task._type);
+    }
+
+    set type(type: string) {
+        this.set(Task._type, type);
+    }
+    
     get name(): string {
         return this.get(Task._name);
     }
@@ -175,6 +185,15 @@ export class Task extends BaseClass {
 
     set position(position: Parse.GeoPoint) {
         this.set(Task._position, position);
+    }
+
+
+    get supervisions(): number {
+        return this.get(Task._supervisions);
+    }
+
+    set supervisions(supervisions: number) {
+        this.set(Task._supervisions, supervisions);
     }
 
     isType(type: TaskType) {

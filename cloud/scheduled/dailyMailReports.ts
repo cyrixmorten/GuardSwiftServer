@@ -4,8 +4,7 @@ import {TaskType} from "../../shared/subclass/Task";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {User} from "../../shared/subclass/User";
-
-let reportToMail = require('../pdf/reportToMail');
+import {sendReport} from "../pdf/report.send.to.client";
 
 
 Parse.Cloud.define("dailyMailReports",  (request, status) => {
@@ -63,7 +62,7 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
     await reportQuery.each( async (report: Report) => {
         try {
-            await reportToMail.sendReport(report.id, reportSettings);
+            await sendReport(report.id, reportSettings);
         } catch (e) {
             console.error('Error sending report', report.id, e);
         }

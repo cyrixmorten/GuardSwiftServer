@@ -1,12 +1,12 @@
-import * as reportToPdf from '../../cloud/pdf/reportToPDF';
+import {ReportBuilder} from "../../cloud/pdf/report.builder";
 
 export let toPdf =  (req, res) => {
 
-    reportToPdf.toPdf(req.params.id).then((response) => {
+    ReportBuilder.buildPdf(req.params.id).then((pdfBuffer: Buffer) => {
         // res.set('Content-Type: application/octet-stream');
 
         res.status(200);
-        res.send(response.buffer);
+        res.send(pdfBuffer);
     }, (error) => {
         res.status(400).send(error);
     });

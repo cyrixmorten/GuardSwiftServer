@@ -3,15 +3,18 @@ import {BaseClass} from "./BaseClass";
 import {TaskType} from "./Task";
 
 export interface IHeaderLogo {
-    alignment: string,
-    datauri: string
+    width: number;
+    height: number;
+    stretch: boolean;
+    alignment: string;
+    datauri: string;
 }
 
 export class ReportSettings extends BaseClass {
 
     static readonly className = 'ReportSettings';
 
-    static readonly _taskType = 'taskType';
+    static readonly _taskTypes = 'taskTypes';
 
     static readonly _bccNames = 'bccNames';
     static readonly _bccEmails = 'bccEmails';
@@ -26,12 +29,12 @@ export class ReportSettings extends BaseClass {
         super(ReportSettings.className);
     }
 
-    get taskType(): TaskType {
-        return this.get(ReportSettings._taskType);
+    get taskTypes(): TaskType[] {
+        return this.get(ReportSettings._taskTypes);
     }
 
-    set taskType(taskType: TaskType) {
-        this.set(ReportSettings._taskType, taskType);
+    set taskTypes(taskType: TaskType[]) {
+        this.set(ReportSettings._taskTypes, taskType);
     }
 
     get bccNames(): string[] {
@@ -90,7 +93,7 @@ export class ReportSettingsQuery extends QueryBuilder<ReportSettings> {
     }
 
     matchingTaskType(taskType: TaskType): ReportSettingsQuery {
-        this.query.equalTo(ReportSettings._taskType, taskType);
+        this.query.equalTo(ReportSettings._taskTypes, taskType);
 
         return this;
     }

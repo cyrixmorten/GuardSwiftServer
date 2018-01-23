@@ -5,6 +5,7 @@ import {EventLog, TaskEvent} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import IPromise = Parse.IPromise;
 import {TaskStatus, TaskType} from "../../shared/subclass/Task";
+import HttpResponse = Parse.Cloud.HttpResponse;
 
 //     all: eventLogs,
 //     writtenByGuard: _.map(eventLogs, (eventLog: EventLog) => {
@@ -39,10 +40,8 @@ export class ReportUtils {
 
         let query = new ReportQuery().matchingId(reportId).build();
 
-        query.include('owner');
-        query.include('client.contacts');
-        query.include('eventLogs');
-        query.include('task');
+        query.include(Report._eventLogs);
+        query.include(Report._tasks);
 
         return query.first({useMasterKey: true}).then((report) => {
             if (!report) {
@@ -53,7 +52,7 @@ export class ReportUtils {
         });
     };
 
-    static generatePDF = (docDefinition) => {
+    static generatePDF = async (docDefinition): Promise<HttpResponse> => {
 
         return Parse.Cloud.httpRequest({
             method: 'POST',

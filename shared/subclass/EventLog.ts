@@ -40,6 +40,8 @@ export class EventLog extends BaseClass {
     static readonly _remarks = 'remarks';
 
     static readonly _automatic = 'automatic';
+    static readonly _withinSchedule = 'withinSchedule';
+    
 
     constructor(className?: string) {
         super(className || EventLog.className);
@@ -166,12 +168,28 @@ export class EventLog extends BaseClass {
         this.set(EventLog._automatic, automatic);
     }
 
+    get withinSchedule(): boolean {
+        return this.get(EventLog._withinSchedule);
+    }
+
+    set withinSchedule(withinSchedule: boolean) {
+        this.set(EventLog._withinSchedule, withinSchedule);
+    }
+
     get deviceTimestamp(): string {
         return this.get(EventLog._deviceTimestamp);
     }
 
     set deviceTimestamp(deviceTimestamp: string) {
         this.set(EventLog._deviceTimestamp, deviceTimestamp);
+    }
+
+    get guardInitials() {
+        // usually first and last name
+        let nameElements = _.compact(this.guardName.split(/[ ,]+/));
+
+        // pick the first letter in each name element
+        return _.join(_.map(nameElements, _.first), '');
     }
 }
 
