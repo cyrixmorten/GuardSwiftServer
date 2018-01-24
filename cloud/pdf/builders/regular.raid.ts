@@ -218,7 +218,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         // Bump arrivals to the top
         return _.orderBy(taskEventLogs, (eventLog: EventLog) => {
-            return eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? 1 : 0;
+            return eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? 0 : 1;
         });
     }
 
