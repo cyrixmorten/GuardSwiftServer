@@ -11,7 +11,7 @@ import {EmailData} from "@sendgrid/helpers/classes/email-address";
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {TaskType} from "../../shared/subclass/Task";
 import {ClientContact} from "../../shared/subclass/ClientContact";
-import {ReportBuilder} from "./report.builder";
+import {ReportToPDF} from "./report.to.pdf";
 
 
 export let sendReport = async (reportId: string, reportSettings?: ReportSettings): Promise<any> => {
@@ -43,7 +43,7 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
         return contact.email
     });
 
-    let pdfBuffer = await ReportBuilder.buildPdf(reportId, reportSettings);
+    let pdfBuffer = await ReportToPDF.buildPdf(reportId, reportSettings);
 
     let receivers: string[] = [];
 
