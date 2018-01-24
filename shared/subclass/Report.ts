@@ -11,7 +11,7 @@ export class Report extends EventLog {
 
     static readonly className = 'Report';
 
-    static readonly _reportId = 'reportId';
+    // static readonly _reportId = 'reportId';
 
     static readonly _tasks = 'tasks';
     static readonly _eventLogs = 'eventLogs';
@@ -93,9 +93,9 @@ export class ReportQuery extends QueryBuilder<Report> {
         return this;
     }
 
-    matchingReportId(reportId: string): ReportQuery {
-        this.query.equalTo(Report._reportId, reportId);
-
-        return this;
-    }
+    // matchingReportId(reportId: string): ReportQuery {
+    //     this.query.equalTo(Report._reportId, reportId);
+    //
+    //     return this;
+    // }
 }

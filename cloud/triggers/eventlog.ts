@@ -20,7 +20,7 @@ Parse.Cloud.afterSave("EventLog", (request) => {
     let EventLog = <EventLog>request.object;
 
     // wrieEventToSession(EventLog);
-    writeEventToReport(EventLog);
+    return writeEventToReport(EventLog);
 
 
 });
@@ -31,19 +31,17 @@ let writeEventToReport = async (eventLog: EventLog) => {
     let findReport = async (eventLog: EventLog) => {
 
         if (eventLog.taskGroupStarted) {
-            // let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
-            //
-            // console.log(`findReport TaskGroupStarted: ${taskGroupStarted.id} Task: ${task.id}`);
-            //
+
+            let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
+
             return new ReportQuery()
-                // .matchingClient(eventLog.client)
-                // .createdAfterObject(taskGroupStarted)
-                .matchingReportId(eventLog.get('reportId'))
+                .matchingClient(eventLog.client)
+                .createdAfterObject(taskGroupStarted)
+                // .matchingReportId(eventLog.get('reportId'))
                 .build()
                 .first({useMasterKey: true});
         }
 
-        console.log(`findReport Task: ${task.id}`);
 
         return new ReportQuery()
             .matchingTask(task)
