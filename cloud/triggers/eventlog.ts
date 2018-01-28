@@ -1,6 +1,6 @@
 import {EventLog} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {Task} from "../../shared/subclass/Task";
+import {Task, TaskType} from "../../shared/subclass/Task";
 
 Parse.Cloud.beforeSave("EventLog", (request, response) => {
 
@@ -39,9 +39,11 @@ let writeEventToReport = async (eventLog: EventLog) => {
             reportQuery.createdAfterObject(taskGroupStarted);
         }
 
-        // Static or Alarm
+        if (eventLog.matchingTaskType(TaskType.STATIC, TaskType.ALARM)) {
+            reportQuery.matchingTask(task);
+        }
+
         return reportQuery
-            .matchingTask(task)
             .build()
             .first({useMasterKey: true});
     };
@@ -68,13 +70,6 @@ let writeEventToReport = async (eventLog: EventLog) => {
     };
 
     let createReport = async (eventLog: EventLog) => {
-        // let report = new Report();
-        //
-        // Object.keys(eventLog.attributes).forEach( (fieldName) => {
-        //     report.set(fieldName, eventLog.get(fieldName));
-        // });
-        //
-        // return report.save(null, { useMasterKey: true });
 
         let report: Report = await new Report().save(eventLog.attributes, {useMasterKey: true});
 
