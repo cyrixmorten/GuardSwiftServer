@@ -200,6 +200,9 @@ export class Task extends BaseClass {
         return this.taskType === type;
     }
 
+    matchingTaskType(...taskType: TaskType[]): boolean {
+        return _.includes(taskType, this.taskType);
+    }
 
 
     isTaskRunToday() {

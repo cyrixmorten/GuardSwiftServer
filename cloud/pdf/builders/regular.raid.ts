@@ -83,7 +83,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             _.map(eventLogs, (eventLog: EventLog) => {
                 rows.push([
                     eventLog.guardInitials,
-                    moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm'),
+                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
                     eventLog.event,
                     eventLog.amount || '',
                     eventLog.people,
@@ -128,6 +128,15 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
             content.push(taskHeader);
             content.push(taskEventTable);
+
+            // Add default text if nothing is written
+            let writtenEvents = _.filter(this.report.eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
+            if (writtenEvents.length === 0) {
+                // TODO translate
+                content.push(
+                    {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
+                )
+            }
         });
 
         this.write({
@@ -143,7 +152,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
             return _.filter(eventLogs, (eventLog: EventLog) => {
-                if (task.taskType === TaskType.ALARM) {
+                if (task.isType(TaskType.ALARM)) {
                     return eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.ABORT, TaskEvent.FINISH, TaskEvent.OTHER)
                 }
                 else {
@@ -212,14 +221,26 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return eventLogs;
         };
 
-        taskEventLogs = removeNonReportEvents(taskEventLogs);
-        taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
-        taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
+        let orderEvents = (taskEventLogs: EventLog[]) :EventLog[] => {
+            if (task.matchingTaskType(TaskType.ALARM, TaskType.STATIC)) {
+                return taskEventLogs;
+            }
 
-        // Bump arrivals to the top
-        return _.orderBy(taskEventLogs, (eventLog: EventLog) => {
-            return eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? 0 : 1;
-        });
+            // Bump arrivals to the top
+            return _.orderBy(taskEventLogs, (eventLog: EventLog) => {
+                return eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? 0 : 1;
+            });
+        };
+
+        console.log('taskEventLogs: ', taskEventLogs.length);
+        taskEventLogs = removeNonReportEvents(taskEventLogs);
+        console.log('removeNonReportEvents: ', taskEventLogs.length);
+        taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
+        console.log('preferArrivalsWithinSchedule: ', taskEventLogs.length);
+        taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
+        console.log('onlyWriteAcceptOnce: ', taskEventLogs.length);
+
+        return orderEvents(taskEventLogs);
     }
 
 
