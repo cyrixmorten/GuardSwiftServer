@@ -78,12 +78,16 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         };
 
+        let eventTimestamp = (eventLog: EventLog) => {
+            return !eventLog.matchingTaskEvent(TaskEvent.OTHER) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '';
+        };
+
         let tableContent = () => {
             let rows = [];
             _.map(eventLogs, (eventLog: EventLog) => {
                 rows.push([
                     eventLog.guardInitials,
-                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
+                    eventTimestamp(eventLog),
                     eventLog.event,
                     eventLog.amount || '',
                     eventLog.people,
