@@ -30,7 +30,7 @@ let writeEventToReport = async (eventLog: EventLog) => {
 
     let findReport = async (eventLog: EventLog) => {
 
-        let reportQuery = new ReportQuery().matchingTask(task);
+        let reportQuery = new ReportQuery().matchingClient(eventLog.client);
 
         if (eventLog.taskGroupStarted) {
 
@@ -39,10 +39,9 @@ let writeEventToReport = async (eventLog: EventLog) => {
             reportQuery.createdAfterObject(taskGroupStarted);
         }
 
-        console.log('findReport', !!eventLog.taskGroupStarted);
-
-
+        // Static or Alarm
         return reportQuery
+            .matchingTask(task)
             .build()
             .first({useMasterKey: true});
     };
