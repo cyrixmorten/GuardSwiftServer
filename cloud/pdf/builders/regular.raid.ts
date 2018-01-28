@@ -124,9 +124,23 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             this.contentReportId(this.report.id)
         ];
 
+        let taskTypeHeader = (task: Task) => {
+            if (task.type) {
+                return task.type;
+            }
+
+            // TODO translate
+            switch (task.taskType) {
+                case TaskType.STATIC: return "Fastvagt";
+                case TaskType.ALARM: return "Alarm";
+                case TaskType.REGULAR: return "Gående tilsyn";
+                case TaskType.RAID: return "Kørende tilsyn";
+            }
+        };
+
         // add event table for each task in report
         _.forEach(this.report.tasks, (task: Task) => {
-            let taskHeader = task.type || task.taskType;
+            let taskHeader = taskTypeHeader(task);
             let taskEventLogs = this.organizeEvents(task);
             let taskEventTable = this.contentEventTable(taskEventLogs, this.timeZone);
 
