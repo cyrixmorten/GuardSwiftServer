@@ -1,6 +1,5 @@
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {ReportUtils} from "./reportUtils";
 import HttpResponse = Parse.Cloud.HttpResponse;
 import {TaskType} from "../../shared/subclass/Task";
 import {RegularRaidReportBuilder} from "./builders/regular.raid";
@@ -63,13 +62,25 @@ export class ReportToPDF {
 
         try {
             let reportDoc: Object = await ReportToPDF.buildDoc(reportId, settings);
-            let httpResponse: HttpResponse = await ReportUtils.generatePDF(reportDoc);
+            let httpResponse: HttpResponse = await this.generatePDF(reportDoc);
 
             return httpResponse.buffer;
         } catch(e) {
             throw new Error('Error during PDF creation' + JSON.stringify(e))
         }
     }
+
+    static async generatePDF(docDefinition): Promise<HttpResponse> {
+
+        return Parse.Cloud.httpRequest({
+            method: 'POST',
+            url: process.env.APP_URL + '/api/pdfmake',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            },
+            body: docDefinition
+        })
+    };
 }
 
 
