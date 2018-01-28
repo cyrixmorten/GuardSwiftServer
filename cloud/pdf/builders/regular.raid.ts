@@ -186,6 +186,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 // remove all accept events except acceptEventToKeep
                 return _.difference(eventLogs, _.pull(acceptEvents, acceptEventToKeep))
+            } else {
+                return eventLogs;
             }
         };
 
@@ -232,13 +234,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             });
         };
 
-        console.log('taskEventLogs: ', taskEventLogs.length);
         taskEventLogs = removeNonReportEvents(taskEventLogs);
-        console.log('removeNonReportEvents: ', taskEventLogs.length);
         taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
-        console.log('preferArrivalsWithinSchedule: ', taskEventLogs.length);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
-        console.log('onlyWriteAcceptOnce: ', taskEventLogs.length);
 
         return orderEvents(taskEventLogs);
     }
