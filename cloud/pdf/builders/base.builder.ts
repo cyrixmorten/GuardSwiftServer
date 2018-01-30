@@ -2,13 +2,14 @@ import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
 import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {Report} from "../../../shared/subclass/Report";
+import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
 
 
 export interface IReportBuilder {
     generate(): Object;
 }
 
-export class BaseReportBuilder implements IReportBuilder{
+export class BaseReportBuilder implements IReportBuilder {
 
     private reportDefinition = {};
 
@@ -27,12 +28,16 @@ export class BaseReportBuilder implements IReportBuilder{
 
     // TODO translate
     header(): BaseReportBuilder {
+
+        let arrivalEvent = _.find(this.report.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+        let guardName = arrivalEvent ? arrivalEvent.guardName : this.report.guardName;
+
         this.write({
             header: {
                 columns: [
                     {
                         width: 'auto',
-                        text: [{text: 'Vagt: ', bold: true}, this.report.guardName]
+                        text: [{text: 'Vagt: ', bold: true}, guardName]
                     },
                     {
                         width: '*',
@@ -48,16 +53,16 @@ export class BaseReportBuilder implements IReportBuilder{
     }
 
 
-    background(): BaseReportBuilder {
+    protected headerLogo(): Object {
         let headerLogo = this.settings.headerLogo;
 
-        if (headerLogo) {
-            let result = <any>{};
+        let result = <any>{};
 
+        if (headerLogo) {
             if (headerLogo.datauri) {
                 result = {
                     image: headerLogo.datauri,
-                    margin: [15, 60, 15, 0]
+                    margin: [20, 60, 20, 0]
                 }
             }
 
@@ -90,13 +95,10 @@ export class BaseReportBuilder implements IReportBuilder{
                 }
             }
 
-            this.write({
-                background: result
-            });
         }
 
 
-        return this;
+        return result;
     }
 
 
@@ -145,6 +147,10 @@ export class BaseReportBuilder implements IReportBuilder{
             }
         });
 
+        return this;
+    }
+
+    background(): BaseReportBuilder {
         return this;
     }
 

@@ -1,9 +1,8 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
 import {ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
+import {EventLog} from "../../../shared/subclass/EventLog";
 import {Report} from "../../../shared/subclass/Report";
-import {Task, TaskType} from "../../../shared/subclass/Task";
 import {BaseReportBuilder} from "./base.builder";
 
 
@@ -82,6 +81,14 @@ export class StaticReportBuilder extends BaseReportBuilder {
             // margin: [left, top, right, bottom]
             margin: [0, 0, 0, 10]
         }
+    }
+
+    background(): StaticReportBuilder {
+        this.write({
+            background: this.headerLogo()
+        });
+
+        return this;
     }
 
     content(): StaticReportBuilder {

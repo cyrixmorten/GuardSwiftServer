@@ -14,25 +14,21 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         super(report, settings, timeZone);
     }
 
-    // background(): RegularRaidReportBuilder {
-    //     let headerLogo = this.settings.headerLogo;
-    //
-    //     if (headerLogo) {
-    //
-    //         this.write({
-    //             background: {
-    //                 image: headerLogo.datauri,
-    //                 margin: [15, 60, 15, 0],
-    //                 alignment: "center",
-    //                 width: headerLogo.stretch ? (21 / 2.54) * 72 - (2 * 40) : headerLogo.width, // (cm / 2.54) * dpi - margin
-    //                 height: headerLogo.height
-    //             }
-    //         });
-    //     }
-    //
-    //
-    //     return this;
-    // }
+    headerLogo(): Object {
+        let headerLogo = this.settings.headerLogo;
+
+        if (!headerLogo) {
+            return {}
+        }
+
+        return {
+            image: headerLogo.datauri,
+            // margin: [15, 60, 15, 0],
+            alignment: "center",
+            width: headerLogo.stretch ? (21 / 2.54) * 72 - (2 * 40) : headerLogo.width, // (cm / 2.54) * dpi - margin
+            height: headerLogo.height
+        };
+    }
 
     private contentHeader(clientName: string, clientFullAddress: string): Object {
         return {
@@ -46,8 +42,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     style: ['header', 'subHeader']
                 }
             ],
+            alignment: "center"
             // margin: [left, top, right, bottom]
-            margin: [50, 100, 50, 30]
+            // margin: [50, 100, 50, 30]
         };
     }
 
@@ -79,7 +76,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         let eventTimestamp = (eventLog: EventLog) => {
-            return !eventLog.matchingTaskEvent(TaskEvent.OTHER) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '';
+            return !eventLog.matchingTaskEvent(TaskEvent.OTHER) ? moment(eventLog.deviceTimestamp).tz(timeZone)
+                .format('HH:mm') : '';
         };
 
         let tableContent = () => {
@@ -98,6 +96,19 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     rows.push(['', '', {text: eventLog.remarks, colSpan: 4, fillColor: '#eeeeee'}]);
                 }
             });
+
+            // Add default text if nothing is written
+            let writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
+            if (writtenEvents.length === 0) {
+                // TODO translate
+                rows.push(['',
+                    '',
+                    {
+                        text: "Ingen uregelmæssigheder blev observeret under tilsynet",
+                        colSpan: 4,
+                        fillColor: '#eeeeee'
+                    }]);
+            }
 
             return rows;
         };
@@ -120,6 +131,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
     content(): RegularRaidReportBuilder {
 
         let content = [
+            this.headerLogo(),
             this.contentHeader(this.report.clientName, this.report.clientFullAddress),
             this.contentReportId(this.report.id)
         ];
@@ -131,30 +143,25 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
             // TODO translate
             switch (task.taskType) {
-                case TaskType.STATIC: return "Fastvagt";
-                case TaskType.ALARM: return "Alarm";
-                case TaskType.REGULAR: return "Gående tilsyn";
-                case TaskType.RAID: return "Kørende tilsyn";
+                case TaskType.STATIC:
+                    return "Fastvagt";
+                case TaskType.ALARM:
+                    return "Alarm";
+                case TaskType.REGULAR:
+                    return "Gående tilsyn";
+                case TaskType.RAID:
+                    return "Kørende tilsyn";
             }
         };
 
         // add event table for each task in report
-        _.forEach(this.report.tasks, (task: Task) => {
+        _.forEach(this.report.tasks || [this.report.task], (task: Task) => {
             let taskHeader = taskTypeHeader(task);
             let taskEventLogs = this.organizeEvents(task);
             let taskEventTable = this.contentEventTable(taskEventLogs, this.timeZone);
 
             content.push(taskHeader);
             content.push(taskEventTable);
-
-            // Add default text if nothing is written
-            let writtenEvents = _.filter(this.report.eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
-            if (writtenEvents.length === 0) {
-                // TODO translate
-                content.push(
-                    {text: "Ingen uregelmæssigheder blev observeret under tilsynet", margin: [0, 10, 0, 0]}
-                )
-            }
         });
 
         this.write({
@@ -204,7 +211,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 // remove all accept events except acceptEventToKeep
                 return _.difference(eventLogs, _.pull(acceptEvents, acceptEventToKeep))
-            } else {
+            }
+            else {
                 return eventLogs;
             }
         };
@@ -241,7 +249,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return eventLogs;
         };
 
-        let orderEvents = (taskEventLogs: EventLog[]) :EventLog[] => {
+        let orderEvents = (taskEventLogs: EventLog[]): EventLog[] => {
             if (task.matchingTaskType(TaskType.ALARM, TaskType.STATIC)) {
                 return taskEventLogs;
             }

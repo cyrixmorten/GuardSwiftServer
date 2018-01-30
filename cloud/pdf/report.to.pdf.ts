@@ -21,6 +21,10 @@ export class ReportToPDF {
         query.include(Report._eventLogs);
         query.include(Report._tasks);
 
+        // TODO: backwards compatibility
+        // Create job that adds task to tasks array before removing this
+        query.include(Report._task);
+
 
         try {
             let report: Report = await query.first({useMasterKey: true});
