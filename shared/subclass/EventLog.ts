@@ -107,11 +107,11 @@ export class EventLog extends BaseClass {
         this.set(EventLog._taskTypeName, taskTypeName);
     }
 
-    get taskEvent(): string {
+    get taskEvent(): TaskEvent {
         return this.get(EventLog._taskEvent);
     }
 
-    set taskEvent(taskEvent: string) {
+    set taskEvent(taskEvent: TaskEvent) {
         this.set(EventLog._taskEvent, taskEvent);
     }
 

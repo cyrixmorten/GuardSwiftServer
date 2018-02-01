@@ -1,8 +1,8 @@
-import {EventLog} from "../../shared/subclass/EventLog";
+import {EventLog, TaskEvent} from "../../shared/subclass/EventLog";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import {Task, TaskType} from "../../shared/subclass/Task";
 
-Parse.Cloud.beforeSave("EventLog", (request, response) => {
+Parse.Cloud.beforeSave(EventLog, (request, response) => {
 
     let eventLog = <EventLog>request.object;
 
@@ -15,11 +15,10 @@ Parse.Cloud.beforeSave("EventLog", (request, response) => {
 
 });
 
-Parse.Cloud.afterSave("EventLog", (request) => {
+Parse.Cloud.afterSave(EventLog, (request) => {
 
     let EventLog = <EventLog>request.object;
 
-    // wrieEventToSession(EventLog);
     return writeEventToReport(EventLog);
 
 
@@ -62,6 +61,17 @@ let writeEventToReport = async (eventLog: EventLog) => {
 
         if (eventLog.task) {
             report.addUnique(Report._tasks, eventLog.task);
+        }
+
+        switch (eventLog.taskEvent) {
+            case TaskEvent.ACCEPT: {
+                report.timeStarted = new Date();
+                break;
+            }
+            case TaskEvent.FINISH: {
+                report.timeEnded = new Date();
+                break;
+            }
         }
 
         report.increment('eventCount');

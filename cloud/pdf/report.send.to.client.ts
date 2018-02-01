@@ -170,11 +170,11 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
 
     let httpResponse = result[0];
 
-    report.set('mailStatus', {
+    report.mailStatus = {
         to: getTo(),
         bcc: getBccs(),
         status: httpResponse.statusCode
-    });
+    };
 
     return report.save(null, {useMasterKey: true});
 };

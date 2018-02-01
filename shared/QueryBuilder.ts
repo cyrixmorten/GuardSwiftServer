@@ -61,6 +61,18 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
+    doesNotExist(key: keyof T) {
+        this.query.doesNotExist(_.toString(key));
+
+        return this;
+    }
+
+    greaterThan(key: keyof T, date: Date) {
+        this.query.greaterThan(key, date);
+
+        return this;
+    }
+
     build(): Parse.Query<T> {
         return this.query;
     }

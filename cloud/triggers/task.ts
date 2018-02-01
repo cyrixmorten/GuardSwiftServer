@@ -9,7 +9,7 @@ import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
 
 
-Parse.Cloud.beforeSave(Task.className, (request, response) => {
+Parse.Cloud.beforeSave(Task, (request, response) => {
 
     let task = <Task>request.object;
 
@@ -42,7 +42,7 @@ Parse.Cloud.afterSave(Task, (request) => {
 
     let task = <Task>request.object;
 
-    let status = task.get('status');
+    let status: TaskStatus = task.status;
 
     if (!_.includes(task.get('knownStatus'), status)) {
 
@@ -141,7 +141,7 @@ let sendNotification = (alarm) => {
     });
 };
 
-let alarmUpdate = (task: Task, status: string) => {
+let alarmUpdate = (task: Task, status: TaskStatus) => {
 
     switch (status) {
         case TaskStatus.PENDING: {

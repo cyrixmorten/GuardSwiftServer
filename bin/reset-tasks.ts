@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {API_FUNCTION_RESET_TASKS} from "../cloud/api/reset.tasks.api";
 import {API_FUNCTION_FORCE_RESET_TASKS} from "../cloud/api/reset.tasks.force.api";
+let _ = require('lodash');
 
 require("dotenv").config({ path: '../local.env' });
 
@@ -11,8 +12,6 @@ requireEnv([
 ]);
 
 let request = require('request');
-let _ = require('lodash');
-
 
 let task = (_.includes(process.argv, '-f')) ? API_FUNCTION_FORCE_RESET_TASKS : API_FUNCTION_RESET_TASKS;
 

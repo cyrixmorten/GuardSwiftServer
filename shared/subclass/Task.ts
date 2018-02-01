@@ -45,7 +45,7 @@ export class Task extends BaseClass {
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
     static readonly _supervisions = 'supervisions';
-
+    
 
     constructor() {
         super(Task.className);
@@ -195,6 +195,7 @@ export class Task extends BaseClass {
     set supervisions(supervisions: number) {
         this.set(Task._supervisions, supervisions);
     }
+
 
     isType(type: TaskType) {
         return this.taskType === type;

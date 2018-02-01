@@ -11,8 +11,6 @@ export class Report extends EventLog {
 
     static readonly className = 'Report';
 
-    // static readonly _reportId = 'reportId';
-
     static readonly _tasks = 'tasks';
     static readonly _eventLogs = 'eventLogs';
 
@@ -20,6 +18,11 @@ export class Report extends EventLog {
     static readonly _clientAddress = 'clientAddress';
     static readonly _clientAddressNumber = 'clientAddressNumber';
     static readonly _clientFullAddress = 'clientFullAddress';
+
+    static readonly _mailStatus = 'mailStatus';
+
+    static readonly _timeStarted = 'timeStarted';
+    static readonly _timeEnded = 'timeEnded';
 
     constructor() {
         super(Report.className);
@@ -65,6 +68,30 @@ export class Report extends EventLog {
         this.set(Report._clientFullAddress, clientFullAddress);
     }
 
+    get mailStatus(): Object {
+        return this.get(Report._mailStatus);
+    }
+
+    set mailStatus(mailStatus: Object) {
+        this.set(Report._mailStatus, mailStatus);
+    }
+
+
+    get timeStarted(): Date {
+        return this.get(Report._timeStarted);
+    }
+
+    set timeStarted(timeStarted: Date) {
+        this.set(Report._timeStarted, timeStarted);
+    }
+
+    get timeEnded(): Date {
+        return this.get(Report._timeEnded);
+    }
+
+    set timeEnded(timeEnded: Date) {
+        this.set(Report._timeEnded, timeEnded);
+    }
 
 }
 
@@ -93,9 +120,8 @@ export class ReportQuery extends QueryBuilder<Report> {
         return this;
     }
 
-    // matchingReportId(reportId: string): ReportQuery {
-    //     this.query.equalTo(Report._reportId, reportId);
-    //
-    //     return this;
-    // }
+    isNotSent(): ReportQuery {
+        return this.doesNotExist('mailStatus');
+    }
+
 }
