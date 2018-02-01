@@ -154,14 +154,12 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             }
         };
 
-        // add event table for each task in report
-        _.forEach(this.report.tasks || [this.report.task], (task: Task) => {
-            let taskHeader = taskTypeHeader(task);
-            let taskEventLogs = this.organizeEvents(task);
-            let taskEventTable = this.contentEventTable(taskEventLogs, this.timeZone);
+        let groupTasksByHeader = _.groupBy(this.report.tasks || [this.report.task], taskTypeHeader);
 
-            content.push(taskHeader);
-            content.push(taskEventTable);
+        // add event table for each task in report
+        _.forOwn(groupTasksByHeader, (tasks: Task[], header: string) => {
+            content.push(header);
+            content.push(this.contentEventTable(this.organizeEvents(tasks), this.timeZone));
         });
 
         this.write({
@@ -171,13 +169,14 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         return this;
     }
 
-    organizeEvents(task: Task): EventLog[] {
+    organizeEvents(tasks: Task[]): EventLog[] {
 
-        let taskEventLogs = _.filter(this.report.eventLogs, (eventLog) => eventLog.task.id === task.id);
+        let taskIds = _.map(tasks, (task: Task) => task.id);
+        let taskEventLogs = _.filter(this.report.eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
 
         let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
             return _.filter(eventLogs, (eventLog: EventLog) => {
-                if (task.isType(TaskType.ALARM)) {
+                if (_.sample(tasks).isType(TaskType.ALARM)) {
                     return eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.ABORT, TaskEvent.FINISH, TaskEvent.OTHER)
                 }
                 else {
@@ -222,8 +221,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 return eventLogs;
             }
 
-            let targetSupervisions = task.supervisions;
-            let arrivalEvents = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE)
+            let targetSupervisions = _.sum(_.map(tasks, (task) => task.supervisions));
+            let arrivalEvents = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE);
 
             let extraArrivals = arrivalEvents.length - targetSupervisions;
 
@@ -250,7 +249,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         let orderEvents = (taskEventLogs: EventLog[]): EventLog[] => {
-            if (task.matchingTaskType(TaskType.ALARM, TaskType.STATIC)) {
+            if (_.sample(tasks).matchingTaskType(TaskType.ALARM, TaskType.STATIC)) {
                 return taskEventLogs;
             }
 
