@@ -31,6 +31,9 @@ node_modules
 
 *.env
 
+bin/**/*.js
+bin/**/*.js.map
+
 cloud/**/*.js
 cloud/**/*.js.map
 
