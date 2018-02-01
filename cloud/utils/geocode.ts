@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import IPromise = Parse.IPromise;
 
+// TODO rewrite as TypeScript class
+
 /**
  * Returns {lat: latitude, lng: longitude} object
  *

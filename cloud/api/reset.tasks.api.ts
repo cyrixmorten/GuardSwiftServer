@@ -1,30 +1,10 @@
 import * as rp from "request-promise";
-import {ResetTasks} from "./ResetTasks";
+import {ResetTasks} from "../jobs/reset.tasks";
 import * as _ from "lodash"
 
-Parse.Cloud.define("forceResetTasks", function(request, status) {
-    return rp({
-        method: "POST",
-        url: process.env.SERVER_URL + '/functions/resetTasks',
-        headers: {
-			'X-Parse-Application-Id': process.env.APP_ID,
-			'X-Parse-Master-Key': process.env.MASTER_KEY,
-            'Content-Type': "application/json"
-        },
-        json: true,
-        body: {
-           'force': true
-        }
-    })
-	.then( () => {
-		status.success("Successfully forced reset of all tasks");
-	}).catch((error) => {
-        console.error(error);
-		status.error(error.message);
-	});
-});
+export const API_FUNCTION_RESET_TASKS = "resetTasks";
 
-Parse.Cloud.define("resetTasks", function (request, status) {
+Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
 
     console.log('----');
     console.log('- resetAllTasks');

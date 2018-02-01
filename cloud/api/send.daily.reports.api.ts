@@ -7,7 +7,17 @@ import {User} from "../../shared/subclass/User";
 import {sendReport} from "../pdf/report.send.to.client";
 
 
-Parse.Cloud.define("dailyMailReports",  (request, status) => {
+export const API_FUNCTION_SEND_DAILY_REPORT = "dailyMailReports";
+
+/**
+ * Send all reports
+ *
+ * params: {
+ *      days: number - amount of days to look back
+ * }
+ *
+ */
+Parse.Cloud.define(API_FUNCTION_SEND_DAILY_REPORT,  (request, status) => {
 
     console.log('dailyMailReports', JSON.stringify(request.params));
 

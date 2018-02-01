@@ -1,8 +1,7 @@
 
+export const API_FUNCTION_RESAVE = "re-save"
 
-import {TaskStatus, TaskType} from "../../shared/subclass/Task";
-
-Parse.Cloud.define("re-save", function(request, response)  {
+Parse.Cloud.define(API_FUNCTION_RESAVE, function(request, response)  {
 
     let className = request.params.class;
 

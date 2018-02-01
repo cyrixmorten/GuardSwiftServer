@@ -5,7 +5,9 @@ import * as json2csv from 'json2csv';
 import {Task} from "../../shared/subclass/Task";
 
 
-Parse.Cloud.define("alarmsToCsv", function (request, response) {
+export const API_FUNCTION_ALARMS_TO_CSV = "alarmsToCsv";
+
+Parse.Cloud.define(API_FUNCTION_ALARMS_TO_CSV, function (request, response) {
 
     exports.fetch().then(function (alarms) {
         return exports.csv(alarms);

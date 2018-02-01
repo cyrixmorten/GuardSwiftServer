@@ -1,8 +1,10 @@
 
+export const API_FUNCTION_DELETE_FILE = "fileDelete";
+
 /**
  * Delete a file written to Parse
  */
-Parse.Cloud.define("fileDelete", function (request, response) {
+Parse.Cloud.define(API_FUNCTION_DELETE_FILE, function (request, response) {
 
     let file = request.params.file;
 

@@ -67,7 +67,7 @@ export class ResetTasks {
 
                         let newTaskGroupStarted = new TaskGroupStarted();
                         newTaskGroupStarted.taskGroup = taskGroup;
-                        newTaskGroupStarted.copyAttributes(taskGroup, ['name', 'owner', 'ACL']);
+                        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, ['name', 'owner', 'ACL']);
                         newTaskGroupStarted.timeEnded = undefined;
                         newTaskGroupStarted.timeStarted = new Date();
 
@@ -84,25 +84,6 @@ export class ResetTasks {
     }
 
     private resetRegularTasksMatching(taskGroup: TaskGroup): IPromise<Task[]> {
-
-        // let arrivedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.ARRIVED).build();
-        // let abortedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.ABORTED).build();
-        // let finishedQuery = new TaskQuery().matchingTaskStatus(TaskStatus.FINISHED).build();
-        // let timesArrivedQuery = new TaskQuery().whereTimesArrivedGreaterThan(0).build();
-        //
-        // let mainQuery = Parse.Query.or(arrivedQuery, abortedQuery, finishedQuery, timesArrivedQuery);
-        // mainQuery.equalTo(Task._taskGroup, taskGroup);
-        //
-        // return mainQuery.each((task: Task) => {
-        //
-        //     console.log('Resetting task', task.clientName, task.name);
-        //
-        //     task.status = TaskStatus.PENDING;
-        //     task.guard = undefined;
-        //     task.timesArrived = 0;
-        //
-        //     return task.save(null, { useMasterKey: true } )
-        // }, {useMasterKey: true})
 
         let findTaskGroupStarted = (): Parse.Promise<TaskGroupStarted> => {
             return new TaskGroupStartedQuery().matchingTaskGroup(taskGroup).notEnded().build()

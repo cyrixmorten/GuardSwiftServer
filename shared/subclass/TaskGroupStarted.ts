@@ -2,6 +2,7 @@ import {BaseClass} from "./BaseClass";
 import * as _ from "lodash";
 import {TaskGroup} from "./TaskGroup";
 import {QueryBuilder} from "../QueryBuilder";
+import ACL = Parse.ACL;
 
 export class TaskGroupStarted extends BaseClass {
 
