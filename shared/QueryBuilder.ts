@@ -73,6 +73,12 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
+    lessThan(key: keyof T, date: Date) {
+        this.query.lessThan(key, date);
+
+        return this;
+    }
+
     build(): Parse.Query<T> {
         return this.query;
     }

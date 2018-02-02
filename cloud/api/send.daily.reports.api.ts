@@ -68,7 +68,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
     console.log('fromDate(): ', fromDate());
     console.log('toDate(): ', toDate());
     console.log('new Date(): ', new Date());
-    
+
     let taskTypes = params.taskTypes ? params.taskTypes : [TaskType.REGULAR, TaskType.RAID];
 
     let query = new Parse.Query(Parse.User);
@@ -114,10 +114,11 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
 
     if (taskType === TaskType.ALARM) {
-        console.log('greaterThan timeEnded: ', fromDate);
+        console.log('lessThan timeEnded: ', fromDate);
 
         reportQueryBuilder
-            .greaterThan('timeEnded', fromDate)
+            .lessThan('timeEnded', fromDate)
+            .lessThan('updatedAt', fromDate)
             .isNotSent()
     } else {
         reportQueryBuilder
