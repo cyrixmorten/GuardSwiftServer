@@ -121,7 +121,9 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     isNotSent(): ReportQuery {
-        return this.doesNotExist('mailStatus');
+        this.doesNotExist('mailStatus');
+
+        return this;
     }
 
 }

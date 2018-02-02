@@ -67,6 +67,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     console.log('_.isArray(params.taskTypes): ', _.isArray(params.taskTypes));
     let taskTypes = params.taskTypes ? params.taskTypes : [TaskType.REGULAR, TaskType.RAID];
+    console.log('taskTypes: ', taskTypes);
 
     let query = new Parse.Query(Parse.User);
     query.equalTo(User._active, true);
@@ -122,6 +123,8 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
     await reportQueryBuilder.build().each( async (report: Report) => {
         try {
+            console.log('report.id: ', report.id);
+
             await sendReport(report.id, reportSettings);
         } catch (e) {
             console.error('Error sending report', report.id, e);
