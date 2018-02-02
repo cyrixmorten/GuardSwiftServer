@@ -24,7 +24,8 @@ request({
             unit: 'minutes'
         },
         taskTypes: ['Alarm']
-    }
+    },
+    json: true
 }, function (err, res, body) {
     if (err) {
         console.error(err);

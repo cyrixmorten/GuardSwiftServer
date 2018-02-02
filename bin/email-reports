@@ -24,7 +24,8 @@ request({
             unit: 'days'
         },
         taskTypes: ['Regular', 'Raid']
-    }
+    },
+    json: true
 }, function (err, res, body) {
     if (err) {
         console.error(err);
