@@ -1,4 +1,3 @@
-import * as rp from "request-promise";
 import {ResetTasks} from "../jobs/reset.tasks";
 import * as _ from "lodash"
 
