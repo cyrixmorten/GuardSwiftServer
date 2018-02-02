@@ -64,6 +64,11 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     let toDate = () => moment().toDate();
 
+
+    console.log('fromDate(): ', fromDate());
+    console.log('toDate(): ', toDate());
+    console.log('new Date(): ', new Date());
+    
     let taskTypes = params.taskTypes ? params.taskTypes : [TaskType.REGULAR, TaskType.RAID];
 
     let query = new Parse.Query(Parse.User);
