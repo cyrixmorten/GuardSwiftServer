@@ -64,24 +64,19 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     let toDate = () => moment().toDate();
 
-
-    console.log('fromDate(): ', fromDate());
-    console.log('toDate(): ', toDate());
-    console.log('new Date(): ', new Date());
-
     let taskTypes = params.taskTypes ? params.taskTypes : [TaskType.REGULAR, TaskType.RAID];
 
     let query = new Parse.Query(Parse.User);
     query.equalTo(User._active, true);
     query.each( (user) =>  {
 
-            console.log('Sending daily reports for user: ', user.get('username'));
+            console.log('Sending reports for user: ', user.get('username'));
 
             return Promise.all(_.map(taskTypes, async (taskType: TaskType) => {
                 // wrap try-catch to ignore errors (missing reportSettings for a user should not prevent remaining
                 // reports from being sent)
                 try {
-                    console.log('Sending daily reports for taskType: ', taskType);
+                    console.log('Sending reports for taskType: ', taskType);
                     return await sendReportsToClients(user, fromDate(), toDate(), taskType);
                 } catch (e) {
                     console.error(`Failed to send ${taskType} reports`, e);
@@ -114,8 +109,6 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
 
     if (taskType === TaskType.ALARM) {
-        console.log('lessThan timeEnded: ', fromDate);
-
         reportQueryBuilder
             .lessThan('timeEnded', fromDate)
             .lessThan('updatedAt', fromDate)
@@ -128,8 +121,6 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
     await reportQueryBuilder.build().each( async (report: Report) => {
         try {
-            console.log('report.id: ', report.id);
-
             await sendReport(report.id, reportSettings);
         } catch (e) {
             console.error('Error sending report', report.id, e);
