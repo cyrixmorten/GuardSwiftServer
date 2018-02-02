@@ -63,8 +63,6 @@ let writeEventToReport = async (eventLog: EventLog) => {
             report.addUnique(Report._tasks, eventLog.task);
         }
 
-        console.log('eventLog.taskEvent: ', eventLog.taskEvent);
-        
         switch (eventLog.taskEvent) {
             case TaskEvent.ACCEPT: {
                 report.timeStarted = new Date();

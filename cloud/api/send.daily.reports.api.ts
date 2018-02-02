@@ -36,9 +36,8 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     let params: IParams = request.params;
 
-    let toDate = () => moment().toDate();
     let fromDate = () => {
-        // default to go back 24 hours
+        // default: go back 24 hours
         let unit: moment.unitOfTime.DurationConstructor = 'days';
         let amount: number = 1;
 
@@ -50,7 +49,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
             status.error(
                 `When passing time_back both units and amount should be added\n
                     Example: {
-                            time_back: {
+                            timeBack: {
                                 amount: 15, 
                                 units: 'minutes'
                             }
@@ -60,14 +59,12 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
             return;
         }
 
-
-
         return moment().subtract(amount, unit).toDate();
     };
 
-    console.log('_.isArray(params.taskTypes): ', _.isArray(params.taskTypes));
+    let toDate = () => moment().toDate();
+
     let taskTypes = params.taskTypes ? params.taskTypes : [TaskType.REGULAR, TaskType.RAID];
-    console.log('taskTypes: ', taskTypes);
 
     let query = new Parse.Query(Parse.User);
     query.equalTo(User._active, true);
@@ -112,6 +109,8 @@ let sendReportsToClients = async (user: Parse.User, fromDate: Date, toDate: Date
 
 
     if (taskType === TaskType.ALARM) {
+        console.log('greaterThan timeEnded: ', fromDate);
+
         reportQueryBuilder
             .greaterThan('timeEnded', fromDate)
             .isNotSent()
