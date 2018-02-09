@@ -263,7 +263,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
-        return orderEvents(taskEventLogs);
+        return taskEventLogs;
     }
 
 
