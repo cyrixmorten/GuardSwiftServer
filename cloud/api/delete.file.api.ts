@@ -1,29 +1,22 @@
+import * as _ from "lodash";
 
 export const API_FUNCTION_DELETE_FILE = "fileDelete";
 
 /**
  * Delete a file written to Parse
  */
-Parse.Cloud.define(API_FUNCTION_DELETE_FILE, function (request, response) {
+Parse.Cloud.define(API_FUNCTION_DELETE_FILE,  (request, response) => {
 
-    let file = request.params.file;
+    let fileUrl: string = request.params.fileUrl;
 
-    if (!file) {
-        console.error(file);
-        response.error('Missing file param');
-    }
-
-    if (!file.url()) {
-        console.error(file);
-        response.error('File is missing url');
+    if (!fileUrl) {
+        response.error('Missing fileUrl param');
     }
 
 
-    console.log('Deleting file: ' + JSON.stringify(file));
+    let deleteUrl = fileUrl.substring(fileUrl.lastIndexOf("/")+1);
 
-    let deleteUrl = file.url().substring(file.url().lastIndexOf("/")+1);
-
-    console.log('Deleting file: ' + JSON.stringify(deleteUrl));
+    console.log('Deleting file: ' + deleteUrl);
 
     return Parse.Cloud.httpRequest({
         method: 'DELETE',
@@ -32,12 +25,12 @@ Parse.Cloud.define(API_FUNCTION_DELETE_FILE, function (request, response) {
             "X-Parse-Application-Id": process.env.APP_ID,
             "X-Parse-Master-Key" : process.env.MASTER_KEY
         }
-    }).then(function() {
+    }).then(() => {
         let msg = 'File successfully deleted';
 
         console.log(msg);
         response.success(msg);
-    }, function(error) {
+    }, (error) => {
 
         console.error('Error deleting file');
         console.error(error);
