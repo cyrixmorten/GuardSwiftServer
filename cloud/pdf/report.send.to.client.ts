@@ -12,6 +12,7 @@ import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportS
 import {TaskType} from "../../shared/subclass/Task";
 import {ClientContact} from "../../shared/subclass/ClientContact";
 import {ReportToPDF} from "./report.to.pdf";
+import {MailData} from '@sendgrid/helpers/classes/mail';
 
 
 export let sendReport = async (reportId: string, reportSettings?: ReportSettings): Promise<any> => {
@@ -43,13 +44,11 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
         return contact.email
     });
 
-    let pdfBuffer = await ReportToPDF.buildPdf(reportId, reportSettings);
 
     let receivers: string[] = [];
 
     //TODO hardcoded date format
     let createdAt = moment(report.createdAt).format('DD-MM-YYYY');
-    let clientName = report.client.name;
 
     let getSubject = (): string => {
         // TODO translate
@@ -144,10 +143,13 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
         return bccs;
     };
 
-    let getAttachments = (): AttachmentData[] => {
+    let getAttachments = async (): Promise<AttachmentData[]> => {
+
+        let pdfBuffer = await ReportToPDF.buildPdf(reportId, reportSettings);
+
         return [
             {
-                filename: `${clientName}_${createdAt}.pdf`,
+                filename: `${report.client.name}_${createdAt}.pdf`,
                 type: 'application/pdf',
                 disposition: 'attachment',
                 content: new Buffer(pdfBuffer).toString('base64')
@@ -164,7 +166,7 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
         replyTo: getReplyTo(),
         subject: getSubject(),
         text: getText(),
-        attachments: getAttachments()
+        attachments: await getAttachments()
     });
 
 
