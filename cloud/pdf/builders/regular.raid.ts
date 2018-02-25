@@ -1,6 +1,6 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
+import {IHeaderLogo, ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
 import {Report} from "../../../shared/subclass/Report";
 import {Task, TaskType} from "../../../shared/subclass/Task";
@@ -10,12 +10,16 @@ import {BaseReportBuilder} from "./base.builder";
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
 
-    constructor(report: Report, settings: ReportSettings, timeZone: string) {
-        super(report, settings, timeZone);
+    constructor(timeZone: string, report: Report, reportSettings: ReportSettings) {
+        super(timeZone);
+
+        this.setReport(report, reportSettings);
     }
 
     headerLogo(): Object {
-        let headerLogo = this.settings.headerLogo;
+
+        let headerKey: keyof ReportSettings = 'headerLogo';
+        let headerLogo = _.get<IHeaderLogo>(this.reportSettings, headerKey);
 
         if (!headerLogo) {
             return {}
@@ -124,7 +128,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             },
             layout: 'headerLineOnly',
             // margin: [left, top, right, bottom]
-            margin: [0, 0, 0, 10]
+            margin: [0, 0, 0, 10],
+            unbreakable: false
         }
     }
 

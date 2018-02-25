@@ -9,8 +9,10 @@ import {BaseReportBuilder} from "./base.builder";
 export class StaticReportBuilder extends BaseReportBuilder {
 
 
-    constructor(report: Report, settings: ReportSettings, timeZone: string) {
-        super(report, settings, timeZone);
+    constructor(timeZone: string, report: Report, reportSettings?: ReportSettings) {
+        super(timeZone);
+
+        this.setReport(report, reportSettings);
     }
 
 
@@ -84,9 +86,11 @@ export class StaticReportBuilder extends BaseReportBuilder {
     }
 
     background(): StaticReportBuilder {
-        this.write({
-            background: this.headerLogo()
-        });
+        if (this.reportSettings) {
+            this.write({
+                background: this.headerLogo()
+            });
+        }
 
         return this;
     }

@@ -10,6 +10,24 @@ import * as _ from 'lodash';
 
 export class ReportToPDF {
 
+    static reportBuilder(timeZone: string, report: Report, settings?: ReportSettings): IReportBuilder {
+        let reportBuilder: IReportBuilder;
+        if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
+            // TODO create dedicated alarm report
+            reportBuilder = new RegularRaidReportBuilder(timeZone, report, settings);
+        }
+        if (report.matchingTaskType(TaskType.STATIC)) {
+            reportBuilder = new StaticReportBuilder(timeZone, report, settings);
+        }
+
+
+        if (_.isUndefined(reportBuilder)) {
+            throw new Error("Missing builder for report")
+        }
+
+        return reportBuilder;
+    }
+
     static async buildDoc(reportId: string, settings?: ReportSettings): Promise<Object> {
 
         if (!reportId) {
@@ -33,21 +51,7 @@ export class ReportToPDF {
 
             settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(report.taskType).build().first({useMasterKey: true});
 
-            let reportBuilder: IReportBuilder;
-            if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
-                // TODO create dedicated alarm report
-                reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone);
-            }
-            if (report.matchingTaskType(TaskType.STATIC)) {
-                reportBuilder = new StaticReportBuilder(report, settings, timeZone);
-            }
-
-
-            if (_.isUndefined(reportBuilder)) {
-                throw new Error("Missing builder for report")
-            }
-
-            return reportBuilder.generate();
+            return ReportToPDF.reportBuilder(timeZone, report, settings).generate();
         } catch (e) {
 
             console.error(e);

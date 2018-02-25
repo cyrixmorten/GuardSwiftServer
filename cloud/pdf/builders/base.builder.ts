@@ -1,25 +1,47 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
+import {IHeaderLogo, ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {Report} from "../../../shared/subclass/Report";
 import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
 
 
 export interface IReportBuilder {
+    header(): BaseReportBuilder;
+    content(): BaseReportBuilder;
+    footer(): BaseReportBuilder;
     generate(): Object;
+}
+
+export type BuilderSettings = {
+    showFooter: boolean;
+    showGuardName: boolean;
 }
 
 export class BaseReportBuilder implements IReportBuilder {
 
     private reportDefinition = {};
 
-    constructor(protected report: Report, protected settings: ReportSettings, protected timeZone: string) {
+    protected report: Report;
+    protected reportSettings: ReportSettings;
+
+    constructor(protected timeZone: string, private builderSettings?: BuilderSettings) {
+
+        this.builderSettings = _.defaults<BuilderSettings, BuilderSettings>(builderSettings, {
+            showFooter: true,
+            showGuardName: true
+        });
 
         this.write({
             pageMargins: [40, 60, 40, 60]
         })
 
     }
+
+    protected setReport(report: Report, reportSettings?: ReportSettings) {
+        this.report = report;
+        this.reportSettings = reportSettings;
+    }
+
 
     protected write(object: Object) {
         _.assignIn(this.reportDefinition, object);
@@ -29,8 +51,11 @@ export class BaseReportBuilder implements IReportBuilder {
     // TODO translate
     header(): BaseReportBuilder {
 
-        let arrivalEvent = _.find(this.report.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
-        let guardName = arrivalEvent ? arrivalEvent.guardName : this.report.guardName;
+        let guardName = "";
+        if (this.builderSettings.showGuardName && this.report) {
+            let arrivalEvent = _.find(this.report.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+            guardName = arrivalEvent ? arrivalEvent.guardName : this.report.guardName;
+        }
 
         this.write({
             header: {
@@ -54,7 +79,11 @@ export class BaseReportBuilder implements IReportBuilder {
 
 
     protected headerLogo(): Object {
-        let headerLogo = this.settings.headerLogo;
+        if (!this.reportSettings) {
+            return {};
+        }
+
+        let headerLogo: IHeaderLogo = this.reportSettings.headerLogo;
 
         let result = <any>{};
 
@@ -102,8 +131,6 @@ export class BaseReportBuilder implements IReportBuilder {
     }
 
 
-
-
     content(): BaseReportBuilder {
         return this;
     }
@@ -111,6 +138,10 @@ export class BaseReportBuilder implements IReportBuilder {
 
     // TODO: Hardcoded, read from reportSettings
     footer(): BaseReportBuilder {
+        if (!this.builderSettings.showFooter) {
+            return this;
+        }
+
         this.write({
             footer: [
                 {text: 'YDERLIGERE OPLYSNINGER PÅ TLF. 86 10 49 50', alignment: 'center'},
