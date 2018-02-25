@@ -5,6 +5,7 @@ import IPromise = Parse.IPromise;
 import * as _ from "lodash";
 import * as util from "util";
 import "tslib";
+import {User} from "../../shared/subclass/User";
 
 
 export class ResetTasks {
@@ -23,24 +24,33 @@ export class ResetTasks {
     async run(): Promise<any> {
 
 
-        let queryTaskGroups = new Parse.Query(TaskGroup);
-        if (!this.force) {
-            queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
-        }
-        queryTaskGroups.doesNotExist(TaskGroup._archive);
-        return queryTaskGroups.each((taskGroup: TaskGroup) => {
+        let query = new Parse.Query(Parse.User);
+        query.equalTo(User._active, true);
+        return query.each( (user) =>  {
 
-            console.log('------');
-            console.log('Resetting TaskGroup: ', taskGroup.name);
-            console.log('Is run today: ', taskGroup.isRunToday());
-            console.log('Hours until reset: ', taskGroup.hoursUntilReset());
-
-            if (this.force || taskGroup.resetNow()) {
-                return this.resetTaskGroupsStartedMatching(taskGroup)
-                    .then(() => this.resetRegularTasksMatching(taskGroup));
+            let queryTaskGroups = new Parse.Query(TaskGroup);
+            if (!this.force) {
+                queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
             }
+            queryTaskGroups.doesNotExist(TaskGroup._archive);
+            queryTaskGroups.equalTo(TaskGroup._owner, user);
+            return queryTaskGroups.each((taskGroup: TaskGroup) => {
 
-        }, {useMasterKey: true})
+                console.log('------');
+                console.log('Resetting TaskGroup: ', taskGroup.name);
+                console.log('Is run today: ', taskGroup.isRunToday());
+                console.log('Hours until reset: ', taskGroup.hoursUntilReset());
+
+                if (this.force || taskGroup.resetNow()) {
+                    return this.resetTaskGroupsStartedMatching(taskGroup)
+                        .then(() => this.resetRegularTasksMatching(taskGroup));
+                }
+
+            }, {useMasterKey: true});
+
+        }, {useMasterKey: true});
+
+
     }
 
 

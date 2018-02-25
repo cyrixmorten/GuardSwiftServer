@@ -22,7 +22,7 @@ export class ReportToPDF {
         query.include(Report._tasks);
 
         // TODO: backwards compatibility
-        // Create job that adds task to tasks array before removing this
+        // TODO: Create job that adds task to tasks array before removing this
         query.include(Report._task);
 
 

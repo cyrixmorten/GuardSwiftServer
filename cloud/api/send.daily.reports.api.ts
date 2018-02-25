@@ -42,7 +42,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
         let amount: number = 1;
 
         let timeBack = params.timeBack;
-        if (timeBack.amount && timeBack.unit) {
+        if (timeBack && timeBack.amount && timeBack.unit) {
             amount = timeBack.amount;
             unit = timeBack.unit;
         } else {
