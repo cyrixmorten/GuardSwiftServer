@@ -34,18 +34,14 @@ export class ReportToPDF {
             throw new Error('buildDoc missing reportId');
         }
 
-        let query = new ReportQuery().matchingId(reportId).build();
-
-        query.include(Report._eventLogs);
-        query.include(Report._tasks);
-
-        // TODO: backwards compatibility
-        // TODO: Create job that adds task to tasks array before removing this
-        query.include(Report._task);
-
-
         try {
-            let report: Report = await query.first({useMasterKey: true});
+            // TODO: backwards compatibility
+            // TODO: Create job that adds task to tasks array before removing this
+            let report = await new ReportQuery()
+                            .include(Report._owner, Report._eventLogs, Report._tasks, Report._task)
+                            .matchingId(reportId)
+                            .build()
+                            .first({useMasterKey: true});
 
             let timeZone = report.owner.timeZone || 'Europe/Copenhagen';
 

@@ -25,13 +25,13 @@ export class ClientReportMailBuilder extends MailDataBuilder {
     }
 
     static async create(reportId: string, reportSettings?: ReportSettings) {
-        let query = new ReportQuery().matchingId(reportId).build();
 
-        query.include(Report._owner);
-        query.include(Report._eventLogs);
-        query.include(`${Report._client}.${Client._contacts}`);
-
-        let report = await query.first({useMasterKey: true});
+        let report = await new ReportQuery()
+                        .include(Report._owner, Report._eventLogs, Report._tasks, Report._task)
+                        .include(<any>`${Report._client}.${Client._contacts}`)
+                        .matchingId(reportId)
+                        .build()
+                        .first({useMasterKey: true});
 
         reportSettings = reportSettings || await new ReportSettingsQuery().matchingOwner(report.owner)
             .matchingTaskType(report.taskType).build().first({useMasterKey: true});
