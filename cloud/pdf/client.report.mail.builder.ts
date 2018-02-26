@@ -30,6 +30,7 @@ export class ClientReportMailBuilder extends MailDataBuilder {
         let query = new ReportQuery().matchingId(reportId).build();
 
         query.include(Report._owner);
+        query.include(Report._eventLogs);
         query.include(`${Report._client}.${Client._contacts}`);
 
         let report = await query.first({useMasterKey: true});
