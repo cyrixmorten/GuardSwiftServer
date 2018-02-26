@@ -2,6 +2,7 @@
 import {AttachmentData} from "@sendgrid/helpers/classes/attachment";
 import {EmailData} from "@sendgrid/helpers/classes/email-address";
 import {MailData} from "@sendgrid/helpers/classes/mail";
+import * as _ from "lodash";
 
 export interface IMailDataBuilder {
     getFrom(): Promise<EmailData>;
@@ -16,6 +17,17 @@ export interface IMailDataBuilder {
 
 export abstract class MailDataBuilder implements IMailDataBuilder {
 
+    private receiverEmails: string[] = [];
+
+    protected addUniqueReceiver(list: EmailData[], emailData: EmailData) {
+        let email: string = _.isString(emailData) ? emailData : _.get(emailData, 'email');
+
+        if (!_.includes(this.receiverEmails, email)) {
+            list.push(emailData);
+            this.receiverEmails.push(email);
+        }
+    }
+
     async getMailData(): Promise<MailData> {
         return {
             from: await this.getFrom(),
@@ -25,7 +37,7 @@ export abstract class MailDataBuilder implements IMailDataBuilder {
             subject: await this.getSubject(),
             text: await this.getText(),
             attachments: await this.getAttachments()
-        }
+        };
     }
 
     getFrom(): Promise<EmailData> {

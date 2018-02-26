@@ -4,6 +4,7 @@ import {RequestResponse} from "request";
 import {ReportSettings} from "../../shared/subclass/ReportSettings";
 import {ClientReportMailBuilder} from './client.report.mail.builder';
 
+import * as _ from "lodash";
 
 export let sendReport = async (reportId: string, reportSettings?: ReportSettings): Promise<any> => {
 
@@ -13,22 +14,30 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
 
     let mailBuilder = await ClientReportMailBuilder.create(reportId, reportSettings);
 
+    let mailData = await mailBuilder.getMailData();
 
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    let status = '';
 
-    let result: [RequestResponse, {}] = await sgMail.send(await mailBuilder.getMailData());
+    try {
+        sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
+        let result: [RequestResponse, {}] = await sgMail.send(mailData);
 
-    let httpResponse = result[0];
+        status = _.pick(result[0], ['message', 'code']);
+    } catch (e) {
+        console.error(JSON.stringify(status));
 
-    let report = mailBuilder.getReport();
+        status = _.pick(e, ['message', 'code', 'response.body.errors']);
+    } finally {
+        let report = mailBuilder.getReport();
 
-    report.mailStatus = {
-        to: await mailBuilder.getTo(),
-        bcc: await mailBuilder.getBccs(),
-        status: httpResponse.statusCode
-    };
+        report.mailStatus = {
+            to: mailData.to,
+            bcc: mailData.bcc,
+            status: status
+        };
 
-    return report.save(null, {useMasterKey: true});
+        await report.save(null, {useMasterKey: true});
+    }
 };
 

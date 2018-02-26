@@ -15,9 +15,7 @@ import {MailDataBuilder} from "./mail.data.builder";
 export class ClientReportMailBuilder extends MailDataBuilder {
 
 
-    private receivers: EmailData[] = [];
     private createdAt: string = "";
-
 
     constructor(private report: Report, private reportSettings: ReportSettings) {
         super();
@@ -41,13 +39,6 @@ export class ClientReportMailBuilder extends MailDataBuilder {
         return new ClientReportMailBuilder(report, reportSettings);
     }
 
-    private addUniqueReceiver(list: EmailData[], emailData: EmailData) {
-        if (!_.includes(this.receivers, emailData)) {
-            list.push(emailData);
-            this.receivers.push(emailData);
-
-        }
-    }
 
     getReport(): Report {
         return this.report;
@@ -63,26 +54,15 @@ export class ClientReportMailBuilder extends MailDataBuilder {
                 return contact.receiveReports && !!contact.email;
             });
 
-
-        let toNames = _.map(contacts, (contact: ClientContact) => {
-            return contact.name
-        });
-        let toEmails = _.map(contacts, (contact: ClientContact) => {
-            return contact.email
-        });
-
         let to: EmailData[] = [];
 
         // to client receivers
-        _.forEach(_.zip(toEmails, toNames), (mailTo) => {
-            let mailAddress = mailTo[0];
-            let mailName = mailTo[1];
-
-            this.addUniqueReceiver(to, {name: mailName, email: mailAddress})
+        _.forEach(contacts, (contact: ClientContact) => {
+            this.addUniqueReceiver(to, {name: contact.name, email: contact.email})
         });
 
         // Notify the owner that this report did not reach any clients
-        if (_.isEmpty(toEmails)) {
+        if (_.isEmpty(contacts)) {
 
             console.error('Report is missing receivers! ' + this.report.id);
 
