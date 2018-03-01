@@ -84,7 +84,7 @@ export class EventLog extends BaseClass {
     }
 
     get guardName(): string {
-        return this.get(EventLog._guardName);
+        return this.get(EventLog._guardName) || '';
     }
 
     set guardName(guardName: string) {

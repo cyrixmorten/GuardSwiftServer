@@ -253,22 +253,11 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return eventLogs;
         };
 
-        let orderEvents = (taskEventLogs: EventLog[]): EventLog[] => {
-            if (_.sample(tasks).matchingTaskType(TaskType.ALARM, TaskType.STATIC)) {
-                return taskEventLogs;
-            }
-
-            // Bump arrivals to the top
-            return _.orderBy(taskEventLogs, (eventLog: EventLog) => {
-                return eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? 0 : 1;
-            });
-        };
-
         taskEventLogs = removeNonReportEvents(taskEventLogs);
         taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
-        return orderEvents(taskEventLogs);
+        return taskEventLogs;
     }
 
 
