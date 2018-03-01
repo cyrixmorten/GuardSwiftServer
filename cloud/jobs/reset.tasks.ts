@@ -36,10 +36,10 @@ export class ResetTasks {
             queryTaskGroups.equalTo(TaskGroup._owner, user);
             return queryTaskGroups.each((taskGroup: TaskGroup) => {
 
-                console.log('------');
-                console.log('Resetting TaskGroup: ', taskGroup.name);
-                console.log('Is run today: ', taskGroup.isRunToday());
-                console.log('Hours until reset: ', taskGroup.hoursUntilReset());
+                console.log('Resetting TaskGroup: ', taskGroup.name,
+                            'Is run today: ', taskGroup.isRunToday(),
+                            'Hours until reset: ', taskGroup.hoursUntilReset(),
+                            'Perform reset: ', taskGroup.resetNow());
 
                 if (this.force || taskGroup.resetNow()) {
                     return this.resetTaskGroupsStartedMatching(taskGroup)
