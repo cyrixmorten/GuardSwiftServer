@@ -66,9 +66,9 @@ export class TaskGroup extends BaseClass {
     }
 
     /**
-     * Is the current hour in time equal to resetTime
+     * Is the current hour in time equal to or less than resetTime
      */
     resetNow(): boolean {
-        return this.hoursUntilReset() === 0;
+        return this.hoursUntilReset() <= 0;
     }
 }
