@@ -42,7 +42,8 @@
     "require-glob": "^3.2.0",
     "tslib": "^1.8.0",
     "twilio": "^2.11.0",
-    "typescript": "^2.5.3"
+    "typescript": "^2.5.3",
+    "xlsx": "^0.12.3"
   },
   "engines": {
     "node": "^8.2.1"
