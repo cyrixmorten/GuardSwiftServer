@@ -1,7 +1,8 @@
 import {QueryBuilder} from "../QueryBuilder";
-import {EventLog} from "./EventLog";
+import {EventLog, TaskEvent} from "./EventLog";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
+import * as _ from "lodash";
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -91,6 +92,13 @@ export class Report extends EventLog {
 
     set timeEnded(timeEnded: Date) {
         this.set(Report._timeEnded, timeEnded);
+    }
+
+    get guardName(): string {
+        let arrivalEvent = _.find(this.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+
+        // fallback to guardName written to report if EventLogs are not included
+        return arrivalEvent ? arrivalEvent.guardName : this.guardName;
     }
 
 }

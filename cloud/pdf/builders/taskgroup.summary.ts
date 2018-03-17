@@ -1,28 +1,20 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
 import {Report} from "../../../shared/subclass/Report";
-import {Task, TaskType} from "../../../shared/subclass/Task";
-import {BaseReportBuilder} from "./base.builder";
+import {BasePDFMakeBuilder} from "./base.builder";
 import {ReportToPDF} from "../report.to.pdf";
+import {TaskGroupStarted} from "../../../shared/subclass/TaskGroupStarted";
+import {Client} from '../../../shared/subclass/Client';
 
 
-export class DailyTaskGroupsSummaryReportBuilder extends BaseReportBuilder {
+export class DailyTaskGroupsSummaryReportBuilder extends BasePDFMakeBuilder {
 
 
 
-    constructor(timeZone: string, private reports: Report[]) {
-        super(timeZone, {
-            showFooter: false,
-            showGuardName: false
-        });
+    constructor(private timeZone: string) {
+        super();
 
-        // use first report to set header date
-        this.setReport(_.first(reports));
     }
-
-
 
     private contentHeader(): Object {
         return {
@@ -38,11 +30,11 @@ export class DailyTaskGroupsSummaryReportBuilder extends BaseReportBuilder {
 
 
 
-    content(): DailyTaskGroupsSummaryReportBuilder {
+    content(client?: Client, reports?: Report[]): DailyTaskGroupsSummaryReportBuilder {
 
         let content = [
             this.contentHeader(),
-            ..._.map(this.reports, (report: Report) => {
+            ..._.map(reports, (report: Report) => {
                 return ReportToPDF.reportBuilder(this.timeZone, report).content();
             })
         ];
@@ -55,6 +47,10 @@ export class DailyTaskGroupsSummaryReportBuilder extends BaseReportBuilder {
         return this;
     }
 
+    // Query for reports
+    public async buildForTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+
+    }
 
 
 

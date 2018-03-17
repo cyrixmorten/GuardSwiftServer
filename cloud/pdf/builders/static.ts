@@ -3,16 +3,14 @@ import * as _ from 'lodash';
 import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {EventLog} from "../../../shared/subclass/EventLog";
 import {Report} from "../../../shared/subclass/Report";
-import {BaseReportBuilder} from "./base.builder";
+import {BasePDFMakeBuilder} from "./base.builder";
 
 
-export class StaticReportBuilder extends BaseReportBuilder {
+export class StaticReportBuilder extends BasePDFMakeBuilder {
 
 
-    constructor(timeZone: string, report: Report, reportSettings?: ReportSettings) {
-        super(timeZone);
-
-        this.setReport(report, reportSettings);
+    constructor(private timeZone: string, private report: Report, private reportSettings?: ReportSettings) {
+        super();
     }
 
 
@@ -85,10 +83,11 @@ export class StaticReportBuilder extends BaseReportBuilder {
         }
     }
 
+    // TODO: incorporate in header as is done in regular.raid to prevent text overlap when taking more than 1 page
     background(): StaticReportBuilder {
         if (this.reportSettings) {
             this.write({
-                background: this.headerLogo()
+                background: this.headerLogo(this.reportSettings.headerLogo)
             });
         }
 
@@ -110,7 +109,17 @@ export class StaticReportBuilder extends BaseReportBuilder {
         return this;
     }
 
-
+    generate(): Object {
+        // TODO translate
+        return this.header(
+            [{text: 'Vagt: ', bold: true}, this.report.guardName],
+            'Dato: ' + moment(this.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
+            .background()
+            .content()
+            .footer()
+            .styles()
+            .build();
+    }
 
 
 }

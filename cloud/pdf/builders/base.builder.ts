@@ -1,47 +1,25 @@
-import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {IHeaderLogo, ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {Report} from "../../../shared/subclass/Report";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
+import {IHeaderLogo} from "../../../shared/subclass/ReportSettings";
 
 
-export interface IReportBuilder {
-    header(): BaseReportBuilder;
-    content(): BaseReportBuilder;
-    footer(): BaseReportBuilder;
+export interface IPdfMakeBuilder {
+    header(textLeft, textRight): BasePDFMakeBuilder;
+    footer(): BasePDFMakeBuilder;
+    content(): BasePDFMakeBuilder;
     generate(): Object;
 }
 
-export type BuilderSettings = {
-    showFooter: boolean;
-    showGuardName: boolean;
-}
 
-export class BaseReportBuilder implements IReportBuilder {
+export class BasePDFMakeBuilder implements IPdfMakeBuilder {
 
     private reportDefinition = {};
 
-    protected report: Report;
-    protected reportSettings: ReportSettings;
 
-    constructor(protected timeZone: string, private builderSettings?: BuilderSettings) {
-
-        this.builderSettings = _.defaults<BuilderSettings, BuilderSettings>(builderSettings, {
-            showFooter: true,
-            showGuardName: true
-        });
-
+    constructor() {
         this.write({
             pageMargins: [40, 60, 40, 60]
         })
-
     }
-
-    protected setReport(report: Report, reportSettings?: ReportSettings) {
-        this.report = report;
-        this.reportSettings = reportSettings;
-    }
-
 
     protected write(object: Object) {
         _.assignIn(this.reportDefinition, object);
@@ -49,24 +27,17 @@ export class BaseReportBuilder implements IReportBuilder {
 
 
     // TODO translate
-    header(): BaseReportBuilder {
-
-        let guardName = "";
-        if (this.builderSettings.showGuardName && this.report) {
-            let arrivalEvent = _.find(this.report.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
-            guardName = arrivalEvent ? arrivalEvent.guardName : this.report.guardName;
-        }
-
+    header(textLeft?, textRight?): BasePDFMakeBuilder {
         this.write({
             header: {
                 columns: [
                     {
                         width: 'auto',
-                        text: [{text: 'Vagt: ', bold: true}, guardName]
+                        text: textLeft
                     },
                     {
                         width: '*',
-                        text: 'Dato: ' + moment(this.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'),
+                        text: textRight,
                         alignment: 'right'
                     }
                 ],
@@ -78,13 +49,7 @@ export class BaseReportBuilder implements IReportBuilder {
     }
 
 
-    protected headerLogo(): Object {
-        if (!this.reportSettings) {
-            return {};
-        }
-
-        let headerLogo: IHeaderLogo = this.reportSettings.headerLogo;
-
+    protected headerLogo(headerLogo: IHeaderLogo): Object {
         let result = <any>{};
 
         if (headerLogo) {
@@ -131,17 +96,12 @@ export class BaseReportBuilder implements IReportBuilder {
     }
 
 
-    content(): BaseReportBuilder {
+    content(): BasePDFMakeBuilder {
         return this;
     }
 
-
     // TODO: Hardcoded, read from reportSettings
-    footer(): BaseReportBuilder {
-        if (!this.builderSettings.showFooter) {
-            return this;
-        }
-
+    footer(): BasePDFMakeBuilder {
         this.write({
             footer: [
                 {text: 'YDERLIGERE OPLYSNINGER PÅ TLF. 86 10 49 50', alignment: 'center'},
@@ -155,7 +115,7 @@ export class BaseReportBuilder implements IReportBuilder {
         return this;
     }
 
-    styles(): BaseReportBuilder {
+    styles(): BasePDFMakeBuilder {
         this.write({
             styles: {
                 header: {
@@ -181,7 +141,7 @@ export class BaseReportBuilder implements IReportBuilder {
         return this;
     }
 
-    background(): BaseReportBuilder {
+    background(): BasePDFMakeBuilder {
         return this;
     }
 

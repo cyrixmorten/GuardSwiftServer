@@ -4,16 +4,14 @@ import {IHeaderLogo, ReportSettings} from "../../../shared/subclass/ReportSettin
 import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
 import {Report} from "../../../shared/subclass/Report";
 import {Task, TaskType} from "../../../shared/subclass/Task";
-import {BaseReportBuilder} from "./base.builder";
+import {BasePDFMakeBuilder} from "./base.builder";
 
 
-export class RegularRaidReportBuilder extends BaseReportBuilder {
+export class RegularRaidReportBuilder extends BasePDFMakeBuilder {
 
 
-    constructor(timeZone: string, report: Report, reportSettings: ReportSettings) {
-        super(timeZone);
-
-        this.setReport(report, reportSettings);
+    constructor(private timeZone: string, private report: Report, private reportSettings: ReportSettings) {
+        super();
     }
 
     headerLogo(): Object {
@@ -260,6 +258,17 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         return taskEventLogs;
     }
 
+    generate(): Object {
+        // TODO translate
+        return this.header(
+            [{text: 'Vagt: ', bold: true}, this.report.guardName],
+                    'Dato: ' + moment(this.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
+            .background()
+            .content()
+            .footer()
+            .styles()
+            .build();
+    }
 
 }
 

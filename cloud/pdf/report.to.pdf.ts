@@ -3,15 +3,15 @@ import {Report, ReportQuery} from "../../shared/subclass/Report";
 import HttpResponse = Parse.Cloud.HttpResponse;
 import {TaskType} from "../../shared/subclass/Task";
 import {RegularRaidReportBuilder} from "./builders/regular.raid";
-import {IReportBuilder} from "./builders/base.builder";
+import {IPdfMakeBuilder} from "./builders/base.builder";
 import {StaticReportBuilder} from "./builders/static";
 
 import * as _ from 'lodash';
 
 export class ReportToPDF {
 
-    static reportBuilder(timeZone: string, report: Report, settings?: ReportSettings): IReportBuilder {
-        let reportBuilder: IReportBuilder;
+    static reportBuilder(timeZone: string, report: Report, settings?: ReportSettings): IPdfMakeBuilder {
+        let reportBuilder: IPdfMakeBuilder;
         if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
             // TODO create dedicated alarm report
             reportBuilder = new RegularRaidReportBuilder(timeZone, report, settings);
