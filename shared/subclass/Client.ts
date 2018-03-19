@@ -1,6 +1,5 @@
 import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
-import {Person} from "./Person";
 import {ClientContact} from "./ClientContact";
 
 export class Client extends BaseClass {
