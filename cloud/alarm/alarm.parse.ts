@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
-import {centrals} from "../centrals/all";
-
+import {CentralParser} from "../centrals/all";
+import {Central} from "../../shared/subclass/Central";
+import {ICentralParser} from "../centrals/central.interface";
 
 export interface IParsedAlarm {
-    action: string,
+    action: 'create' | 'abort' | 'finish',
     alarmMsg: string,
     alarmObject: {
         clientId: string;
@@ -16,25 +17,14 @@ export interface IParsedAlarm {
     }
 }
 
-export let parseAlarm = function(central, alarmMsg) {
+export let parseAlarm = async (central: Central, alarmMsg: string): Promise<IParsedAlarm> => {
 
-    let promise = new Parse.Promise();
-
-    let alarmObject = {};
-    _.forEach(centrals, function(handler) {
-        if (_.isEmpty(alarmObject)) {
-            alarmObject = handler.parse(central, alarmMsg) || {};
+    _.forEach(CentralParser, (handler: ICentralParser) => {
+        if (handler.matchesCentral(central)) {
+            return handler.parse(central, alarmMsg) || {};
         }
     });
 
-    if (_.isEmpty(alarmObject)) {
-        promise.reject('Unable to parse alarm, unknown sender');
-    } else {
-        console.log('alarmObject: ', alarmObject);
-        promise.resolve(alarmObject);
-    }
-
-
-    return promise;
+   throw 'Unable to parse alarm, did not find central matching sender';
 };
 

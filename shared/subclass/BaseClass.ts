@@ -37,4 +37,15 @@ export abstract class BaseClass extends Parse.Object {
         });
     }
 
+    setUserACL(user: Parse.User) {
+        let acl = new Parse.ACL();
+        acl.setReadAccess(user.id, true);
+        acl.setWriteAccess(user.id, true);
+        acl.setPublicReadAccess(false);
+        acl.setPublicWriteAccess(false);
+
+
+        this.setACL(acl);
+    }
+
 }

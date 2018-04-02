@@ -34,7 +34,7 @@ Parse.Cloud.define(API_FUNCTION_RESAVE, function(request, response)  {
                 `)
             }
 
-            return object.save(null, {useMasterKey:true});
+            return object.save(null, {useMasterKey:true}).catch(() => 'ignore errors');
         }, {useMasterKey: true});
     })
         .then(() => {

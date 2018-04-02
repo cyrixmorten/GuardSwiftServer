@@ -5,7 +5,7 @@ import * as moment from "moment";
 import {GuardQuery} from "../../shared/subclass/Guard";
 
 import * as cpsms from '../../api/cpsms';
-import {centrals} from "../centrals/all";
+import {CentralParser} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
 
 
@@ -146,7 +146,7 @@ let alarmUpdate = (task: Task, status: TaskStatus) => {
     switch (status) {
         case TaskStatus.PENDING: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(CentralParser, (central) => {
                 central.handlePending(task);
             });
 
@@ -160,14 +160,14 @@ let alarmUpdate = (task: Task, status: TaskStatus) => {
         }
         case TaskStatus.ACCEPTED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(CentralParser, (central) => {
                 central.handleAccepted(task);
             });
             break;
         }
         case TaskStatus.ARRIVED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(CentralParser, (central) => {
                 central.handleArrived(task);
             });
             break;
@@ -176,14 +176,14 @@ let alarmUpdate = (task: Task, status: TaskStatus) => {
 
             sendNotification(task);
 
-            _.forEach(centrals, (central) => {
+            _.forEach(CentralParser, (central) => {
                 central.handleAborted(task);
             });
             break;
         }
         case TaskStatus.FINISHED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(CentralParser, (central) => {
                 central.handleFinished(task);
             });
             break;

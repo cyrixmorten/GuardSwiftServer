@@ -13,6 +13,7 @@ export class TrackerData extends BaseClass {
     static readonly _position = 'position';
     static readonly _taskGroup = 'taskGroup';
     static readonly _clientTimeStamp = 'clientTimeStamp';
+    static readonly _activityType = 'activityType';
 
 
     constructor() {
@@ -57,6 +58,22 @@ export class TrackerData extends BaseClass {
 
     set clientTimeStamp(clientTimeStamp: Date) {
         this.set(TrackerData._clientTimeStamp, clientTimeStamp);
+    }
+
+    get activityType(): number {
+        return this.get(TrackerData._activityType);
+    }
+
+    set activityType(activityType: number) {
+        // IN_VEHICLE = 0;
+        // ON_BICYCLE = 1;
+        // ON_FOOT = 2;
+        // STILL = 3;
+        // UNKNOWN = 4;
+        // TILTING = 5;
+        // WALKING = 7;
+        // RUNNING = 8;
+        this.set(TrackerData._activityType, activityType);
     }
 }
 

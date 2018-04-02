@@ -1,8 +1,10 @@
-export interface ICentral {
+import {IParsedAlarm} from "../alarm/alarm.parse";
+
+export interface ICentralParser {
     getName(): string;
     matchesCentral(alarmOrCentral): boolean;
 
-    parse(central, alarmMsg): Object;
+    parse(central, alarmMsg): IParsedAlarm;
 
     handlePending(alarm): void;
 

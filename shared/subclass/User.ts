@@ -1,3 +1,4 @@
+import {QueryBuilder} from "../QueryBuilder";
 
 export class User extends Parse.User {
 
@@ -6,6 +7,7 @@ export class User extends Parse.User {
     static readonly _name = 'name';
     static readonly _active = 'active';
     static readonly _timeZone = 'timeZone';
+    static readonly _sendTo = 'timeZone';
 
     constructor() {
         super(User.className);
@@ -35,4 +37,17 @@ export class User extends Parse.User {
         this.set(User._timeZone, timeZone);
     }
 
+}
+
+export class UserQuery extends QueryBuilder<Parse.User> {
+
+    constructor() {
+        super(Parse.User);
+    }
+
+    matchingSendTo(receiver: string): UserQuery {
+        this.query.equalTo(User._sendTo, receiver);
+
+        return this;
+    }
 }

@@ -1,8 +1,8 @@
 import {G4SCentral} from "./g4s";
 import {GuardswiftCentral} from "./guardswift";
-import {ICentral} from "./central.interface";
+import {ICentralParser} from "./central.interface";
 
-export let centrals: ICentral[] = [
+export let CentralParser: ICentralParser[] = [
     new G4SCentral(),
     new GuardswiftCentral()
 ];

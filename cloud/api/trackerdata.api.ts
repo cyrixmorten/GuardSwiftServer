@@ -54,7 +54,7 @@ Parse.Cloud.define(API_FUNCTION_TRACKERDATA_CLIENT_RADIUS, async (request: Funct
 
             let time = moment(data.clientTimeStamp).tz(timeZone).format('HH:mm:ss YYYY-MM-DD');
 
-            console.log(time, 'Afstand meter: ', _.round(distMeters));
+            console.log(time, 'Afstand meter: ', _.round(distMeters), 'aktivitet:', data.activityType);
 
             if (distMeters <= triggerRadiusMeters) {
                 withinCount++;

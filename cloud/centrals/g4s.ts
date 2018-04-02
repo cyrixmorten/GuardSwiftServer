@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import {ICentral} from "./central.interface";
+import {ICentralParser} from "./central.interface";
+import {IParsedAlarm} from "../alarm/alarm.parse";
 let cpsms = require('../../api/cpsms');
 
-export class G4SCentral implements ICentral {
+export class G4SCentral implements ICentralParser {
 
     getName() {
         return "G4S";
@@ -16,7 +17,7 @@ export class G4SCentral implements ICentral {
     };
 
 
-    parse(central, alarmMsg) {
+    parse(central, alarmMsg): IParsedAlarm {
         if (!this.matchesCentral(central)) {
             return;
         }

@@ -5,6 +5,7 @@ import {Guard} from "./Guard";
 import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
 import {Client} from "./Client";
+import {Central} from "./Central";
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -40,11 +41,18 @@ export class Task extends BaseClass {
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
     static readonly _clientAddress = 'clientAddress';
+    static readonly _fullAddress = 'fullAddress';
     static readonly _position = 'position';
 
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
     static readonly _supervisions = 'supervisions';
+
+    static readonly _original = 'original';
+    static readonly _central = 'central';
+    static readonly _centralName = 'centralName';
+    static readonly _sentFrom = 'sentFrom';
+    static readonly _sentTo = 'sentTo';
     
 
     constructor() {
@@ -163,6 +171,14 @@ export class Task extends BaseClass {
         this.set(Task._clientAddress, name);
     }
 
+    get fullAddress(): string {
+        return this.get(Task._fullAddress);
+    }
+
+    set fullAddress(name: string) {
+        this.set(Task._fullAddress, name);
+    }
+
     set days(days: number[]) {
         this.set(Task._days, days);
     }
@@ -254,6 +270,16 @@ export class TaskQuery extends QueryBuilder<Task>{
 
     matchingClient(client: Client) {
         this.query.equalTo(Task._client, client);
+        return this;
+    }
+
+    matchingCentral(central: Central) {
+        this.query.equalTo(Task._central, central);
+        return this;
+    }
+
+    matchingFullAddress(fullAddress: string) {
+        this.query.equalTo(Task._fullAddress, fullAddress);
         return this;
     }
 }

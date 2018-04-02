@@ -6,7 +6,7 @@ export class Central extends BaseClass {
     static readonly className = 'Central';
 
     static readonly _name = 'name';
-
+    static readonly _sendFrom = 'sendFrom';
 
     constructor() {
         super(Central.className);
@@ -29,6 +29,11 @@ export class CentralQuery extends QueryBuilder<Central> {
         super(Central);
     }
 
+    matchingSendFrom(sentFrom: string): CentralQuery {
+        this.query.equalTo(Central._sendFrom, sentFrom);
+
+        return this;
+    }
 
 
 }

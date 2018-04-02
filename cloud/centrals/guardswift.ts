@@ -2,11 +2,12 @@
  * GUARDSWIFT CENTRAL
  */
 import * as _ from 'lodash';
-import {ICentral} from "./central.interface";
+import {ICentralParser} from "./central.interface";
+import {IParsedAlarm} from "../alarm/alarm.parse";
 let cpsms = require('../../api/cpsms');
 
 
-export class GuardswiftCentral implements ICentral{
+export class GuardswiftCentral implements ICentralParser{
 
     getName() {
         return "GuardSwift";
@@ -20,7 +21,7 @@ export class GuardswiftCentral implements ICentral{
     };
 
 
-    parse(central, alarmMsg) {
+    parse(central, alarmMsg): IParsedAlarm {
         console.log('matchesCentral(alarm): ', this.matchesCentral(central));
         if (!this.matchesCentral(central)) {
             return;
@@ -31,6 +32,7 @@ export class GuardswiftCentral implements ICentral{
             action: 'create',
             alarmMsg: 'Test alarm, Ryttervej 16 6600 Vejen, A, Indbrud, Hund, Bag døren',
             alarmObject: {
+                clientId: 'Test',
                 clientName: 'Test alarm',
                 fullAddress: 'Ryttervej 16 6600 Vejen',
                 priority: 'A',

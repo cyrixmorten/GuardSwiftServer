@@ -1,34 +1,26 @@
 import * as _ from 'lodash';
-import {AlarmUtils} from "./utils";
-import {Client} from '../../shared/subclass/Client';
+import {Client, ClientQuery} from '../../shared/subclass/Client';
 import {Central} from "../../shared/subclass/Central";
 import {IParsedAlarm} from "./alarm.parse";
-import {User} from "../../shared/subclass/User";
-
-export interface IAlarmOptions {
-    sender: string,
-    receiver: string,
-    central: Central,
-    user: User,
-    parsedAlarm: IParsedAlarm
-}
-
-export let createAlarm = function (options: IAlarmOptions) {
-
-    let Alarm = Parse.Object.extend("Task");
-    let alarm = new Alarm();
-    alarm.set('taskType', 'Alarm');
-    alarm.set('sentFrom', options.sender);
-    alarm.set('sentTo', options.receiver);
-
-    alarm.set('central', options.central);
-    alarm.set('centralName', options.central.get('name'));
-
-    alarm.set('owner', options.user);
+import {Task, TaskType} from "../../shared/subclass/Task";
 
 
-    let alarmObject = options.parsedAlarm.alarmObject;
-    let alarmMsg = options.parsedAlarm.alarmMsg;
+export let createAlarm = async (user: Parse.User, central: Central, sender: string, receiver: string, parsedAlarm: IParsedAlarm): Promise<Task> => {
+
+    let alarm = new Task();
+
+    alarm.set(Task._taskType, TaskType.ALARM);
+    alarm.set(Task._sentFrom, sender);
+    alarm.set(Task._sentTo, receiver);
+
+    alarm.set(Task._central, central);
+    alarm.set(Task._centralName, central.name);
+
+    alarm.set(Task._owner, user);
+
+
+    let alarmObject = parsedAlarm.alarmObject;
+    let alarmMsg = parsedAlarm.alarmMsg;
 
     console.log('alarmObj: ', alarmObject);
 
@@ -36,46 +28,37 @@ export let createAlarm = function (options: IAlarmOptions) {
         return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
     }
 
-    _.forOwn(alarmObject, function (value, key) {
+    _.forOwn(alarmObject, (value, key) => {
         alarm.set(key, value);
     });
 
-    alarm.set('original', alarmMsg);
+    alarm.set(Task._original, alarmMsg);
 
-    return AlarmUtils.findClient(options.user, {
-        clientId: alarmObject.clientId,
-        fullAddress: alarmObject.fullAddress
-    }).then(function (client) {
+    let client: Client = await new ClientQuery()
+        .matchingOwner(user)
+        .matchingClientId(user.get(Client._clientId))
+        .matchingFullAddress(parsedAlarm.alarmObject.fullAddress)
+        .build()
+        .first({useMasterKey: true});
 
-        if (_.isEmpty(client) || !client.has('placeId')) {
-            return AlarmUtils.createClient(options.user, alarm);
-        }
 
+    if (_.isEmpty(client) || !client.has(Client._placeId)) {
+        client = await Client.createFromAlarm(user, alarm);
+    }
+    else {
         console.log('existing client');
+    }
 
-        // client already exists
-        return client;
-    }).then(function (client: Client) {
+    console.log('client: ' + client.name);
 
-        console.log('client: ' + client.name);
+    alarm.set(Task._client, client);
+    alarm.setUserACL(user);
 
-        alarm.set('client', client);
-
-        let acl = new Parse.ACL();
-        acl.setReadAccess(options.user.id, true);
-        acl.setWriteAccess(options.user.id, true);
-        acl.setPublicReadAccess(false);
-        acl.setPublicWriteAccess(false);
-
-
-        alarm.setACL(acl);
-
-        // copy client attributes to alarm and save
-        Object.keys(client.attributes).forEach(function (fieldName) {
-            alarm.set(fieldName, client.get(fieldName));
-        });
-
-
-        return alarm.save(null, {useMasterKey: true});
+    // copy client attributes to alarm and save
+    Object.keys(client.attributes).forEach( (fieldName) => {
+        alarm.set(fieldName, client.get(fieldName));
     });
+
+
+    return alarm.save(null, {useMasterKey: true});
 };
