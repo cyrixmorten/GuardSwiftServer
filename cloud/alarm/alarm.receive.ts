@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
-import {IParsedAlarm, parseAlarm} from "./alarm.parse";
 import {createAlarm} from "./alarm.create";
 import {Central, CentralQuery} from "../../shared/subclass/Central";
 import {Task, TaskQuery} from "../../shared/subclass/Task";
 import {UserQuery} from "../../shared/subclass/User";
+import {IParsedAlarm} from "../centrals/central.interface";
+import {parseAlarm} from "./alarm.parse";
 
 export type AlarmRequest = {
     params: {

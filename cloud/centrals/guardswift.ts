@@ -1,12 +1,9 @@
 /*
  * GUARDSWIFT CENTRAL
  */
-import * as _ from 'lodash';
-import {ICentralParser} from "./central.interface";
-import {IParsedAlarm} from "../alarm/alarm.parse";
+import {ICentralParser, IParsedAlarm} from "./central.interface";
 import {Central} from "../../shared/subclass/Central";
 import {Task} from "../../shared/subclass/Task";
-let cpsms = require('../../api/cpsms');
 
 
 export class GuardswiftCentral implements ICentralParser{

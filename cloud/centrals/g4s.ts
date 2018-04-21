@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
-import {ICentralParser} from "./central.interface";
-import {IParsedAlarm} from "../alarm/alarm.parse";
+import {ICentralParser, IParsedAlarm} from "./central.interface";
 import {Task} from "../../shared/subclass/Task";
 import {Central} from "../../shared/subclass/Central";
 let cpsms = require('../../api/cpsms');

@@ -1,4 +1,3 @@
-import {IParsedAlarm} from "../alarm/alarm.parse";
 import {Central} from "../../shared/subclass/Central";
 import {Task} from "../../shared/subclass/Task";
 
@@ -19,4 +18,18 @@ export interface ICentralParser {
     handleAborted(alarm): void;
 
     handleFinished(alarm): void;
+}
+
+export interface IParsedAlarm {
+    action: 'create' | 'abort' | 'finish',
+    alarmMsg: string,
+    alarmObject: {
+        clientId: string;
+        clientName: string,
+        fullAddress: string,
+        priority: string,
+        signalStatus: string,
+        remarks: string,
+        keybox: string
+    }
 }

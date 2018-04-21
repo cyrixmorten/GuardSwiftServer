@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
 import {Client, ClientQuery} from '../../shared/subclass/Client';
 import {Central} from "../../shared/subclass/Central";
-import {IParsedAlarm} from "./alarm.parse";
 import {Task, TaskType} from "../../shared/subclass/Task";
+import {IParsedAlarm} from "../centrals/central.interface";
 
 
 export let createAlarm = async (user: Parse.User, central: Central, sender: string, receiver: string, parsedAlarm: IParsedAlarm): Promise<Task> => {
