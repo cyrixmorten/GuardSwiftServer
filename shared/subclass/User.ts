@@ -7,7 +7,7 @@ export class User extends Parse.User {
     static readonly _name = 'name';
     static readonly _active = 'active';
     static readonly _timeZone = 'timeZone';
-    static readonly _sendTo = 'timeZone';
+    static readonly _sendTo = 'sendTo';
 
     constructor() {
         super(User.className);
@@ -35,6 +35,14 @@ export class User extends Parse.User {
 
     set timeZone(timeZone: string) {
         this.set(User._timeZone, timeZone);
+    }
+
+    get sendTo(): string {
+        return this.get(User._sendTo);
+    }
+
+    set sendTo(sendTo: string) {
+        this.set(User._sendTo, sendTo);
     }
 
 }
