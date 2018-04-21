@@ -65,7 +65,7 @@ export class Client extends BaseClass {
     }
 
     get name(): string {
-        return this.get(Client._name);
+        return this.get(Client._name) || '';
     }
 
     set name(name: string) {
@@ -77,9 +77,52 @@ export class Client extends BaseClass {
     }
 
     get clientId(): string {
-        return this.get(Client._clientId);
+        return this.get(Client._clientId) || '';
     }
 
+    set placeId(placeId: string) {
+        this.set(Client._placeId, placeId);
+    }
+
+    get placeId(): string {
+        return this.get(Client._placeId) || '';
+    }
+    
+    set street(street: string) {
+        this.set(Client._street, street);
+    }
+
+    get street(): string {
+        return this.get(Client._street) || '';
+    }
+
+    set streetNumber(streetNumber: string) {
+        this.set(Client._streetNumber, streetNumber);
+    }
+
+    get streetNumber(): string {
+        return this.get(Client._streetNumber) || '';
+    }
+
+    get streetNameAndNumber(): string {
+        return `${this.street} ${this.streetNumber}`;
+    }
+
+    set city(city: string) {
+        this.set(Client._city, city);
+    }
+
+    get city(): string {
+        return this.get(Client._city);
+    }
+
+    set postalCode(postalCode: string) {
+        this.set(Client._postalCode, postalCode);
+    }
+
+    get postalCode(): string {
+        return this.get(Client._postalCode);
+    }
 
     set fullAddress(fullAddress: string) {
         this.set(Client._fullAddress, fullAddress);
@@ -87,6 +130,14 @@ export class Client extends BaseClass {
 
     get fullAddress(): string {
         return this.get(Client._fullAddress);
+    }
+
+    set formattedAddress(formattedAddress: string) {
+        this.set(Client._formattedAddress, formattedAddress);
+    }
+
+    get formattedAddress(): string {
+        return this.get(Client._formattedAddress);
     }
 
     get position(): Parse.GeoPoint {
@@ -137,45 +188,39 @@ export class Client extends BaseClass {
         };
 
         let placeObject = this.placeObject;
-        let street = addressComponentByType(placeObject.address_components, 'route');
-        let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
 
-        let placeProperties = {
-            placeId: '',
-            formattedAddress: searchAddress,
-            street: '',
-            streetNumber: '',
-            fullAddress: searchAddress,
-            city: '',
-            postalCode: '',
-            position: new Parse.GeoPoint({
+        if (!placeObject || !placeObject.address_components) {
+            this.placeId = '';
+            this.formattedAddress = searchAddress;
+            this.street = '';
+            this.streetNumber = '';
+            this.fullAddress = searchAddress;
+            this.city = '';
+            this.postalCode = '';
+            this.position = new Parse.GeoPoint({
+                latitude: 1,
+                longitude: 1
+            });
+        } else {
+
+            let street = addressComponentByType(placeObject.address_components, 'route');
+            let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
+            
+            this.placeId = placeObject.place_id;
+            this.formattedAddress = placeObject.formatted_address;
+            this.street = street;
+            this.streetNumber = streetNumber;
+            this.fullAddress = `${street} ${streetNumber}`;
+            this.city = addressComponentByType(placeObject.address_components, 'locality');
+            this.postalCode = addressComponentByType(placeObject.address_components, 'postal_code');
+            this.position = placeObject.geometry ? new Parse.GeoPoint({
+                latitude: placeObject.geometry.location.lat,
+                longitude: placeObject.geometry.location.lng
+            }) : new Parse.GeoPoint({
                 latitude: 1,
                 longitude: 1
             })
-        };
-
-        if (!_.isEmpty(street)) {
-            placeProperties = {
-                placeId: placeObject.place_id,
-                formattedAddress: placeObject.formatted_address,
-                street: street,
-                streetNumber: streetNumber,
-                fullAddress: street + ' ' + streetNumber,
-                city: addressComponentByType(placeObject.address_components, 'locality'),
-                postalCode: addressComponentByType(placeObject.address_components, 'postal_code'),
-                position: placeObject.geometry ? new Parse.GeoPoint({
-                    latitude: placeObject.geometry.location.lat,
-                    longitude: placeObject.geometry.location.lng
-                }) : new Parse.GeoPoint({
-                    latitude: 1,
-                    longitude: 1
-                })
-            }
         }
-
-        _.forOwn(placeProperties, (value, key) => {
-            this.set(key, value);
-        });
     }
 
 
