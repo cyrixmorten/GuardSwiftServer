@@ -36,13 +36,13 @@ export let createAlarm = async (user: Parse.User, central: Central, sender: stri
 
     let client: Client = await new ClientQuery()
         .matchingOwner(user)
-        .matchingClientId(user.get(Client._clientId))
+        .matchingClientId(parsedAlarm.alarmObject.clientId)
         .matchingFullAddress(parsedAlarm.alarmObject.fullAddress)
         .build()
         .first({useMasterKey: true});
 
 
-    if (_.isEmpty(client) || !client.has(Client._placeId)) {
+    if (_.isEmpty(client) || !client.hasPlaceId()) {
         client = await Client.createFromAlarm(user, alarm);
     }
     else {

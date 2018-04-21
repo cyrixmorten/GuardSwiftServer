@@ -49,12 +49,17 @@ export const handleAlarmRequest = async (request: AlarmRequest): Promise<string>
     }
 
     let user: Parse.User = await new UserQuery().matchingSendTo(receiver).build().first({useMasterKey: true});
+
+    if (!user) {
+        throw 'Unable to find user matching receiver: ' + receiver
+    }
+
     let parsedAlarm: IParsedAlarm = await parseAlarm(central, alarmMsg);
 
     let action = parsedAlarm.action;
 
     if (action === 'create') {
-        let alarm = await createAlarm(user, central, sender, receiver, parsedAlarm);
+        await createAlarm(user, central, sender, receiver, parsedAlarm);
 
         return 'Successfully created alarm';
     }
@@ -72,7 +77,7 @@ export const handleAlarmRequest = async (request: AlarmRequest): Promise<string>
 
         alarm.set(Task._status, 'aborted');
 
-        let updatedAlarm = await alarm.save(null, {useMasterKey: true});
+        await alarm.save(null, {useMasterKey: true});
 
         return 'Alarm aborted';
     }
