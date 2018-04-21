@@ -14,14 +14,19 @@ export let findCentralParserMatchingCentral = (central: Central): ICentralParser
 
     console.log('findCentralParserMatchingCentral: ', central.name);
 
+    let centralParser: ICentralParser;
     _.forEach(CentralParsers, (handler: ICentralParser) => {
 
         console.log('handler.getName(): ', handler.getName());
 
         if (handler.matchesCentral(central)) {
-            return handler;
+            centralParser = handler;
         }
     });
+
+    if (centralParser) {
+        return centralParser;
+    }
 
     throw 'Unable to find central parser matching central';
 };
@@ -30,11 +35,16 @@ export let findCentralParserMatchingAlarm = (alarm: Task): ICentralParser => {
 
     console.log('findCentralParserMatchingAlarm: ', alarm.centralName);
 
+    let centralParser: ICentralParser;
     _.forEach(CentralParsers, (handler: ICentralParser) => {
         if (handler.matchesAlarm(alarm)) {
-            return handler;
+            centralParser = handler;
         }
     });
+
+    if (centralParser) {
+        return centralParser;
+    }
 
     throw 'Unable to find central parser matching alarm';
 };

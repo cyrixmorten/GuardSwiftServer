@@ -13,6 +13,7 @@ export class GuardswiftCentral implements ICentralParser{
     }
 
     matchesCentral(central: Central) {
+        console.log('matchesCentral: ', this.getName(), central.name === this.getName());
         return central.name === this.getName();
     };
 
