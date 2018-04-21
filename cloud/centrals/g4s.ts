@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import {ICentralParser} from "./central.interface";
 import {IParsedAlarm} from "../alarm/alarm.parse";
+import {Task} from "../../shared/subclass/Task";
+import {Central} from "../../shared/subclass/Central";
 let cpsms = require('../../api/cpsms');
 
 export class G4SCentral implements ICentralParser {
@@ -9,24 +11,21 @@ export class G4SCentral implements ICentralParser {
         return "G4S";
     }
 
-    matchesCentral(alarmOrCentral) {
+    matchesCentral(central: Central) {
+        return central.name === this.getName();
+    };
 
-        let centralName =  alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
-
-        return centralName === this.getName();
+    matchesAlarm(alarm: Task) {
+        return alarm.centralName === this.getName();
     };
 
 
     parse(central, alarmMsg): IParsedAlarm {
-        if (!this.matchesCentral(central)) {
-            return;
-        }
-
         let onMyWayclientNumberAndAlarm = _.split(alarmMsg, ':');
         let statusMsg = _.split(onMyWayclientNumberAndAlarm[0], ',')[0];
 
         if (statusMsg !== 'På vej' && statusMsg !== 'ANNULERET') {
-            throw new Error('Ignoring G4S status chain message')
+            throw 'Ignoring G4S status chain message'
         }
 
         let pieces = _.split(onMyWayclientNumberAndAlarm[1], ',');
@@ -48,7 +47,7 @@ export class G4SCentral implements ICentralParser {
     };
 
     private smsToCentral(alarm, message) {
-        this.findGuardMobile(alarm).then(function(mobileNumber) {
+        this.findGuardMobile(alarm).then((mobileNumber) => {
             cpsms.send({
                 to: alarm.get('sentFrom'),
                 from: mobileNumber,
@@ -63,11 +62,11 @@ export class G4SCentral implements ICentralParser {
 
         let guardPointer = alarm.get('guard');
         if (guardPointer) {
-            return guardPointer.fetch({useMasterKey: true}).then(function (guard) {
+            return guardPointer.fetch({useMasterKey: true}).then((guard) => {
                 let mobile = guard.get('mobileNumber');
 
                 return mobile && mobile.length > 6 ? mobile : fallback;
-            }).fail(function() {
+            }).fail(() => {
                 return fallback;
             });
         }
@@ -76,41 +75,22 @@ export class G4SCentral implements ICentralParser {
     };
     
     handlePending(alarm) {
-        if (!this.matchesCentral(alarm)) {
-            return;
-        }
 
     };
 
     handleAccepted(alarm) {
-        if (!this.matchesCentral(alarm)) {
-            return;
-        }
-
         this.smsToCentral(alarm, 'På vej,' + alarm.get('original'));
     };
 
     handleArrived(alarm) {
-        if (!this.matchesCentral(alarm)) {
-            return;
-        }
-
         this.smsToCentral(alarm, 'Fremme,' + alarm.get('original'));
     };
 
     handleAborted(alarm) {
-        if (!this.matchesCentral(alarm)) {
-            return;
-        }
 
     };
 
     handleFinished(alarm) {
-        if (!this.matchesCentral(alarm)) {
-            return;
-        }
-
-
         this.smsToCentral(alarm, 'Slut,' + alarm.get('original'));
     };
 }

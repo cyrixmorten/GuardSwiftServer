@@ -42,6 +42,11 @@ export const handleAlarmRequest = async (request: AlarmRequest): Promise<string>
     }
 
     let central: Central = await new CentralQuery().matchingSendFrom(sender).build().first({useMasterKey: true});
+
+    if (!central) {
+        throw 'Unable to find central matching sender: ' + sender
+    }
+
     let user: Parse.User = await new UserQuery().matchingSendTo(receiver).build().first({useMasterKey: true});
     let parsedAlarm: IParsedAlarm = await parseAlarm(central, alarmMsg);
 

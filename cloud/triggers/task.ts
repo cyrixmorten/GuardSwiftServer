@@ -5,8 +5,11 @@ import * as moment from "moment";
 import {GuardQuery} from "../../shared/subclass/Guard";
 
 import * as cpsms from '../../api/cpsms';
-import {CentralParser} from "../centrals/all";
+import {CentralParsers} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
+import {Central} from "../../shared/subclass/Central";
+import {ICentralParser} from "../centrals/central.interface";
+import {findCentralParserMatchingAlarm, findCentralParserMatchingCentral} from "../alarm/alarm.parse";
 
 
 Parse.Cloud.beforeSave(Task, (request, response) => {
@@ -143,12 +146,12 @@ let sendNotification = (alarm) => {
 
 let alarmUpdate = (task: Task, status: TaskStatus) => {
 
+    let centralParser: ICentralParser = findCentralParserMatchingAlarm(task);
+
     switch (status) {
         case TaskStatus.PENDING: {
 
-            _.forEach(CentralParser, (central) => {
-                central.handlePending(task);
-            });
+            centralParser.handlePending(task);
 
             sendNotification(task).then(() => {
                 console.log('Done sending notification for alarm', task.id);
@@ -159,33 +162,22 @@ let alarmUpdate = (task: Task, status: TaskStatus) => {
             break;
         }
         case TaskStatus.ACCEPTED: {
-
-            _.forEach(CentralParser, (central) => {
-                central.handleAccepted(task);
-            });
+            centralParser.handleAccepted(task);
             break;
         }
         case TaskStatus.ARRIVED: {
-
-            _.forEach(CentralParser, (central) => {
-                central.handleArrived(task);
-            });
+            centralParser.handleArrived(task);
             break;
         }
         case TaskStatus.ABORTED: {
 
             sendNotification(task);
 
-            _.forEach(CentralParser, (central) => {
-                central.handleAborted(task);
-            });
+            centralParser.handleAborted(task);
             break;
         }
         case TaskStatus.FINISHED: {
-
-            _.forEach(CentralParser, (central) => {
-                central.handleFinished(task);
-            });
+            centralParser.handleFinished(task);
             break;
         }
         default: {

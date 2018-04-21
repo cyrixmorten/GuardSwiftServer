@@ -1,7 +1,8 @@
 import * as _ from 'lodash';
-import {CentralParser} from "../centrals/all";
+import {CentralParsers} from "../centrals/all";
 import {Central} from "../../shared/subclass/Central";
 import {ICentralParser} from "../centrals/central.interface";
+import {Task} from "../../shared/subclass/Task";
 
 export interface IParsedAlarm {
     action: 'create' | 'abort' | 'finish',
@@ -18,13 +19,32 @@ export interface IParsedAlarm {
 }
 
 export let parseAlarm = async (central: Central, alarmMsg: string): Promise<IParsedAlarm> => {
+    return findCentralParserMatchingCentral(central).parse(central, alarmMsg);
+};
 
-    _.forEach(CentralParser, (handler: ICentralParser) => {
+export let findCentralParserMatchingCentral = (central: Central): ICentralParser => {
+
+    console.log('findCentralParserMatchingCentral: ', central.name);
+
+    _.forEach(CentralParsers, (handler: ICentralParser) => {
         if (handler.matchesCentral(central)) {
-            return handler.parse(central, alarmMsg) || {};
+            return handler;
         }
     });
 
-   throw 'Unable to parse alarm, did not find central matching sender';
+    throw 'Unable to find central parser matching central';
+};
+
+export let findCentralParserMatchingAlarm = (alarm: Task): ICentralParser => {
+
+    console.log('findCentralParserMatchingAlarm: ', alarm.centralName);
+
+    _.forEach(CentralParsers, (handler: ICentralParser) => {
+        if (handler.matchesAlarm(alarm)) {
+            return handler;
+        }
+    });
+
+    throw 'Unable to find central parser matching alarm';
 };
 

@@ -213,6 +213,14 @@ export class Task extends BaseClass {
     }
 
 
+    get centralName(): string {
+        return this.get(Task._centralName);
+    }
+
+    set centralName(centralName: string) {
+        this.set(Task._centralName, centralName);
+    }
+
     isType(type: TaskType) {
         return this.taskType === type;
     }
