@@ -4,6 +4,7 @@ import FunctionResponse = Parse.Cloud.FunctionResponse;
 import {ClientQuery, Client} from "../../shared/subclass/Client";
 import {TrackerData, TrackerDataQuery} from "../../shared/subclass/TrackerData";
 import * as _ from "lodash";
+import {Guard, GuardQuery} from "../../shared/subclass/Guard";
 
 export const API_FUNCTION_TRACKERDATA_CLIENT_RADIUS = "trackerDataClientRadius";
 
@@ -14,26 +15,36 @@ Parse.Cloud.define(API_FUNCTION_TRACKERDATA_CLIENT_RADIUS, async (request: Funct
 
     // Dates formatted as ISO 8601
     // Example date: 2013-02-18 09:30
-    let fromDate = '2018-03-17 09:00';
-    let toDate = '2018-03-18 12:00';
+    let fromDate = '2018-04-14 09:00';
+    let toDate = '2018-04-15 12:00';
 
     // objectId of client
-    let clientId = 'xfrZID1u2Y';
+    let clientId = 'iTubHpmSDK'; // 63EUBjpDYO
 
     // objectId of guard
-    let guardId = 'b5TNgNG7ve';
+    let guardId = 'bAvc5Bz1eH';
 
     // radius meters wrt. client
     let searchRadiusMeters = 75;
     let triggerRadiusMeters = 50;
 
     try {
-        let client: Client = await new ClientQuery().matchingId(clientId).build().first({useMasterKey: true});
+        let guard: Guard = await new GuardQuery().matchingObjectId(guardId).build().first({useMasterKey: true});
+        let client: Client = await new ClientQuery().matchingObjectId(clientId).build().first({useMasterKey: true});
+
+        if (!guard) {
+            return response.error(`Unable to locate guard with objectId ${guardId}`);
+        }
+
+        if (!client) {
+            return response.error(`Unable to locate client with objectId ${clientId}`);
+        }
 
         console.log('Kunde: ', client.name);
-        console.log('Vægter: ', 'Mikael Hansen');
+        console.log('Vægter: ', guard.name);
         console.log('Tid: ', fromDate, '-', toDate);
-        console.log('Afstand søgt: ', '75 meter');
+        console.log('Afstand søgt: ', `${searchRadiusMeters} meter`);
+        console.log('Ankomst afstand: ', `${triggerRadiusMeters} meter`);
 
         let trackerData: TrackerData[] = await new TrackerDataQuery()
             .matchingGuard(guardId)
@@ -46,6 +57,7 @@ Parse.Cloud.define(API_FUNCTION_TRACKERDATA_CLIENT_RADIUS, async (request: Funct
         console.log('GPS positioner: ', trackerData.length);
 
         let withinCount: number = 0;
+        let arrivalCount: number = 0;
 
         _.forEach(trackerData, (data: TrackerData) => {
 
@@ -54,15 +66,17 @@ Parse.Cloud.define(API_FUNCTION_TRACKERDATA_CLIENT_RADIUS, async (request: Funct
 
             let time = moment(data.clientTimeStamp).tz(timeZone).format('HH:mm:ss YYYY-MM-DD');
 
-            console.log(time, 'Afstand meter: ', _.round(distMeters), 'aktivitet:', data.activityType);
+            // console.log(time, 'Afstand meter: ', _.round(distMeters), 'aktivitet:', data.activityName);
 
             if (distMeters <= triggerRadiusMeters) {
                 withinCount++;
 
                 if (withinCount === 1) {
+                    arrivalCount++;
+
                     console.log('--------');
-                    console.log('Indenfor 50 meters radius');
-                    console.log(moment(data.clientTimeStamp).tz(timeZone).format('HH:mm:ss YYYY-MM-DD'));
+                    console.log('Indenfor 50 meters radius - Ankomst nummer: ', arrivalCount);
+                    console.log(moment(data.clientTimeStamp).tz(timeZone).format('HH:mm:ss YYYY-MM-DD'), 'aktivitet:', data.activityName);
                     console.log('--------');
                 }
             } else {
@@ -73,6 +87,7 @@ Parse.Cloud.define(API_FUNCTION_TRACKERDATA_CLIENT_RADIUS, async (request: Funct
         response.success(trackerData.length);
 
     } catch (e) {
+        console.error("e: ", e);
         response.error(JSON.stringify(e));
     }
 

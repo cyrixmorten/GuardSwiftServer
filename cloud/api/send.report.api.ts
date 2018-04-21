@@ -33,7 +33,7 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
         throw new Error('sendReport missing reportId');
     }
 
-    let query = new ReportQuery().matchingId(reportId).build();
+    let query = new ReportQuery().matchingObjectId(reportId).build();
 
     query.include(Report._owner);
     query.include(`${Report._client}.${Client._contacts}`);

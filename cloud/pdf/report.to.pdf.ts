@@ -16,7 +16,7 @@ export class ReportToPDF {
             throw new Error('buildDoc missing reportId');
         }
 
-        let query = new ReportQuery().matchingId(reportId).build();
+        let query = new ReportQuery().matchingObjectId(reportId).build();
 
         query.include(Report._eventLogs);
         query.include(Report._tasks);

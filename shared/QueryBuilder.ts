@@ -21,7 +21,7 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    matchingId(id: string) {
+    matchingObjectId(id: string) {
         this.query.equalTo(QueryBuilder._objectId, id);
 
         return this;

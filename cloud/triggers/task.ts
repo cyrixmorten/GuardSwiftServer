@@ -20,7 +20,7 @@ Parse.Cloud.beforeSave(Task, (request, response) => {
     // task is either newly created or pointed to another client
     if (task.dirty(Task._client)) {
 
-        new ClientQuery().matchingId(task.client.id).build().first({useMasterKey: true}).then((client) => {
+        new ClientQuery().matchingObjectId(task.client.id).build().first({useMasterKey: true}).then((client) => {
 
             task.client = client;
 

@@ -65,15 +65,22 @@ export class TrackerData extends BaseClass {
     }
 
     set activityType(activityType: number) {
-        // IN_VEHICLE = 0;
-        // ON_BICYCLE = 1;
-        // ON_FOOT = 2;
-        // STILL = 3;
-        // UNKNOWN = 4;
-        // TILTING = 5;
-        // WALKING = 7;
-        // RUNNING = 8;
         this.set(TrackerData._activityType, activityType);
+    }
+
+    get activityName(): string {
+        switch (this.activityType) {
+            case 0: return "IN_VEHICLE";
+            case 1: return "ON_BICYCLE";
+            case 2: return "ON_FOOT";
+            case 3: return "STILL";
+            case 4: return "UNKNOWN";
+            case 5: return "TILTING";
+            case 7: return "WALKING";
+            case 8: return "RUNNING";
+        }
+
+        return "";
     }
 }
 
