@@ -25,7 +25,7 @@ export let createAlarm = async (user: Parse.User, central: Central, sender: stri
     console.log('alarmObj: ', alarmObject);
 
     if (!alarmObject.fullAddress) {
-        return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
+        throw 'Address missing from alarm: ' + alarmMsg;
     }
 
     _.forOwn(alarmObject, (value, key) => {

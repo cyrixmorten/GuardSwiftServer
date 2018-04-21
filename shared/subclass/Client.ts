@@ -205,7 +205,7 @@ export class Client extends BaseClass {
 
             let street = addressComponentByType(placeObject.address_components, 'route');
             let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
-            
+
             this.placeId = placeObject.place_id;
             this.formattedAddress = placeObject.formatted_address;
             this.street = street;
@@ -225,7 +225,7 @@ export class Client extends BaseClass {
 
 
     public async fetchAndSetPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<void> {
-
+        console.log('fetchAndSetPlaceObject', isRetry, searchAddress);
 
         try {
             let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
