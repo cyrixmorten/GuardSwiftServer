@@ -6,18 +6,6 @@ import * as _ from "lodash";
 import HttpResponse = Parse.Cloud.HttpResponse;
 import {Task} from "./Task";
 
-type GSPlaceObject = {
-    placeObject: Object,
-    placeId: string,
-    formattedAddress: string,
-    street: string,
-    streetNumber: string,
-    fullAddress: string,
-    city: string,
-    postalCode: string,
-    position: Parse.GeoPoint;
-}
-
 export class Client extends BaseClass {
 
     static async createFromAlarm(user: Parse.User, alarm: Task) {
@@ -32,13 +20,11 @@ export class Client extends BaseClass {
         client.set(Client._clientId, clientId);
         client.set(Client._automatic, true);
         client.set(Client._name, name);
-        client.set(Client._fullAddress, alarmFullAddress);
         client.set(Client._owner, user);
 
         client.setUserACL(user);
 
-        await client.addPlaceObject(alarmFullAddress);
-
+        await client.fetchAndSetPlaceObject(alarmFullAddress);
 
         return client.save(null, {useMasterKey: true});
     };
@@ -51,20 +37,25 @@ export class Client extends BaseClass {
     static readonly _automatic = 'automatic';
 
     // TODO Replace 
-    static readonly _cityName = 'cityName';
-    static readonly _zipcode = 'zipcode';
-    static readonly _addressName = 'addressName';
-    static readonly _addressNumber = 'addressNumber';
+    static readonly _cityName = 'cityName'; // city
+    static readonly _zipcode = 'zipcode'; // postalCode
+    static readonly _addressName = 'addressName'; // street
+    static readonly _addressNumber = 'addressNumber'; // streetNumber
     // TODO Replace
 
     // TODO ensure added by placeObject (used by alarms)
-    static readonly _fullAddress = 'fullAddress';
 
-
-    static readonly _placeId = 'placeId';
     static readonly _placeObject = 'placeObject';
+    static readonly _placeId = 'placeId';
+    static readonly _fullAddress = 'fullAddress';
+    static readonly _formattedAddress = 'formattedAddress';
+    static readonly _street = 'street';
+    static readonly _streetNumber = 'streetNumber';
+    static readonly _city = '_city';
+    static readonly _postalCode = '_postalCode';
 
     static readonly _position = 'position';
+
 
     static readonly _contacts = 'contacts';
 
@@ -114,11 +105,11 @@ export class Client extends BaseClass {
         this.set(Client._contacts, contacts);
     }
 
-    get placeObject(): Object {
-        return this.get(Client._placeObject);
+    get placeObject(): any {
+        return this.get(Client._placeObject) || {};
     }
 
-    set placeObject(placeObject: Object) {
+    set placeObject(placeObject: any) {
         this.set(Client._placeObject, placeObject);
     }
 
@@ -127,41 +118,44 @@ export class Client extends BaseClass {
     }
 
 
-    async addPlaceObject(searchAddress: string) {
+    public applyPlaceObject(searchAddress: string = '') {
 
-        let gsPlaceObject: GSPlaceObject = await this.lookupPlaceObject(searchAddress);
-
-        _.forOwn(gsPlaceObject,  (value, key) => {
-            this.set(key, value);
-        });
-
-    }
-
-    private async lookupPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<GSPlaceObject> {
-
-        let toGSPlaceObject = (placeObject): GSPlaceObject => {
-
-            let addressComponentByType = (components: any[], type) => {
-                if (_.isEmpty(components)) {
-                    return '';
-                }
-
-                let component = _.find(components, (component) => {
-                    return _.includes(component.types, type);
-                });
-
-                if (component) {
-                    return component.long_name;
-                }
-
+        let addressComponentByType = (components: any[], type) => {
+            if (_.isEmpty(components)) {
                 return '';
-            };
+            }
 
-            let street = addressComponentByType(placeObject.address_components, 'route');
-            let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
+            let component = _.find(components, (component) => {
+                return _.includes(component.types, type);
+            });
 
-            return {
-                placeObject: placeObject,
+            if (component) {
+                return component.long_name;
+            }
+
+            return '';
+        };
+
+        let placeObject = this.placeObject;
+        let street = addressComponentByType(placeObject.address_components, 'route');
+        let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
+
+        let placeProperties = {
+            placeId: '',
+            formattedAddress: searchAddress,
+            street: '',
+            streetNumber: '',
+            fullAddress: searchAddress,
+            city: '',
+            postalCode: '',
+            position: new Parse.GeoPoint({
+                latitude: 1,
+                longitude: 1
+            })
+        };
+
+        if (!_.isEmpty(street)) {
+            placeProperties = {
                 placeId: placeObject.place_id,
                 formattedAddress: placeObject.formatted_address,
                 street: street,
@@ -176,8 +170,17 @@ export class Client extends BaseClass {
                     latitude: 1,
                     longitude: 1
                 })
-            };
-        };
+            }
+        }
+
+        _.forOwn(placeProperties, (value, key) => {
+            this.set(key, value);
+        });
+    }
+
+
+    public async fetchAndSetPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<void> {
+
 
         try {
             let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
@@ -191,27 +194,14 @@ export class Client extends BaseClass {
             let placeObject = httpResponse.data;
 
             if (placeObject.status === "OK") {
-                return toGSPlaceObject(placeObject.results[0]);
+                this.placeObject = placeObject.results[0];
             }
         } catch (e) {
             if (isRetry) {
 
                 console.error('Failed to create placeObject for ' + searchAddress);
 
-                return {
-                    placeObject: {},
-                    placeId: '',
-                    formattedAddress: searchAddress,
-                    street: '',
-                    streetNumber: '',
-                    fullAddress: searchAddress,
-                    city: '',
-                    postalCode: '',
-                    position: new Parse.GeoPoint({
-                        latitude: 1,
-                        longitude: 1
-                    })
-                }
+                this.placeObject = {};
             }
 
             let modifySearch = (searchAddress): string => {
@@ -243,7 +233,7 @@ export class Client extends BaseClass {
                 return newAddress;
             };
 
-            return exports.lookupPlaceObject(modifySearch(searchAddress), true)
+            return this.fetchAndSetPlaceObject(modifySearch(searchAddress), true)
         }
 
     };

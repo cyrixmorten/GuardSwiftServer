@@ -10,6 +10,7 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
     let client = <Client>request.object;
 
 
+    // TODO deprecate and let client add placeObject
     let addressChanges = false;
     let dirtyKeys = client.dirtyKeys();
     let addressKeys = [Client._cityName, Client._zipcode, Client._addressName, Client._addressNumber];
@@ -20,24 +21,18 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
         }
     }
 
+    let addressName = client.get(Client._addressName);
+    let addressNumber = client.get(Client._addressNumber);
+    let zipcode = client.get(Client._zipcode);
+    let cityName = client.get(Client._cityName);
+
     if (addressChanges || !client.hasPlaceId()) {
-        console.log("lookupAddress");
-
-        let searchAddress = () => {
-            let addressName = client.get(Client._addressName);
-            let addressNumber = client.get(Client._addressNumber);
-            let zipcode = client.get(Client._zipcode);
-            let cityName = client.get(Client._cityName);
-
-            client.set(Client._fullAddress, addressName + " " + addressNumber);
-
-            return  `${addressName} ${addressNumber} ${zipcode} ${cityName}`;
-        };
-
-        await client.addPlaceObject(searchAddress());
-
+        await client.fetchAndSetPlaceObject(`${addressName} ${addressNumber} ${zipcode} ${cityName}`);
     }
+    // TODO deprecate and let client add placeObject
 
+
+    client.applyPlaceObject(`${addressName} ${addressNumber}`);
 
     response.success();
 
