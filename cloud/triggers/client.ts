@@ -27,7 +27,9 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
     let cityName = client.get(Client._cityName);
 
     if (addressChanges || !client.hasPlaceId()) {
-        await client.fetchAndSetPlaceObject(`${addressName} ${addressNumber} ${zipcode} ${cityName}`);
+        if (addressName && addressNumber) {
+            await client.fetchAndSetPlaceObject(`${addressName} ${addressNumber} ${zipcode} ${cityName}`);
+        }
     }
     // TODO deprecate and let client add placeObject
 
