@@ -5,6 +5,7 @@ import {Central, CentralQuery} from "./Central";
 import * as _ from "lodash";
 import HttpResponse = Parse.Cloud.HttpResponse;
 import {Task} from "./Task";
+import {API_GOOGLE_GEOCODE, googleGeocode} from "../../cloud/api/google/geocode.api";
 
 export class Client extends BaseClass {
 
@@ -226,29 +227,20 @@ export class Client extends BaseClass {
 
     public async fetchAndSetPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<void> {
         console.log('fetchAndSetPlaceObject', isRetry, searchAddress);
-
         try {
-            let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
-                url: 'https://maps.googleapis.com/maps/api/geocode/json',
-                params: {
-                    address: searchAddress,
-                    key: process.env.GOOGLE_GEOCODE_API_KEY
-                }
-            });
-
-            let placeObject = httpResponse.data;
-
-            if (placeObject.status === "OK") {
-                this.placeObject = placeObject.results[0];
-            }
+            this.placeObject = await googleGeocode(searchAddress)[0];
         } catch (e) {
             if (isRetry) {
+
+                console.error(e);
 
                 console.error('Failed to create placeObject for ' + searchAddress);
 
                 this.placeObject = {};
             }
 
+            // A bit hacky modification of the search that seems to save most
+            // poorly formatted addresses delivered by G4S alarms
             let modifySearch = (searchAddress): string => {
                 let searchWords: string[] = _.words(searchAddress);
 
