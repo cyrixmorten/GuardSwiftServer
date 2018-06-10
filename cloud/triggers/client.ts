@@ -34,7 +34,7 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
     // TODO deprecate and let client add placeObject
 
 
-    client.applyPlaceObject(`${addressName} ${addressNumber}`);
+    client.unwrapPlaceObject(`${addressName} ${addressNumber}`);
 
     response.success();
 

@@ -2,44 +2,36 @@ import HttpResponse = Parse.Cloud.HttpResponse;
 import * as _ from 'lodash';
 import {API_BASE, API_KEY} from "./google.constants";
 
-export const API_GOOGLE_GEOCODE = "googleGeocode";
+export const API_GOOGLE_PLACE_DETAILS = "googlePlaceDetails";
 
-Parse.Cloud.define(API_GOOGLE_GEOCODE,  async (request, response) => {
+Parse.Cloud.define(API_GOOGLE_PLACE_DETAILS,  async (request, response) => {
     let params = request.params;
 
-    let address: string = _.get(params, 'address');
     let place_id: string = _.get(params, 'place_id');
 
-    if (!address && !place_id) {
-        throw 'Missing address or place_id param';
+    if (!place_id) {
+        throw 'Missing place_id param';
     }
 
     try {
-        let results = await googleGeocode({
-            place_id: place_id,
-            address: address
-        });
+        let result = await googlePlaceDetails(place_id);
 
-        response.success(results);
+        response.success(result);
     } catch (e) {
         response.error(e);
     }
 });
 
-export type GeocodeParams = {
-    place_id?: string;
-    address?: string;
-}
 
-export const googleGeocode = async (params: GeocodeParams, output: 'json' | 'xml' = 'json'): Promise<Object[]> => {
+
+export const googlePlaceDetails = async (place_id: string, output: 'json' | 'xml' = 'json'): Promise<Object> => {
 
     let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
-        url: `${API_BASE}/maps/api/geocode/${output}`,
-        params: _.pickBy({
-            place_id: params.place_id,
-            address: params.address,
+        url: `${API_BASE}/maps/api/place/details/${output}`,
+        params: {
+            placeid: place_id,
             key: API_KEY
-        }, _.identity)
+        }
     });
 
     let body = httpResponse.data;
@@ -48,9 +40,9 @@ export const googleGeocode = async (params: GeocodeParams, output: 'json' | 'xml
         throw 'Non OK status from Google:\n' + JSON.stringify(body);
     }
 
-    if (body.results.length === 0) {
+    if (body.results) {
         throw 'Empty result set';
     }
 
-    return body.results;
+    return body.result;
 };

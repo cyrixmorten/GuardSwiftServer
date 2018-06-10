@@ -8,17 +8,13 @@ Parse.Cloud.define(API_GOOGLE_GEOCODE,  async (request, response) => {
     let params = request.params;
 
     let address: string = _.get(params, 'address');
-    let place_id: string = _.get(params, 'place_id');
 
-    if (!address && !place_id) {
-        throw 'Missing address or place_id param';
+    if (!address) {
+        throw 'Missing address param';
     }
 
     try {
-        let results = await googleGeocode({
-            place_id: place_id,
-            address: address
-        });
+        let results = await googleGeocode(address);
 
         response.success(results);
     } catch (e) {
@@ -26,20 +22,14 @@ Parse.Cloud.define(API_GOOGLE_GEOCODE,  async (request, response) => {
     }
 });
 
-export type GeocodeParams = {
-    place_id?: string;
-    address?: string;
-}
-
-export const googleGeocode = async (params: GeocodeParams, output: 'json' | 'xml' = 'json'): Promise<Object[]> => {
+export const googleGeocode = async (address: string, output: 'json' | 'xml' = 'json'): Promise<Object[]> => {
 
     let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
         url: `${API_BASE}/maps/api/geocode/${output}`,
-        params: _.pickBy({
-            place_id: params.place_id,
-            address: params.address,
+        params: {
+            address: address,
             key: API_KEY
-        }, _.identity)
+        }
     });
 
     let body = httpResponse.data;

@@ -170,7 +170,14 @@ export class Client extends BaseClass {
     }
 
 
-    public applyPlaceObject(searchAddress: string = '') {
+    /**
+     * Update client object with values from place object
+     *
+     * A search address is provided as a fallback for the address in case no place object is set on this client
+     *
+     * @param {string} searchAddress
+     */
+    public unwrapPlaceObject(searchAddress: string = '') {
 
         let addressComponentByType = (components: any[], type) => {
             if (_.isEmpty(components)) {
@@ -204,6 +211,11 @@ export class Client extends BaseClass {
             });
         } else {
 
+            if (this.placeId === placeObject.place_id) {
+                // Values already updated from current place object
+                return;
+            }
+
             let street = addressComponentByType(placeObject.address_components, 'route');
             let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
 
@@ -228,7 +240,7 @@ export class Client extends BaseClass {
     public async fetchAndSetPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<void> {
         console.log('fetchAndSetPlaceObject', isRetry, searchAddress);
         try {
-            this.placeObject = await googleGeocode({address: searchAddress})[0];
+            this.placeObject = await googleGeocode(searchAddress)[0];
         } catch (e) {
             if (isRetry) {
 
