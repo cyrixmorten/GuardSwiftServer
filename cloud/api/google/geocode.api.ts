@@ -7,18 +7,18 @@ export const API_GOOGLE_GEOCODE = "googleGeocode";
 Parse.Cloud.define(API_GOOGLE_GEOCODE,  async (request, response) => {
     let params = request.params;
 
-    let output: 'json' | 'xml' = _.get(params, 'output') || 'json';
     let address: string = _.get(params, 'address');
+    let place_id: string = _.get(params, 'place_id');
 
-    if (!_.includes(['json', 'xml'], output)) {
-        throw 'Output must be either "json" or "xml"';
-    }
-    if (!address) {
-        throw 'Missing address param';
+    if (!address && !place_id) {
+        throw 'Missing address or place_id param';
     }
 
     try {
-        let results = await googleGeocode(address, output);
+        let results = await googleGeocode({
+            place_id: place_id,
+            address: address
+        });
 
         response.success(results);
     } catch (e) {
@@ -26,14 +26,20 @@ Parse.Cloud.define(API_GOOGLE_GEOCODE,  async (request, response) => {
     }
 });
 
-export const googleGeocode = async (address: string, output: 'json' | 'xml' = 'json'): Promise<Object[]> => {
+export type GeocodeParams = {
+    place_id?: string;
+    address?: string;
+}
+
+export const googleGeocode = async (params: GeocodeParams, output: 'json' | 'xml' = 'json'): Promise<Object[]> => {
 
     let httpResponse: HttpResponse = await Parse.Cloud.httpRequest({
         url: `${API_BASE}/maps/api/geocode/${output}`,
-        params: {
-            address: address,
+        params: _.pickBy({
+            place_id: params.place_id,
+            address: params.address,
             key: API_KEY
-        }
+        }, _.identity)
     });
 
     let body = httpResponse.data;

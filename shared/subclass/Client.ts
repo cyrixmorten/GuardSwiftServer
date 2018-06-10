@@ -228,7 +228,7 @@ export class Client extends BaseClass {
     public async fetchAndSetPlaceObject(searchAddress: string, isRetry: boolean = false): Promise<void> {
         console.log('fetchAndSetPlaceObject', isRetry, searchAddress);
         try {
-            this.placeObject = await googleGeocode(searchAddress)[0];
+            this.placeObject = await googleGeocode({address: searchAddress})[0];
         } catch (e) {
             if (isRetry) {
 
