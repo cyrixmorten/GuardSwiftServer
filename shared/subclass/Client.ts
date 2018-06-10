@@ -211,21 +211,21 @@ export class Client extends BaseClass {
             });
         } else {
 
-            if (this.placeId === placeObject.place_id) {
-                // Values already updated from current place object
-                return;
-            }
+            let addressComponents = placeObject.address_components;
 
-            let street = addressComponentByType(placeObject.address_components, 'route');
-            let streetNumber = addressComponentByType(placeObject.address_components, 'street_number');
+            console.log('addressComponents: ', addressComponents);
+
+            let street = addressComponentByType(addressComponents, 'route');
+            let streetNumber = addressComponentByType(addressComponents, 'street_number');
 
             this.placeId = placeObject.place_id;
             this.formattedAddress = placeObject.formatted_address;
             this.street = street;
             this.streetNumber = streetNumber;
             this.fullAddress = `${street} ${streetNumber}`;
-            this.city = addressComponentByType(placeObject.address_components, 'locality');
-            this.postalCode = addressComponentByType(placeObject.address_components, 'postal_code');
+            this.city = addressComponentByType(addressComponents, 'locality');
+            console.log('this.city: ', this.city);
+            this.postalCode = addressComponentByType(addressComponents, 'postal_code');
             this.position = placeObject.geometry ? new Parse.GeoPoint({
                 latitude: placeObject.geometry.location.lat,
                 longitude: placeObject.geometry.location.lng
