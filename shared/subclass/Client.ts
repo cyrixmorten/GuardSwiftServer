@@ -52,8 +52,8 @@ export class Client extends BaseClass {
     static readonly _formattedAddress = 'formattedAddress';
     static readonly _street = 'street';
     static readonly _streetNumber = 'streetNumber';
-    static readonly _city = '_city';
-    static readonly _postalCode = '_postalCode';
+    static readonly _city = 'city';
+    static readonly _postalCode = 'postalCode';
 
     static readonly _position = 'position';
 
@@ -180,16 +180,12 @@ export class Client extends BaseClass {
     public unwrapPlaceObject(searchAddress: string = '') {
 
         let addressComponentByType = (components: any[], type) => {
-            if (_.isEmpty(components)) {
-                return '';
-            }
-
             let component = _.find(components, (component) => {
                 return _.includes(component.types, type);
             });
 
             if (component) {
-                return component.long_name;
+                return _.toString(component['long_name']);
             }
 
             return '';
@@ -224,7 +220,6 @@ export class Client extends BaseClass {
             this.streetNumber = streetNumber;
             this.fullAddress = `${street} ${streetNumber}`;
             this.city = addressComponentByType(addressComponents, 'locality');
-            console.log('this.city: ', this.city);
             this.postalCode = addressComponentByType(addressComponents, 'postal_code');
             this.position = placeObject.geometry ? new Parse.GeoPoint({
                 latitude: placeObject.geometry.location.lat,

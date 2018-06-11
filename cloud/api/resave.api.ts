@@ -16,6 +16,8 @@ Parse.Cloud.define(API_FUNCTION_RESAVE, async (request, response) => {
 
     let query = new Parse.Query(className);
 
+    query.equalTo("objectId", "QZAmaGcwn8");
+
     let totalCount = await query.count({useMasterKey: true});
     let saveCount = 0;
 
