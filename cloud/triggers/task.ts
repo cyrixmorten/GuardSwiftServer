@@ -22,10 +22,11 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
     // TaskGroup updated
     if (task.taskGroup && task.dirty(Task._taskGroup)) {
 
-        console.log('task.taskGroup: ', task.taskGroup);
-
+        const taskGroup = await task.taskGroup.fetch({useMasterKey: true});
         const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
 
+        task.isRunToday = task.isTaskRunToday(taskGroup);
+        
         if (taskGroupStarted) {
             task.taskGroupStarted = taskGroupStarted;
         }
