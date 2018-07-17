@@ -5,22 +5,23 @@ import {BasePDFMakeBuilder} from "./base.builder";
 import {ReportToPDF} from "../report.to.pdf";
 import {TaskGroupStarted} from "../../../shared/subclass/TaskGroupStarted";
 import {Client} from '../../../shared/subclass/Client';
+import {ReportDataProvider} from "../dataprovider/report.data.provider";
 
 
 export class DailyTaskGroupsSummaryReportBuilder extends BasePDFMakeBuilder {
 
 
 
-    constructor(private timeZone: string) {
+    constructor(private timeZone: string, private taskGroupStarted: TaskGroupStarted) {
         super();
 
     }
 
-    private contentHeader(): Object {
+    private contentHeader(groupName: string): Object {
         return {
             stack: [
                 {
-                    text: 'Kreds oversigt', // TODO translate
+                    text: 'Kreds oversigt: ' + groupName, // TODO translate
                     style: 'header'
                 },
             ],
@@ -33,9 +34,11 @@ export class DailyTaskGroupsSummaryReportBuilder extends BasePDFMakeBuilder {
     content(client?: Client, reports?: Report[]): DailyTaskGroupsSummaryReportBuilder {
 
         let content = [
-            this.contentHeader(),
+            this.contentHeader(this.taskGroupStarted.name),
             ..._.map(reports, (report: Report) => {
-                return ReportToPDF.reportBuilder(this.timeZone, report).content();
+                const reportData = new ReportDataProvider().getData(report);
+
+                return reportData.report.clientName;
             })
         ];
 
@@ -48,7 +51,7 @@ export class DailyTaskGroupsSummaryReportBuilder extends BasePDFMakeBuilder {
     }
 
     // Query for reports
-    public async buildForTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+    public async generate() {
 
     }
 

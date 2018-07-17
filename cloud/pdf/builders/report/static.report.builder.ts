@@ -1,15 +1,16 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {EventLog} from "../../../shared/subclass/EventLog";
-import {Report} from "../../../shared/subclass/Report";
 import {BasePDFMakeBuilder} from "./base.builder";
+import {ReportData} from "../dataprovider/report.data.provider";
+import {ReportSettings} from "../../../shared/subclass/ReportSettings";
+import {Report} from "../../../shared/subclass/Report";
 
 
 export class StaticReportBuilder extends BasePDFMakeBuilder {
 
 
-    constructor(private timeZone: string, private report: Report, private reportSettings?: ReportSettings) {
+    constructor(private timeZone: string, private reportSettings: ReportSettings, private reportData: ReportData) {
         super();
     }
 
@@ -62,7 +63,7 @@ export class StaticReportBuilder extends BasePDFMakeBuilder {
             let rows = [];
             _.map(eventLogs, (eventLog: EventLog) => {
                 rows.push([
-                    moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm'),
+                    eventLog.formattedDeviceTimestamp(this.timeZone),
                     eventLog.remarks
                 ]);
             });
@@ -96,10 +97,12 @@ export class StaticReportBuilder extends BasePDFMakeBuilder {
 
     content(): StaticReportBuilder {
 
+        const report: Report = this.reportData.report;
+
         let content = [
-            this.contentHeader(this.report.clientName, this.report.clientFullAddress),
-            this.contentReportId(this.report.id),
-            this.contentEventTable(this.report.eventLogs, this.timeZone)
+            this.contentHeader(report.clientName, report.clientFullAddress),
+            this.contentReportId(report.id),
+            this.contentEventTable(report.eventLogs, this.timeZone)
         ];
 
         this.write({
@@ -112,8 +115,8 @@ export class StaticReportBuilder extends BasePDFMakeBuilder {
     generate(): Object {
         // TODO translate
         return this.header(
-            [{text: 'Vagt: ', bold: true}, this.report.guardName],
-            'Dato: ' + moment(this.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
+            [{text: 'Vagt: ', bold: true}, this.reportData.report.guardName],
+            'Dato: ' + moment(this.reportData.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
             .background()
             .content()
             .footer()
