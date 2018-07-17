@@ -206,9 +206,9 @@ export class Task extends BaseClass {
     }
 
 
-    isTaskRunToday() {
+    isTaskRunToday(taskGroup?: TaskGroup) {
         // TODO check against holidays
-        return _.includes(this.days, new Date().getDay())
+        return taskGroup.isRunToday() && _.includes(this.days, new Date().getDay())
     }
 
     reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted) {
@@ -218,7 +218,7 @@ export class Task extends BaseClass {
 
 
         if (taskGroup) {
-            this.isRunToday = taskGroup.isRunToday() && this.isTaskRunToday();
+            this.isRunToday = this.isTaskRunToday(taskGroup);
         }
         if (taskGroupStarted) {
             this.taskGroupStarted = taskGroupStarted;
