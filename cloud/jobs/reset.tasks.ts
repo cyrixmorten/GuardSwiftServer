@@ -43,7 +43,7 @@ export class ResetTasks {
 
                 if (this.force || taskGroup.resetNow()) {
                     return this.resetTaskGroupsStartedMatching(taskGroup)
-                        .then(() => this.resetRegularTasksMatching(taskGroup));
+                        .then(() => this.resetGroup(taskGroup));
                 }
 
             }, {useMasterKey: true});
@@ -93,29 +93,29 @@ export class ResetTasks {
             })
     }
 
-    private resetRegularTasksMatching(taskGroup: TaskGroup): IPromise<Task[]> {
 
-        let findTaskGroupStarted = (): Parse.Promise<TaskGroupStarted> => {
-            return new TaskGroupStartedQuery().matchingTaskGroup(taskGroup).notEnded().build()
-                .first({useMasterKey: true});
-        };
+    private findTaskGroupStarted(taskGroup: TaskGroup): Parse.Promise<TaskGroupStarted> {
+        if (!taskGroup) {
+            return;
+        }
 
-        let findTasks = (): Parse.Promise<Task[]> => {
-            // TODO: hard limit of 1000 tasks per group
-            return new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true})
-        };
+        return new TaskGroupStartedQuery().activeMatchingTaskGroup(taskGroup).build().first({useMasterKey: true});
+    };
 
+
+    private resetGroup(taskGroup: TaskGroup): IPromise<Task[]> {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
         let taskGroupStarted: TaskGroupStarted;
-        return findTaskGroupStarted().then((foundTaskGroupStarted: TaskGroupStarted) => {
+        return this.findTaskGroupStarted(taskGroup).then((foundTaskGroupStarted: TaskGroupStarted) => {
             if (foundTaskGroupStarted) {
                 console.log(`Found taskGroupStarted: ${foundTaskGroupStarted.id}`);
             }
 
             taskGroupStarted = foundTaskGroupStarted;
 
-            return findTasks();
+            // TODO: hard limit of 1000 tasks per group
+            return new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true});
         }).then((tasks: Task[]) => {
             console.log(`Resetting ${tasks.length} tasks for taskGroup ${taskGroup.name}`);
 
