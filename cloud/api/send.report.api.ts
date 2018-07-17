@@ -157,7 +157,7 @@ export let sendReport = async (reportId: string, reportSettings?: ReportSettings
 
     let getAttachments = async (): Promise<AttachmentData[]> => {
 
-        let pdfBuffer = await ReportToPDF.buildPdf(reportId, reportSettings);
+        let pdfBuffer = await ReportToPDF.fetchReportAndGeneratePDF(reportId, reportSettings);
 
         return [
             {
