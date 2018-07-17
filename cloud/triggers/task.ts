@@ -21,6 +21,9 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     // TaskGroup updated
     if (task.taskGroup && task.dirty(Task._taskGroup)) {
+
+        console.log('task.taskGroup: ', task.taskGroup);
+
         const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
 
         if (taskGroupStarted) {
@@ -29,7 +32,9 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
     }
 
     // task is either newly created or pointed to another client
-    if (task.dirty(Task._client)) {
+    if (task.client && task.dirty(Task._client)) {
+
+        console.log('task.client: ', task.client);
 
         new ClientQuery().matchingId(task.client.id).build().first({useMasterKey: true}).then((client) => {
 
