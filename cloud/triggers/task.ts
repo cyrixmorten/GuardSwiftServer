@@ -7,9 +7,11 @@ import {GuardQuery} from "../../shared/subclass/Guard";
 import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
+import {ResetTasks} from "../jobs/reset.tasks";
+import {TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 
 
-Parse.Cloud.beforeSave(Task, (request, response) => {
+Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     let task = <Task>request.object;
 
@@ -17,8 +19,22 @@ Parse.Cloud.beforeSave(Task, (request, response) => {
         task.reset();
     }
 
+    // TaskGroup updated
+    if (task.taskGroup && task.dirty(Task._taskGroup)) {
+
+        console.log('task.taskGroup: ', task.taskGroup);
+
+        const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
+
+        if (taskGroupStarted) {
+            task.taskGroupStarted = taskGroupStarted;
+        }
+    }
+
     // task is either newly created or pointed to another client
-    if (task.dirty(Task._client)) {
+    if (task.client && task.dirty(Task._client)) {
+
+        console.log('task.client: ', task.client);
 
         new ClientQuery().matchingId(task.client.id).build().first({useMasterKey: true}).then((client) => {
 

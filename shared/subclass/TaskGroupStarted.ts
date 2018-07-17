@@ -70,10 +70,14 @@ export class TaskGroupStarted extends BaseClass {
 
 }
 
-export class TaskGroupStartedQuery extends QueryBuilder<TaskGroupStarted>{
+export class TaskGroupStartedQuery extends QueryBuilder<TaskGroupStarted> {
 
     constructor() {
         super(TaskGroupStarted);
+    }
+
+    activeMatchingTaskGroup(taskGroup): TaskGroupStartedQuery {
+        return this.matchingTaskGroup(taskGroup).notEnded();
     }
 
     matchingTaskGroup(taskGroup: TaskGroup): TaskGroupStartedQuery {

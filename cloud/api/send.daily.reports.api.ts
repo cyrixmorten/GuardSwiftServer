@@ -4,7 +4,7 @@ import {TaskType} from "../../shared/subclass/Task";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {User} from "../../shared/subclass/User";
-import {sendReport} from "../pdf/report.send.to.client";
+import {sendReport} from "./send.report.api";
 
 
 export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
