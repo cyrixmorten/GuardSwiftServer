@@ -2,52 +2,37 @@ import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportS
 import {Report, ReportQuery} from "../../shared/subclass/Report";
 import HttpResponse = Parse.Cloud.HttpResponse;
 import {TaskType} from "../../shared/subclass/Task";
-import {RegularRaidReportBuilder} from "./builders/regular.raid";
+import {RegularRaidReportBuilder} from "./builders/report/regular.raid.report.builder";
 import {IPdfMakeBuilder} from "./builders/base.builder";
-import {StaticReportBuilder} from "./builders/static";
+import {StaticReportBuilder} from "./builders/report/static.report.builder";
 
 import * as _ from 'lodash';
+import {RegularRaidReportDataProvider} from "./dataprovider/report/regular.raid.report.data.provider";
+import {IReportDataProvider, ReportData, ReportDataProvider} from "./dataprovider/report/report.data.provider";
+import {StaticReportDataProvider} from "./dataprovider/report/static.report.data.provider";
+import {ReportBuilder} from "./builders/report/report.builder";
 
 export class ReportToPDF {
 
-    static reportBuilder(timeZone: string, report: Report, settings?: ReportSettings): IPdfMakeBuilder {
-        let reportBuilder: IPdfMakeBuilder;
-        if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
-            // TODO create dedicated alarm report
-            reportBuilder = new RegularRaidReportBuilder(timeZone, report, settings);
-        }
-        if (report.matchingTaskType(TaskType.STATIC)) {
-            reportBuilder = new StaticReportBuilder(timeZone, report, settings);
-        }
+    static generatePDFDoc(report: Report, timeZone: string, settings: ReportSettings) {
+        const reportData: ReportData = new ReportDataProvider().getData(report);
 
-
-        if (_.isUndefined(reportBuilder)) {
-            throw new Error("Missing builder for report")
-        }
-
-        return reportBuilder;
+        return new ReportBuilder(timeZone, settings).generate(reportData);
     }
 
-    static async buildDoc(reportId: string, settings?: ReportSettings): Promise<Object> {
-
+    static async fetchReportAndGeneratePDFDoc(reportId: string, settings?: ReportSettings): Promise<Object> {
         if (!reportId) {
             throw new Error('buildDoc missing reportId');
         }
 
         try {
-            // TODO: backwards compatibility
-            // TODO: Create job that adds task to tasks array before removing this
-            let report = await new ReportQuery()
-                            .include(Report._owner, Report._eventLogs, Report._tasks, Report._task)
-                            .matchingId(reportId)
-                            .build()
-                            .first({useMasterKey: true});
+            const reportData: ReportData = await new ReportDataProvider().getDataFromId(reportId);
 
-            let timeZone = report.owner.timeZone || 'Europe/Copenhagen';
+            const timeZone = reportData.owner.timeZone || 'Europe/Copenhagen';
+            settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(reportData.owner)
+                .matchingTaskType(reportData.report.taskType).build().first({useMasterKey: true});
 
-            settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(report.taskType).build().first({useMasterKey: true});
-
-            return ReportToPDF.reportBuilder(timeZone, report, settings).generate();
+            return new ReportBuilder(timeZone, settings).generate(reportData);
         } catch (e) {
 
             console.error(e);
@@ -58,18 +43,19 @@ export class ReportToPDF {
 
     }
 
-    static async buildPdf(reportId, settings?: ReportSettings): Promise<Buffer> {
+    static async fetchReportAndGeneratePDF(reportId, settings?: ReportSettings): Promise<Buffer> {
 
         if (!reportId) {
             throw new Error('buildPdf missing reportId');
         }
 
         try {
-            let reportDoc: Object = await ReportToPDF.buildDoc(reportId, settings);
-            let httpResponse: HttpResponse = await this.generatePDF(reportDoc);
+            const reportDoc: Object = await ReportToPDF.fetchReportAndGeneratePDFDoc(reportId, settings);
+
+            let httpResponse: HttpResponse = await ReportToPDF.generatePDF(reportDoc);
 
             return httpResponse.buffer;
-        } catch(e) {
+        } catch (e) {
             throw new Error('Error during PDF creation' + JSON.stringify(e))
         }
     }

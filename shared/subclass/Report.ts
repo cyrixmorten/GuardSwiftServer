@@ -34,7 +34,7 @@ export class Report extends EventLog {
     }
 
     get eventLogs(): EventLog[] {
-        return this.get(Report._eventLogs);
+        return this.get(Report._eventLogs) || [];
     }
 
     get clientName(): string {
@@ -98,7 +98,7 @@ export class Report extends EventLog {
         let arrivalEvent = _.find(this.eventLogs, (eventLog: EventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
 
         // fallback to guardName written to report if EventLogs are not included
-        return arrivalEvent ? arrivalEvent.guardName : this.guardName;
+        return arrivalEvent ? arrivalEvent.guardName : this.get(Report._guardName);
     }
 
 }

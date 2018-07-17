@@ -5,8 +5,8 @@ import {IHeaderLogo} from "../../../shared/subclass/ReportSettings";
 export interface IPdfMakeBuilder {
     header(textLeft, textRight): BasePDFMakeBuilder;
     footer(): BasePDFMakeBuilder;
-    content(): BasePDFMakeBuilder;
-    generate(): Object;
+    content(...args: any[]): BasePDFMakeBuilder;
+    generate(...args: any[]): Object;
 }
 
 
@@ -96,7 +96,7 @@ export class BasePDFMakeBuilder implements IPdfMakeBuilder {
     }
 
 
-    content(): BasePDFMakeBuilder {
+    content(...args: any[]): BasePDFMakeBuilder {
         return this;
     }
 
@@ -147,7 +147,7 @@ export class BasePDFMakeBuilder implements IPdfMakeBuilder {
 
     build = (): Object => this.reportDefinition;
 
-    generate(): Object {
+    generate(...args: any[]): Object {
         return this.header()
             .background()
             .content()

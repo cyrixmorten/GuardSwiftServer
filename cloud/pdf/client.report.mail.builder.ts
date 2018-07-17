@@ -114,7 +114,7 @@ export class ClientReportMailBuilder extends MailDataBuilder {
     async getAttachments(): Promise<AttachmentData[]> {
 
         let owner = await this.report.owner.fetch({useMasterKey: true});
-        let pdfDoc = await ReportToPDF.reportBuilder(owner.timeZone, this.report, this.reportSettings).generate();
+        let pdfDoc = await ReportToPDF.generatePDFDoc(this.report, owner.timeZone, this.reportSettings);
         let pdfHttpResponse = await ReportToPDF.generatePDF(pdfDoc);
 
         return [

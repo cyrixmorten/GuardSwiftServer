@@ -1,36 +1,22 @@
-import {Dictionary} from "lodash";
 import {Report} from "../../../../shared/subclass/Report";
-import {Task, TaskType} from "../../../../shared/subclass/Task";
-import {EventLog} from "../../../../shared/subclass/EventLog";
-import {RegularRaidReportDataProvider} from "./regular.raid.report.data.provider";
-import {StaticReportDataProvider} from "./static.report.data.provider";
+import {TaskGroup} from "../../../../shared/subclass/TaskGroup";
 
-export type ReportData = {
-    report: Report;
-    groupedTasks: Dictionary<Task[]>; // each key is the header of the group
-    groupedEventLogs: Dictionary<EventLog[]>; // each key is the objectId of task
+export type TaskGroupData = {
+    taskGroup: TaskGroup;
+    reports: Report[];
 };
 
-export interface IReportDataProvider {
-    getData(report: Report): ReportData;
+export interface ITaskGroupDataProvider {
+    getData(taskGroup: TaskGroup): Promise<TaskGroupData>;
 }
 
-export class ReportDataProvider implements IReportDataProvider {
+export class TaskGroupDataProvider implements ITaskGroupDataProvider {
 
-    getData(report: Report): ReportData {
-        let dataProvider: IReportDataProvider;
-        if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
-            dataProvider = new RegularRaidReportDataProvider();
+    async getData(taskGroup: TaskGroup): Promise<TaskGroupData> {
+        return {
+            taskGroup: taskGroup,
+            reports: [],
         }
-        if (report.matchingTaskType(TaskType.STATIC)) {
-            dataProvider =  new StaticReportDataProvider();
-        }
-
-        if (!dataProvider) {
-            throw 'No data provider for report';
-        }
-
-        return dataProvider.getData(report)
     }
 
 

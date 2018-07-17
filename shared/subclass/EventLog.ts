@@ -2,9 +2,9 @@ import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
-import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
-
+import * as moment from 'moment-timezone-all';
+import * as _ from "lodash";
 
 export enum TaskEvent {
     ACCEPT = 'ACCEPT',
@@ -184,12 +184,16 @@ export class EventLog extends BaseClass {
         this.set(EventLog._deviceTimestamp, deviceTimestamp);
     }
 
-    get guardInitials() {
+    get guardInitials(): string {
         // usually first and last name
         let nameElements = _.compact(this.guardName.split(/[ ,]+/));
 
         // pick the first letter in each name element
         return _.join(_.map(nameElements, _.first), '');
+    }
+
+    formattedDeviceTimestamp(timeZone: string, pattern: string = 'HH:mm'): string {
+        return moment(this.deviceTimestamp).tz(timeZone).format(pattern)
     }
 }
 

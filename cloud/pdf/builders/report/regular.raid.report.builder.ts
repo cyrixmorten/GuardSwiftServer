@@ -1,18 +1,16 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {IHeaderLogo, ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
-import {Task} from "../../../shared/subclass/Task";
-import {BasePDFMakeBuilder} from "./base.builder";
-import {ReportData} from "../dataprovider/report.data.provider";
-
+import {IHeaderLogo, ReportSettings} from "../../../../shared/subclass/ReportSettings";
+import {EventLog, TaskEvent} from "../../../../shared/subclass/EventLog";
+import {Task} from "../../../../shared/subclass/Task";
+import {BasePDFMakeBuilder} from "../base.builder";
+import {ReportData} from "../../dataprovider/report/report.data.provider";
+import {Report} from '../../../../shared/subclass/Report';
 
 
 export class RegularRaidReportBuilder extends BasePDFMakeBuilder {
 
-
-
-    constructor(private timeZone: string, private reportSettings: ReportSettings, private reportData: ReportData) {
+    constructor(private timeZone: string, private reportSettings?: ReportSettings) {
         super();
     }
 
@@ -132,16 +130,18 @@ export class RegularRaidReportBuilder extends BasePDFMakeBuilder {
         }
     }
 
-    content(): RegularRaidReportBuilder {
+    content(reportData: ReportData): RegularRaidReportBuilder {
+
+        const report: Report = reportData.report;
 
         let content = _.compact([
             this.headerLogo(),
-            this.contentHeader(this.reportData.report.clientName, this.reportData.report.clientFullAddress),
-            this.contentReportId(this.reportData.report.id)
+            this.contentHeader(report.clientName, report.clientFullAddress),
+            this.contentReportId(report.id)
         ]);
 
-        const groupedTasksByHeader = this.reportData.groupedTasks;
-        const groupedEventLogsByHeader = this.reportData.groupedEventLogs;
+        const groupedTasksByHeader = reportData.groupedTasks;
+        const groupedEventLogsByHeader = reportData.groupedEventLogs;
 
         // add event table for each task in report
         _.forOwn(groupedTasksByHeader, (tasks: Task[], header: string) => {
@@ -158,13 +158,14 @@ export class RegularRaidReportBuilder extends BasePDFMakeBuilder {
 
 
 
-    generate(): Object {
+    generate(reportData: ReportData): Object {
         // TODO translate
-        return this.header(
-            [{text: 'Vagt: ', bold: true}, this.reportData.report.guardName],
-                    'Dato: ' + moment(this.reportData.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
+        return this
+            .header(
+            [{text: 'Vagt: ', bold: true}, reportData.report.guardName],
+                    'Dato: ' + moment(reportData.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
             .background()
-            .content()
+            .content(reportData)
             .footer()
             .styles()
             .build();

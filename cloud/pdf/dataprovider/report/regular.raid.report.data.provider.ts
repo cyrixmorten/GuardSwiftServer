@@ -1,8 +1,8 @@
 import {IReportDataProvider, ReportData} from "./report.data.provider";
-import {Report} from "../../../shared/subclass/Report";
+import {Report} from "../../../../shared/subclass/Report";
 import {Dictionary} from "lodash";
-import {Task, TaskType} from "../../../shared/subclass/Task";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
+import {Task, TaskType} from "../../../../shared/subclass/Task";
+import {EventLog, TaskEvent} from "../../../../shared/subclass/EventLog";
 import * as _ from "lodash";
 
 export class RegularRaidReportDataProvider implements IReportDataProvider {
@@ -132,6 +132,7 @@ export class RegularRaidReportDataProvider implements IReportDataProvider {
         const groupedEventLogs = this.eventLogsGroupedByHeader(report, groupedTasks);
 
         return {
+            owner: report.owner,
             report: report,
             groupedTasks: groupedTasks,
             groupedEventLogs: groupedEventLogs

@@ -1,16 +1,16 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {EventLog} from "../../../shared/subclass/EventLog";
-import {BasePDFMakeBuilder} from "./base.builder";
-import {ReportData} from "../dataprovider/report.data.provider";
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {Report} from "../../../shared/subclass/Report";
+import {EventLog} from "../../../../shared/subclass/EventLog";
+import {BasePDFMakeBuilder} from "../base.builder";
+import {ReportData} from "../../dataprovider/report/report.data.provider";
+import {ReportSettings} from "../../../../shared/subclass/ReportSettings";
+import {Report} from "../../../../shared/subclass/Report";
 
 
 export class StaticReportBuilder extends BasePDFMakeBuilder {
 
 
-    constructor(private timeZone: string, private reportSettings: ReportSettings, private reportData: ReportData) {
+    constructor(private timeZone: string, private reportSettings?: ReportSettings) {
         super();
     }
 
@@ -95,9 +95,9 @@ export class StaticReportBuilder extends BasePDFMakeBuilder {
         return this;
     }
 
-    content(): StaticReportBuilder {
+    content(reportData: ReportData): StaticReportBuilder {
 
-        const report: Report = this.reportData.report;
+        const report = reportData.report;
 
         let content = [
             this.contentHeader(report.clientName, report.clientFullAddress),
@@ -112,13 +112,13 @@ export class StaticReportBuilder extends BasePDFMakeBuilder {
         return this;
     }
 
-    generate(): Object {
+    generate(reportData: ReportData): Object {
         // TODO translate
         return this.header(
-            [{text: 'Vagt: ', bold: true}, this.reportData.report.guardName],
-            'Dato: ' + moment(this.reportData.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
+            [{text: 'Vagt: ', bold: true}, reportData.report.guardName],
+            'Dato: ' + moment(reportData.report.createdAt).tz(this.timeZone).format('DD-MM-YYYY'))
             .background()
-            .content()
+            .content(reportData)
             .footer()
             .styles()
             .build();
