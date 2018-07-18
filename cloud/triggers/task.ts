@@ -154,7 +154,9 @@ let sendNotification = (alarm) => {
 
 
     return (<parse.Promise<any>>sendPushNotification()).always(() => {
-        return sendSMS()
+        if (process.env.NODE_ENV !== 'production') {
+            return sendSMS()
+        }
     });
 };
 
