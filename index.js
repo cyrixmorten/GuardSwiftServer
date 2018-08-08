@@ -42,10 +42,6 @@ var api = new ParseServer({
         android: {
             senderId: process.env.GOOGLE_PROJECT_ID,
             apiKey: process.env.GOOGLE_FCM_API_KEY
-        },
-        fcm: {
-            senderId: process.env.GOOGLE_PROJECT_ID,
-            apiKey: process.env.GOOGLE_FCM_API_KEY
         }
         // ,
         // adapter: require('parse-server-push-adapter')
