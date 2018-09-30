@@ -1,13 +1,13 @@
 import * as _ from 'lodash';
 import * as fs from 'fs'
-import {Tracker, TrackerQuery} from "../../shared/subclass/Tracker";
+import {Tracker, TrackerQuery} from "../../../shared/subclass/Tracker";
 import * as XLSX from "xlsx"
 import * as zlib from "zlib";
 import * as moment from "moment-timezone-all"
 import HttpResponse = Parse.Cloud.HttpResponse;
 import FunctionResponse = Parse.Cloud.FunctionResponse;
 import FunctionRequest = Parse.Cloud.FunctionRequest;
-import {GPSData} from "../../shared/GPSData";
+import {GPSData} from "../../../shared/GPSData";
 import {Dictionary} from "lodash";
 import {WorkSheet} from "xlsx";
 

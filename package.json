@@ -12,8 +12,8 @@
     "build": "npm run clean && ./node_modules/.bin/tsc",
     "start": "node index.js",
     "clean": "npm run clean:cloud && npm run clean:shared",
-    "clean:cloud": "find ./cloud -name \\*.js\\* -type f -delete",
-    "clean:shared": "find ./shared -name \\*.js\\* -type f -delete"
+    "clean:cloud": "find cloud -name \"*.js*\" -type f -delete",
+    "clean:shared": "find shared -name \"*.js*\" -type f -delete"
   },
   "license": "MIT",
   "dependencies": {
@@ -44,8 +44,7 @@
     "require-glob": "^3.2.0",
     "tslib": "^1.8.0",
     "twilio": "^2.11.0",
-    "typescript": "^2.5.3",
-    "xlsx": "^0.12.3"
+    "typescript": "^2.5.3"
   },
   "engines": {
     "node": "^8.2.1"

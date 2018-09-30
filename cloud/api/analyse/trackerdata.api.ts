@@ -1,8 +1,8 @@
 import * as moment from "moment-timezone-all"
 import FunctionRequest = Parse.Cloud.FunctionRequest;
 import FunctionResponse = Parse.Cloud.FunctionResponse;
-import {ClientQuery, Client} from "../../shared/subclass/Client";
-import {TrackerData, TrackerDataQuery} from "../../shared/subclass/TrackerData";
+import {ClientQuery, Client} from "../../../shared/subclass/Client";
+import {TrackerData, TrackerDataQuery} from "../../../shared/subclass/TrackerData";
 import * as _ from "lodash";
 
 export const API_FUNCTION_TRACKERDATA_CLIENT_RADIUS = "trackerDataClientRadius";

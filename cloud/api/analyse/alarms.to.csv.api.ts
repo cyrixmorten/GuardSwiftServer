@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as fs from 'fs'
 import * as moment from 'moment'
 import * as json2csv from 'json2csv';
-import {Task} from "../../shared/subclass/Task";
+import {Task} from "../../../shared/subclass/Task";
 
 
 export const API_FUNCTION_ALARMS_TO_CSV = "alarmsToCsv";
