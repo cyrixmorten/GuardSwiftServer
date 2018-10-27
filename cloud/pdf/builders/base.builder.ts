@@ -58,49 +58,17 @@ export class BaseReportBuilder implements IReportBuilder {
         const useAlternativeHeaderLogo = client && client.useAltHeaderLogo && this.settings.altHeaderLogo;
         const headerLogo = useAlternativeHeaderLogo ? this.settings.altHeaderLogo : this.settings.headerLogo;
 
-        let result = <any>{};
-
-        if (headerLogo) {
-            if (headerLogo.datauri) {
-                result = {
-                    image: headerLogo.datauri,
-                    margin: [20, 60, 20, 0]
-                }
-            }
-
-            /** defaults **/
-            result.alignment = "center";
-
-
-            if (headerLogo.alignment) {
-                result.alignment = headerLogo.alignment;
-            }
-
-            if (headerLogo.stretch) {
-                // make image take up full width
-                result.width = (21 / 2.54) * 72 - (2 * 40); // (cm / 2.54) * dpi - margin
-            }
-            else {
-                if (headerLogo.width) {
-                    result.width = headerLogo.width
-                }
-
-
-                if (headerLogo.height) {
-                    result.height = headerLogo.height
-                }
-
-                // if neither height or width is specified, set width to 3cm
-                // from pdfmake: if you specify width, image will scale proportionally
-                if (!headerLogo.width && !headerLogo.height) {
-                    result.width = (3 / 2.54) * 72;
-                }
-            }
-
+        if (!headerLogo) {
+            return [];
         }
 
-
-        return result;
+        return {
+            image: headerLogo.datauri,
+            // margin: [15, 60, 15, 0],
+            alignment: headerLogo.alignment || "center",
+            width: headerLogo.stretch ? (21 / 2.54) * 72 - (2 * 40) : headerLogo.width, // (cm / 2.54) * dpi - margin
+            height: headerLogo.height
+        };
     }
 
 
