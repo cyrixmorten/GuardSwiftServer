@@ -54,7 +54,9 @@ export class BaseReportBuilder implements IReportBuilder {
 
 
     protected headerLogo(): Object {
-        let headerLogo = this.settings.headerLogo;
+        const client = this.report.client;
+        const useAlternativeHeaderLogo = client && client.useAltHeaderLogo && this.settings.altHeaderLogo;
+        const headerLogo = useAlternativeHeaderLogo ? this.settings.altHeaderLogo : this.settings.headerLogo;
 
         let result = <any>{};
 

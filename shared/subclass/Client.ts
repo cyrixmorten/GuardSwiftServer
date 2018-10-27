@@ -1,6 +1,5 @@
 import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
-import {Person} from "./Person";
 import {ClientContact} from "./ClientContact";
 
 export class Client extends BaseClass {
@@ -20,6 +19,8 @@ export class Client extends BaseClass {
     static readonly _position = 'position';
 
     static readonly _contacts = 'contacts';
+
+    static readonly _useAltHeaderLogo = 'useAltHeaderLogo';
 
 
     constructor() {
@@ -67,6 +68,13 @@ export class Client extends BaseClass {
         this.set(Client._contacts, contacts);
     }
 
+    get useAltHeaderLogo(): boolean {
+        return this.get(Client._useAltHeaderLogo);
+    }
+
+    set useAltHeaderLogo(useAltHeaderLogo: boolean) {
+        this.set(Client._useAltHeaderLogo, useAltHeaderLogo);
+    }
 }
 
 export class ClientQuery extends QueryBuilder<Client> {
