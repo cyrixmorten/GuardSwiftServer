@@ -23,6 +23,7 @@ export class ReportSettings extends BaseClass {
     static readonly _replyToEmail = 'replytoEmail';
 
     static readonly _headerLogo = 'headerLogo';
+    static readonly _altHeaderLogo = 'altHeaderLogo';
     static readonly _footer = 'footer';
 
     constructor() {
@@ -77,6 +78,14 @@ export class ReportSettings extends BaseClass {
         this.set(ReportSettings._headerLogo, headerLogo);
     }
 
+    get altHeaderLogo(): IHeaderLogo {
+        return this.get(ReportSettings._altHeaderLogo);
+    }
+
+    set altHeaderLogo(altHeaderLogo: IHeaderLogo) {
+        this.set(ReportSettings._altHeaderLogo, altHeaderLogo);
+    }
+    
     get footer(): string {
         return this.get(ReportSettings._footer);
     }

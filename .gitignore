@@ -30,7 +30,7 @@ node_modules
 *~
 
 *.env
-
+*.idea
 
 cloud/**/*.js
 cloud/**/*.js.map
