@@ -7,13 +7,16 @@ import {GuardQuery} from "../../shared/subclass/Guard";
 import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
-import {ResetTasks} from "../jobs/reset.tasks";
 import {TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 
 
 Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     let task = <Task>request.object;
+
+    if (!task.client) {
+        return response.error(new Error('Task must point to a client'));
+    }
 
     if (!task.existed()) {
         task.reset();
@@ -49,7 +52,6 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     }
     else {
-
         response.success();
     }
 
