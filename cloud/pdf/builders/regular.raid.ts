@@ -14,21 +14,21 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         super(report, settings, timeZone);
     }
 
-    headerLogo(): Object {
-        let headerLogo = this.settings.headerLogo;
-
-        if (!headerLogo) {
-            return {}
-        }
-
-        return {
-            image: headerLogo.datauri,
-            // margin: [15, 60, 15, 0],
-            alignment: "center",
-            width: headerLogo.stretch ? (21 / 2.54) * 72 - (2 * 40) : headerLogo.width, // (cm / 2.54) * dpi - margin
-            height: headerLogo.height
-        };
-    }
+    // headerLogo(): Object {
+    //     let headerLogo = this.settings.headerLogo;
+    //
+    //     if (!headerLogo) {
+    //         return {}
+    //     }
+    //
+    //     return {
+    //         image: headerLogo.datauri,
+    //         // margin: [15, 60, 15, 0],
+    //         alignment: "center",
+    //         width: headerLogo.stretch ? (21 / 2.54) * 72 - (2 * 40) : headerLogo.width, // (cm / 2.54) * dpi - margin
+    //         height: headerLogo.height
+    //     };
+    // }
 
     private contentHeader(clientName: string, clientFullAddress: string): Object {
         return {

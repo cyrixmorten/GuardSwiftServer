@@ -20,6 +20,8 @@ export class Client extends BaseClass {
 
     static readonly _contacts = 'contacts';
 
+    static readonly _useAltHeaderLogo = 'useAltHeaderLogo';
+
 
     constructor() {
         super(Client.className);
@@ -66,6 +68,13 @@ export class Client extends BaseClass {
         this.set(Client._contacts, contacts);
     }
 
+    get useAltHeaderLogo(): boolean {
+        return this.get(Client._useAltHeaderLogo);
+    }
+
+    set useAltHeaderLogo(useAltHeaderLogo: boolean) {
+        this.set(Client._useAltHeaderLogo, useAltHeaderLogo);
+    }
 }
 
 export class ClientQuery extends QueryBuilder<Client> {

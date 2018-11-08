@@ -7,7 +7,6 @@ import {GuardQuery} from "../../shared/subclass/Guard";
 import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
-import {ResetTasks} from "../jobs/reset.tasks";
 import {TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 
 
@@ -15,21 +14,21 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     let task = <Task>request.object;
 
+    if (!task.client) {
+        console.error('Task must point to a client!');
+    }
+
     if (!task.existed()) {
         task.reset();
     }
 
     // TaskGroup updated
-    if (task.taskGroup && task.dirty(Task._taskGroup)) {
+    if (task.taskGroup && task.dirty(Task._taskGroup) || task.dirty(Task._days)) {
 
         const taskGroup = await task.taskGroup.fetch({useMasterKey: true});
         const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
 
-        task.isRunToday = task.isTaskRunToday(taskGroup);
-        
-        if (taskGroupStarted) {
-            task.taskGroupStarted = taskGroupStarted;
-        }
+        task.reset(taskGroup, taskGroupStarted);
     }
 
     // task is either newly created or pointed to another client
@@ -49,13 +48,12 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     }
     else {
-
         response.success();
     }
 
 });
 
-Parse.Cloud.afterSave(Task, (request) => {
+Parse.Cloud.afterSave(Task, async (request) => {
 
     let task = <Task>request.object;
 
@@ -64,11 +62,12 @@ Parse.Cloud.afterSave(Task, (request) => {
     if (!_.includes(task.get('knownStatus'), status)) {
 
         if (task.isType(TaskType.ALARM)) {
-            alarmUpdate(task, status);
+            await alarmUpdate(task, status);
         }
 
         task.addUnique('knownStatus', status);
-        task.save(null, {useMasterKey: true});
+
+        await task.save(null, {useMasterKey: true});
     }
 
 
@@ -112,7 +111,7 @@ let sendNotification = (alarm) => {
     };
 
     let sendSMS = () => {
-        let prefix = alarm.get('status') === TaskStatus.ABORTED ? 'ANNULERET\n' : '';
+        let prefix = alarm.get('status') === TaskStatus.ABORTED ? 'ANNULERET\n' : ''; // TODO translate
 
         let guardQuery = new GuardQuery()
             .matchingOwner(alarm.get('owner'))
@@ -160,7 +159,7 @@ let sendNotification = (alarm) => {
     });
 };
 
-let alarmUpdate = (task: Task, status: TaskStatus) => {
+let alarmUpdate = async (task: Task, status: TaskStatus) => {
 
     switch (status) {
         case TaskStatus.PENDING: {
@@ -193,7 +192,7 @@ let alarmUpdate = (task: Task, status: TaskStatus) => {
         }
         case TaskStatus.ABORTED: {
 
-            sendNotification(task);
+            await sendNotification(task);
 
             _.forEach(centrals, (central) => {
                 central.handleAborted(task);
