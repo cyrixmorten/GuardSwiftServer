@@ -11,7 +11,6 @@ import {GPSData} from "../../../shared/GPSData";
 import {Dictionary} from "lodash";
 import {WorkSheet} from "xlsx";
 
-
 export const API_FUNCTION_TRACKER_TO_CSV = "trackerToExcel";
 
 Parse.Cloud.define(API_FUNCTION_TRACKER_TO_CSV, async (request: FunctionRequest, response: FunctionResponse) => {
