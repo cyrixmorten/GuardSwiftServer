@@ -2,6 +2,7 @@ import {QueryBuilder} from "../QueryBuilder";
 import {EventLog} from "./EventLog";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
+import {TaskGroupStarted} from './TaskGroupStarted';
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -12,6 +13,7 @@ export class Report extends EventLog {
     static readonly className = 'Report';
 
     static readonly _tasks = 'tasks';
+    static readonly _tasksGroupStarted = 'taskGroupStarted';
     static readonly _eventLogs = 'eventLogs';
 
     static readonly _clientName = 'clientName';
@@ -23,6 +25,8 @@ export class Report extends EventLog {
 
     static readonly _timeStarted = 'timeStarted';
     static readonly _timeEnded = 'timeEnded';
+
+    static readonly _isClosed = 'isClosed';
 
     constructor() {
         super(Report.className);
@@ -36,6 +40,14 @@ export class Report extends EventLog {
         return this.get(Report._eventLogs);
     }
 
+    get isClosed(): boolean {
+        return this.get(Report._isClosed);
+    }
+
+    set isClosed(isClosed: boolean) {
+        this.set(Report._isClosed, isClosed);
+    }
+    
     get clientName(): string {
         return this.get(Report._clientName);
     }
@@ -103,27 +115,27 @@ export class ReportQuery extends QueryBuilder<Report> {
 
     matchingClient(client: Client): ReportQuery {
         this.query.equalTo(Report._client, client);
-
         return this;
     }
 
     matchingTask(task: Task): ReportQuery {
         this.query.equalTo(Report._tasks, task);
-
         return this;
     }
 
 
     matchingTaskType(taskType: TaskType): ReportQuery {
         this.query.equalTo(Report._taskType, taskType);
-
         return this;
     }
 
     isNotSent(): ReportQuery {
         this.doesNotExist('mailStatus');
-
         return this;
     }
 
+    matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
+        return this;
+    }
 }
