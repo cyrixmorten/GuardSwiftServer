@@ -13,7 +13,7 @@ requireEnv([
   'SENDGRID_API_KEY',
   'CPSMS_API_KEY',
   'GOOGLE_PROJECT_ID',
-  'GOOGLE_FCM_API_KEY'
+  'GOOGLE_SERVER_API_KEY'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -45,7 +45,7 @@ let api = new ParseServer({
   push: {
       android: {
           senderId: process.env.GOOGLE_PROJECT_ID,
-          apiKey: process.env.GOOGLE_FCM_API_KEY
+          apiKey: process.env.GOOGLE_SERVER_API_KEY
       }
       // ,
       // adapter: require('parse-server-push-adapter')
