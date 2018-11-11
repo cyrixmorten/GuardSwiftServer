@@ -9,6 +9,7 @@ export class Guard extends BaseClass {
     static readonly _guardId = 'guardId';
     static readonly _name = 'name';
 
+    static readonly _alarmNotify = 'alarmNotify';
     static readonly _alarmSMS = 'alarmSMS';
 
 
@@ -31,12 +32,26 @@ export class Guard extends BaseClass {
     set guardId(guardId: number) {
         this.set(Guard._guardId, guardId);
     }
+
+    get alarmNotify(): boolean {
+        return this.get(Guard._alarmNotify);
+    }
+
+    set alarmNotify(alarmNotify: boolean) {
+        this.set(Guard._alarmNotify, alarmNotify);
+    }
 }
 
 export class GuardQuery extends QueryBuilder<Guard>{
 
     constructor() {
         super(Guard);
+    }
+
+    whereAlarmNotify(value: boolean) {
+        this.query.equalTo(Guard._alarmNotify, value);
+
+        return this;
     }
 
     whereAlarmSMS(value: boolean) {

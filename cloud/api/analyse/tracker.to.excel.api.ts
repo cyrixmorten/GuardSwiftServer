@@ -55,7 +55,7 @@ Parse.Cloud.define(API_FUNCTION_TRACKER_TO_CSV, async (request: FunctionRequest,
                 let gpsString = gpsFile.toString('utf-8');
                 let gpsLinks = [];
 
-                let gpsJSONArray = _.map(JSON.parse(gpsString), (gpsData: GPSData) => {
+                let gpsJSONArray = _.map(JSON.parse(gpsString), (gpsData: Partial<GPSData>) => {
                     gpsData = _.pick(gpsData, 'time', 'latitude', 'longitude');
 
                     gpsData.time = moment(gpsData.time).tz(timeZone).format('HH:mm:ss DD-MM');

@@ -13,7 +13,7 @@ requireEnv([
   'SENDGRID_API_KEY',
   'CPSMS_API_KEY',
   'GOOGLE_PROJECT_ID',
-  'GOOGLE_FCM_API_KEY'
+  'GOOGLE_SERVER_API_KEY'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
@@ -29,10 +29,9 @@ if (!databaseUri) {
   console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
-
 let api = new ParseServer({
   databaseURI: databaseUri, //'mongodb://localhost:27017/dev',
-  cloud: './cloud/main.js',
+  cloud: './cloud/main.ts',
   appId: process.env.APP_ID || 'guardswift',
   fileKey: process.env.FILE_KEY,
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
@@ -45,7 +44,7 @@ let api = new ParseServer({
   push: {
       android: {
           senderId: process.env.GOOGLE_PROJECT_ID,
-          apiKey: process.env.GOOGLE_FCM_API_KEY
+          apiKey: process.env.GOOGLE_SERVER_API_KEY
       }
       // ,
       // adapter: require('parse-server-push-adapter')

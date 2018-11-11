@@ -6,10 +6,11 @@ export abstract class QueryBuilder<T extends Parse.Object> {
 
     static readonly _objectId = 'objectId';
     static readonly _owner = 'owner';
+    static readonly _archive = 'archive';
 
     static readonly _createdAt = 'createdAt';
 
-    constructor(object: new(...args: any[]) => T) {
+    protected constructor(object: new(...args: any[]) => T) {
         this.query = new Parse.Query(object);
     }
 
@@ -75,6 +76,15 @@ export abstract class QueryBuilder<T extends Parse.Object> {
 
     lessThan(key: keyof T, date: Date) {
         this.query.lessThan(key, date);
+
+        return this;
+    }
+
+    notArchived() {
+        const doesNotExist = this.query.doesNotExist(QueryBuilder._archive);
+        const isFalse = this.query.notEqualTo(QueryBuilder._archive, false);
+
+        this.query = Parse.Query.or(this.query, doesNotExist, isFalse);
 
         return this;
     }

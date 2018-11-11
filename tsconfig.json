@@ -7,12 +7,13 @@
     "sourceMap": true,
     "skipLibCheck": true, // suppress error in parse typings
     "importHelpers": true,
-    "lib": ["es6"],
-    "types": [
-      "tslib",
-      "parse",
-      "lodash",
-      "node"
-    ]
+    "keyofStringsOnly": true, // https://github.com/Microsoft/TypeScript/issues/23724
+    "lib": ["es5", "es2015", "es6"]
+//    "types": [
+//      "tslib",
+//      "parse",
+//      "lodash",
+//      "node"
+//    ]
   }
 }
