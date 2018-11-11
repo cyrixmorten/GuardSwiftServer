@@ -3,7 +3,7 @@
   "version": "5.1.9",
   "description": "GuardSwift server",
   "scripts": {
-    "start": "./node_modules/.bin/ts-node index.ts",
+    "start": "./node_modules/.bin/ts-node index.ts"
   },
   "dependencies": {
     "body-parser": "^1.18.3",
