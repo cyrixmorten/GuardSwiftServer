@@ -40,3 +40,6 @@ shared/**/*.js.map
 
 api/**/*.js
 api/**/*.js.map
+
+temp/
+index.js*

@@ -10,6 +10,8 @@ import {Person} from "./Person";
 import {Report} from "./Report";
 import {ReportSettings} from "./ReportSettings";
 import {ClientContact} from "./ClientContact";
+import {Tracker} from "./Tracker";
+import {TrackerData} from "./TrackerData";
 
 export class RegisterSubclasses {
 
@@ -26,5 +28,7 @@ export class RegisterSubclasses {
         Parse.Object.registerSubclass(Report.className, Report);
         Parse.Object.registerSubclass(ReportSettings.className, ReportSettings);
         Parse.Object.registerSubclass(ClientContact.className, ClientContact);
+        Parse.Object.registerSubclass(Tracker.className, Tracker);
+        Parse.Object.registerSubclass(TrackerData.className, TrackerData);
     }
 }

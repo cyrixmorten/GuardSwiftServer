@@ -64,7 +64,7 @@ export class ResetTasks {
 
                 console.log('Resetting active groups: ', _.map(activeTaskGroupStarted, 'name'));
 
-                _.forEach<TaskGroupStarted[]>(activeTaskGroupStarted, (taskGroupStarted: TaskGroupStarted) => {
+                _.forEach<TaskGroupStarted>(activeTaskGroupStarted, (taskGroupStarted: TaskGroupStarted) => {
                     taskGroupStarted.timeEnded = new Date();
                 });
 
@@ -77,7 +77,7 @@ export class ResetTasks {
 
                         let newTaskGroupStarted = new TaskGroupStarted();
                         newTaskGroupStarted.taskGroup = taskGroup;
-                        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, ['name', 'owner', 'ACL']);
+                        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted.ACL);
                         newTaskGroupStarted.timeEnded = undefined;
                         newTaskGroupStarted.timeStarted = new Date();
 

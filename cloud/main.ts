@@ -3,7 +3,7 @@ import {RegisterSubclasses} from "../shared/subclass/RegisterSubclasses";
 let requireGlob = require('require-glob');
 
 
-requireGlob('../shared/**/*.js').then((res) => {
+requireGlob('../shared/**/*.ts').then((res) => {
 
     console.log('Registering subclasses');
 
@@ -13,7 +13,7 @@ requireGlob('../shared/**/*.js').then((res) => {
     console.error('Failed to requireGlob for shared: ' + e);
 });
 
-requireGlob('./**/*.js').then((res) => {
+requireGlob('./**/*.ts').then((res) => {
     console.log('Cloud Code loaded');
 
 }, (e) => {

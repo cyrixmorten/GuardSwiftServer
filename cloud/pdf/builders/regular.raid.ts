@@ -76,6 +76,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         let eventTimestamp = (eventLog: EventLog) => {
+            // return moment(eventLog.deviceTimestamp).tz(timeZone)
+            //     .format('HH:mm');
             return !eventLog.matchingTaskEvent(TaskEvent.OTHER) ? moment(eventLog.deviceTimestamp).tz(timeZone)
                 .format('HH:mm') : '';
         };

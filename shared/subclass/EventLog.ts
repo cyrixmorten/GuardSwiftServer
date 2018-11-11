@@ -39,6 +39,8 @@ export class EventLog extends BaseClass {
     static readonly _clientLocation = 'clientLocation';
     static readonly _remarks = 'remarks';
 
+    static readonly _activityName = 'activityName';
+    static readonly _distanceMeters = 'clientDistanceMeters';
     static readonly _automatic = 'automatic';
     static readonly _withinSchedule = 'withinSchedule';
     
@@ -89,6 +91,14 @@ export class EventLog extends BaseClass {
 
     set guardName(guardName: string) {
         this.set(EventLog._guardName, guardName);
+    }
+
+    get activityName(): string {
+        return this.get(EventLog._activityName);
+    }
+
+    get distanceToClientMeters(): number {
+        return this.get(EventLog._distanceMeters);
     }
 
     get client(): Client {
@@ -199,6 +209,16 @@ export class EventLogQuery extends QueryBuilder<EventLog> {
         super(EventLog);
     }
 
+    matchingTaskEvent(taskEvent: TaskEvent) {
+        this.query.equalTo(EventLog._taskEvent, taskEvent);
 
+        return this;
+    }
+
+    matchingTask(task: Task) {
+        this.query.equalTo(EventLog._task, task);
+
+        return this;
+    }
 
 }
