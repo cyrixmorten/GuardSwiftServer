@@ -101,6 +101,12 @@ export class ReportQuery extends QueryBuilder<Report> {
         super(Report);
     }
 
+    hasClient() {
+        this.query.exists(Report._client);
+
+        return this;
+    }
+
     matchingClient(client: Client): ReportQuery {
         this.query.equalTo(Report._client, client);
 
