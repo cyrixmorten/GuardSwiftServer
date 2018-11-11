@@ -102,7 +102,10 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
 let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType) => {
 
-    let reportSettings: ReportSettings = await new ReportSettingsQuery().matchingOwner(user).matchingTaskType(taskType).build().first({useMasterKey: true});
+    let reportSettings: ReportSettings = await new ReportSettingsQuery()
+            .matchingOwner(user)
+            .matchingTaskType(taskType)
+            .build().first({useMasterKey: true});
 
     if (!reportSettings) {
         throw new Error(`Missing reportSettings for user: ${user.get('username')} and taskType: ${taskType}`)
@@ -110,6 +113,7 @@ let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date,
 
     // regular/raid
     let reportQueryBuilder = new ReportQuery()
+        .hasClient()
         .matchingOwner(user)
         .matchingTaskType(taskType);
 

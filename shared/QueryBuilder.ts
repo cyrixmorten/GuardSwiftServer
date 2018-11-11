@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import {Report} from './subclass/Report';
 
 export abstract class QueryBuilder<T extends Parse.Object> {
 
@@ -24,6 +25,12 @@ export abstract class QueryBuilder<T extends Parse.Object> {
 
     matchingId(id: string) {
         this.query.equalTo(QueryBuilder._objectId, id);
+
+        return this;
+    }
+
+    hasClient() {
+        this.query.exists(Report._client);
 
         return this;
     }
