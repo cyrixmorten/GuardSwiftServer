@@ -131,6 +131,13 @@ let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date,
 
     await reportQueryBuilder.build().each( async (report: Report) => {
         try {
+            if (_.includes([TaskType.ALARM, TaskType.STATIC], taskType)) {
+                // mark report as closed
+                report.isClosed = true;
+
+                await report.save(null, {useMasterKey: true});
+            }
+
             await sendReport(report.id, reportSettings);
         } catch (e) {
             console.error('Error sending report', report.id, e);
