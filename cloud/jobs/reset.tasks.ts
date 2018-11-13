@@ -1,12 +1,11 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 import {Task, TaskQuery} from "../../shared/subclass/Task";
-import IPromise = Parse.IPromise;
 import * as _ from "lodash";
 import * as util from "util";
 import "tslib";
 import {User} from "../../shared/subclass/User";
-import {Report, ReportQuery} from '../../shared/subclass/Report';
+import {ReportQuery} from '../../shared/subclass/Report';
 
 
 export class ResetTasks {
@@ -71,6 +70,7 @@ export class ResetTasks {
             return taskGroupStarted;
         }), {useMasterKey: true});
 
+
         // close reports matching task group started
         _.forEach(activeTaskGroupsStarted, async (taskGroupStarted) => {
             const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).build().find({useMasterKey: true});
@@ -91,9 +91,10 @@ export class ResetTasks {
 
             let newTaskGroupStarted = new TaskGroupStarted();
             newTaskGroupStarted.taskGroup = taskGroup;
-            newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, ['name', 'owner', 'ACL']);
+            newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted.ACL);
             newTaskGroupStarted.timeEnded = undefined;
             newTaskGroupStarted.timeStarted = new Date();
+
 
             await newTaskGroupStarted.save(null, {useMasterKey: true});
         }

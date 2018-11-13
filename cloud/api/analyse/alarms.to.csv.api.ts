@@ -33,20 +33,20 @@ exports.fetch = function(user, dateFrom, dateTo) {
 exports.csv = function(alarms: Task[]) {
     let fields = ['Central', 'Dato', 'Modtaget', 'Id', 'Navn', 'Adresse', 'Prioritet', 'Status', 'Alarm'];
 
-    let centralGroups = _.groupBy(alarms, function(alarm) {
+    let centralGroups = _.groupBy<Task>(alarms, function(alarm) {
         return alarm.get('centralName');
     });
 
-    let alarmEntries = [];
+    let alarmEntries: any[] = [];
 
 
     _.forOwn(centralGroups, function(alarms, centralName) {
 
-        alarms = _.sortBy(alarms, function(alarm) {
+        alarms = _.sortBy<Task>(alarms, function(alarm) {
             return alarm.get('fullAddress');
         });
 
-        let entries = _.map(alarms, function(alarm) {
+        let entries = _.map<Task>(alarms, function(alarm) {
 
             let getStatus = function() {
                 let status = alarm.get('status');

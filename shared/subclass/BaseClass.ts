@@ -1,13 +1,12 @@
 import * as _ from "lodash";
 import {User} from "./User";
-import ACL = Parse.ACL;
 
 export abstract class BaseClass extends Parse.Object {
 
     static readonly _owner = 'owner';
     static readonly _archive = 'archive';
 
-    ACL = 'ACL';
+    static readonly ACL = 'ACL';
 
     constructor(className?: string, options?: any) {
         super(className, options)
@@ -29,8 +28,9 @@ export abstract class BaseClass extends Parse.Object {
         this.set(BaseClass._archive, archive);
     }
 
-    copyAttributes<T extends BaseClass>(fromObject: Parse.Object, select?: [keyof T]) {
-        Object.keys(fromObject.attributes).forEach((fieldName) => {
+    // TODO: select should be keyof T
+    copyAttributes<T extends BaseClass>(fromObject: Parse.Object, ...select: string[]) {
+        Object.keys(fromObject.attributes).forEach((fieldName: string) => {
             if (!select || _.includes(select, fieldName)) {
                 this.set(fieldName, fromObject.get(fieldName));
             }

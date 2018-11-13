@@ -1,6 +1,6 @@
 import {AlarmDispatcher} from "./dispatcher";
 
-import * as rp from 'request-promise';
+import * as rp from 'request-promise-native';
 import * as _ from 'lodash'
 
 let saveSMSLog =  (to, from, message, limit, error?) => {

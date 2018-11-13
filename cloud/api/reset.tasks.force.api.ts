@@ -1,4 +1,4 @@
-import * as rp from "request-promise";
+import * as rp from "request-promise-native";
 import {ResetTasks} from "../jobs/reset.tasks";
 import * as _ from "lodash"
 import {API_FUNCTION_RESET_TASKS} from "./reset.tasks.api";

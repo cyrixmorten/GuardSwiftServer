@@ -29,10 +29,9 @@ if (!databaseUri) {
   console.log('DATABASE_URI not specified, falling back to localhost.');
 }
 
-
 let api = new ParseServer({
   databaseURI: databaseUri, //'mongodb://localhost:27017/dev',
-  cloud: './cloud/main.js',
+  cloud: './cloud/main.ts',
   appId: process.env.APP_ID || 'guardswift',
   fileKey: process.env.FILE_KEY,
   masterKey: process.env.MASTER_KEY, // Add your master key here. Keep it secret!
