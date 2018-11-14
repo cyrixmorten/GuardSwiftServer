@@ -10,7 +10,6 @@ import {ReportQuery} from '../../shared/subclass/Report';
 
 export class ResetTasks {
 
-
     private now_day: number;
 
     constructor(private force?: boolean) {
@@ -39,11 +38,13 @@ export class ResetTasks {
                     'Perform reset: ', taskGroup.resetNow());
 
                 if (this.force || taskGroup.resetNow()) {
-                    return Promise.all([
-                        this.endTaskGroupsStartedAndCloseReports(taskGroup),
-                        this.createNewTaskGroupStarted(taskGroup),
-                        this.resetTasksMatchingGroup(taskGroup)
-                    ]);
+
+                    await this.endTaskGroupsStartedAndCloseReports(taskGroup);
+
+                    if (taskGroup.isRunToday()) {
+                        const taskGroupStarted: TaskGroupStarted = await this.createNewTaskGroupStarted(taskGroup);
+                        await this.resetTasksMatchingGroup(taskGroup, taskGroupStarted);
+                    }
                 }
 
             }, {useMasterKey: true});
@@ -82,34 +83,24 @@ export class ResetTasks {
         });
     }
 
-    private async createNewTaskGroupStarted(taskGroup: TaskGroup): Promise<void> {
-        if (taskGroup.isRunToday()) {
+    private async createNewTaskGroupStarted(taskGroup: TaskGroup): Promise<TaskGroupStarted> {
+        taskGroup.createdDay = this.now_day;
+        // Save day of creation to taskGroup
+        await taskGroup.save(null, {useMasterKey: true});
 
-            taskGroup.createdDay = this.now_day;
-            // Save day of creation to taskGroup
-            await taskGroup.save(null, {useMasterKey: true});
-
-            let newTaskGroupStarted = new TaskGroupStarted();
-            newTaskGroupStarted.taskGroup = taskGroup;
-            newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted.ACL);
-            newTaskGroupStarted.timeEnded = undefined;
-            newTaskGroupStarted.timeStarted = new Date();
+        let newTaskGroupStarted = new TaskGroupStarted();
+        newTaskGroupStarted.taskGroup = taskGroup;
+        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted.ACL);
+        newTaskGroupStarted.timeEnded = undefined;
+        newTaskGroupStarted.timeStarted = new Date();
 
 
-            await newTaskGroupStarted.save(null, {useMasterKey: true});
-        }
+        return await newTaskGroupStarted.save(null, {useMasterKey: true});
     }
 
 
-
-    private async resetTasksMatchingGroup(taskGroup: TaskGroup): Promise<Task[]> {
-        if (!taskGroup) {
-            return;
-        }
-
+    private async resetTasksMatchingGroup(taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Promise<Task[]> {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
-
-        const taskGroupStarted: TaskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(taskGroup).build().first({useMasterKey: true});
 
         // TODO: hard limit of 1000 tasks per group
         const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true});

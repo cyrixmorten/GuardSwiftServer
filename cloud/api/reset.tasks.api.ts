@@ -28,7 +28,7 @@ Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
         status.success("completed successfully");
     }, function (error) {
         console.error("failed to reset tasks", error);
-        status.error("an error occurred: " + JSON.stringify(error));
+        status.error("an error occurred: \n" + JSON.stringify(error));
     });
 
 });
