@@ -113,6 +113,12 @@ export class ReportQuery extends QueryBuilder<Report> {
         super(Report);
     }
 
+    isClosed(): any {
+        this.query.equalTo(Report._isClosed, true);
+
+        return this;
+    }
+
     hasClient() {
         this.query.exists(Report._client);
 
