@@ -112,7 +112,7 @@ let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date,
     }
 
     // regular/raid
-    let reportQueryBuilder = new ReportQuery()
+    let reportQueryBuilder: ReportQuery = new ReportQuery()
         .hasClient()
         .matchingOwner(user)
         .matchingTaskType(taskType);
@@ -122,15 +122,23 @@ let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date,
         reportQueryBuilder
             .lessThan('timeEnded', fromDate)
             .lessThan('updatedAt', fromDate)
-            .isNotSent()
+            .isNotSent();
     } else {
         reportQueryBuilder
             .createdAfter(fromDate)
             .createdBefore(toDate)
+            .isClosed();
     }
 
     await reportQueryBuilder.build().each( async (report: Report) => {
         try {
+            if (_.includes([TaskType.ALARM, TaskType.STATIC], taskType)) {
+                // mark report as closed
+                report.isClosed = true;
+
+                await report.save(null, {useMasterKey: true});
+            }
+
             await sendReport(report.id, reportSettings);
         } catch (e) {
             console.error('Error sending report', report.id, e);

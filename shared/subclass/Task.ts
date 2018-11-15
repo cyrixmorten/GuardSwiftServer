@@ -211,7 +211,7 @@ export class Task extends BaseClass {
         return taskGroup.isRunToday() && _.includes(this.days, new Date().getDay())
     }
 
-    reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted) {
+    reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
         this.timesArrived = 0;
@@ -223,6 +223,8 @@ export class Task extends BaseClass {
         if (taskGroupStarted) {
             this.taskGroupStarted = taskGroupStarted;
         }
+
+        return this;
     }
 }
 
