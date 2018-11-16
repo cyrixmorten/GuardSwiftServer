@@ -127,7 +127,8 @@ let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date,
         reportQueryBuilder
             .createdAfter(fromDate)
             .createdBefore(toDate)
-            .isClosed();
+            .isClosed()
+            .isNotSent();
     }
 
     await reportQueryBuilder.build().each( async (report: Report) => {
