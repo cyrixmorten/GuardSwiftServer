@@ -1,6 +1,9 @@
 import {BaseClass} from "./BaseClass";
 import {QueryBuilder} from "../QueryBuilder";
 import {ClientContact} from "./ClientContact";
+import {TaskType} from './Task';
+
+export type TaskRadiusMap = Map<TaskType, number>;
 
 export class Client extends BaseClass {
 
@@ -22,6 +25,7 @@ export class Client extends BaseClass {
 
     static readonly _useAltHeaderLogo = 'useAltHeaderLogo';
 
+    static readonly _taskRadius = 'taskRadius';
 
     constructor() {
         super(Client.className);
@@ -74,6 +78,14 @@ export class Client extends BaseClass {
 
     set useAltHeaderLogo(useAltHeaderLogo: boolean) {
         this.set(Client._useAltHeaderLogo, useAltHeaderLogo);
+    }
+
+    get taskRadius(): TaskRadiusMap {
+        return this.get(Client._taskRadius);
+    }
+
+    set taskRadius(taskRadius: TaskRadiusMap) {
+        this.set(Client._taskRadius, taskRadius);
     }
 }
 

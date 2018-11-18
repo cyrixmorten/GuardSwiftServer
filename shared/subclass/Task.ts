@@ -45,7 +45,8 @@ export class Task extends BaseClass {
     static readonly _days = 'days';
     static readonly _isRunToday = 'isRunToday';
     static readonly _supervisions = 'supervisions';
-    
+
+    static readonly _geofenceRadius = 'geofenceRadius';
 
     constructor() {
         super(Task.className);
@@ -137,6 +138,12 @@ export class Task extends BaseClass {
         this.clientAddress = client.fullAddress || '';
 
         this.position = client.position || this.position;
+
+        const taskRadiusFromClient = client.taskRadius && client.taskRadius[this.taskType];
+
+        if (taskRadiusFromClient) {
+            this.geofenceRadius = taskRadiusFromClient;
+        }
     }
 
     get clientId(): string {
@@ -195,7 +202,14 @@ export class Task extends BaseClass {
     set supervisions(supervisions: number) {
         this.set(Task._supervisions, supervisions);
     }
+    
+    get geofenceRadius(): number {
+        return this.get(Task._geofenceRadius);
+    }
 
+    set geofenceRadius(geofenceRadius: number) {
+        this.set(Task._geofenceRadius, geofenceRadius);
+    }
 
     isType(type: TaskType) {
         return this.taskType === type;
