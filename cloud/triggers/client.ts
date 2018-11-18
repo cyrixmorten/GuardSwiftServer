@@ -2,7 +2,6 @@ import * as GeoCode from '../utils/geocode';
 import * as _ from 'lodash';
 import {Client} from "../../shared/subclass/Client";
 import {Task, TaskQuery} from "../../shared/subclass/Task";
-import IPromise = Parse.IPromise;
 
 /*
  * Sanity check and obtain a GPS position for Client
@@ -23,21 +22,24 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
         }
     }
 
-    if (client.dirty(Client._clientId) || client.dirty(Client._taskRadius) || shouldUpdatePosition) {
-        await updateTasks(client);
-    }
-
     response.success();
 });
 
-let updateTasks = async (client: Client) => {
-    const tasks = await new TaskQuery().matchingClient(client).build().find({useMasterKey: true});
+Parse.Cloud.afterSave(Client,  async (request) => {
+
+    let client = <Client>request.object;
+
+    const tasks = await new TaskQuery()
+        .matchingClient(client)
+        .build().find({useMasterKey: true});
 
     return Promise.all(_.map(tasks, (task: Task) => {
         task.client = client;
         return task.save(null, {useMasterKey: true});
     }));
-};
+
+});
+
 
 let addAddressToClient = async (Client): Promise<Parse.GeoPoint> => {
     console.log("addAddressToClient");

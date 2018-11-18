@@ -19,6 +19,8 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
     }
 
     if (!task.existed()) {
+        console.log('New task');
+
         task.reset();
 
         const client = await task.client.fetch({useMasterKey: true});
