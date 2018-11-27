@@ -20,6 +20,8 @@ export class EventLog extends BaseClass {
     static className = 'EventLog';
 
     static readonly _name = 'name';
+    
+    static readonly _eventCode = 'eventCode';
     static readonly _taskEvent = 'task_event';
     static readonly _taskType = 'taskType';
     static readonly _taskTypeName = 'taskTypeName';
@@ -43,6 +45,7 @@ export class EventLog extends BaseClass {
     static readonly _distanceMeters = 'clientDistanceMeters';
     static readonly _automatic = 'automatic';
     static readonly _withinSchedule = 'withinSchedule';
+    static readonly _reported = 'reported';
     
 
     constructor(className?: string) {
@@ -65,6 +68,14 @@ export class EventLog extends BaseClass {
         this.set(EventLog._taskType, taskType);
     }
 
+    get eventCode(): number {
+        return this.get(EventLog._eventCode);
+    }
+
+    set eventCode(eventCode: number) {
+        this.set(EventLog._eventCode, eventCode);
+    }
+    
     matchingTaskType(...taskType: TaskType[]): boolean {
         return _.includes(taskType, this.taskType);
     }
@@ -176,6 +187,14 @@ export class EventLog extends BaseClass {
 
     set automatic(automatic: boolean) {
         this.set(EventLog._automatic, automatic);
+    }
+
+    get reported(): boolean {
+        return this.get(EventLog._reported);
+    }
+
+    set reported(reported: boolean) {
+        this.set(EventLog._reported, reported);
     }
 
     get withinSchedule(): boolean {

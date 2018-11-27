@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
 import {lookupPlaceObject} from "../utils/geocode";
+import {Task} from '../../shared/subclass/Task';
 
 export class AlarmUtils {
 
-    static findAlarm = function (options) {
+    static async findAlarm(options) {
         console.log('options: ', options);
 
         let Alarm = Parse.Object.extend('Task');
@@ -15,7 +16,7 @@ export class AlarmUtils {
         return query.first({useMasterKey: true});
     };
 
-    static findCentral = function (sender) {
+    static async findCentral(sender) {
         console.log('findCentral');
 
         let Central = Parse.Object.extend('Central');
@@ -25,7 +26,7 @@ export class AlarmUtils {
         return query.first({useMasterKey: true});
     };
 
-    static findUser = function (receiver) {
+    static async findUser(receiver) {
         console.log('findUser');
 
         let query = new Parse.Query(Parse.User);
@@ -34,7 +35,7 @@ export class AlarmUtils {
         return query.first({useMasterKey: true});
     };
 
-    static findClient = function (user, queryMap) {
+    static async findClient(user, queryMap) {
         console.log('findClient', user, queryMap);
 
         let Client = Parse.Object.extend("Client");
@@ -51,20 +52,21 @@ export class AlarmUtils {
         return query.first({useMasterKey: true});
     };
 
-    static createClient = function (user, alarm) {
+    static async createClient(user, alarm: Task) {
         console.log('createClient');
 
-        let id = alarm.get('clientId');
-        let name = alarm.get('clientName');
-        let fullAddress = alarm.get('fullAddress');
+        let id = alarm.clientId;
+        let name = alarm.clientName;
+        let fullAddress = alarm.fullAddress;
 
-        return lookupPlaceObject(fullAddress).then(function (placeObject) {
-            return Parse.Promise.as(placeObject);
-        }, function () {
-            // unable to look up address
+        let placeObject = {};
+
+        try {
+            placeObject = await lookupPlaceObject(fullAddress);
+        } catch (e) {
             console.log('Failed to look up address for: ' + fullAddress);
 
-            let fakePlaceObject = {
+            placeObject = {
                 placeObject: {},
                 placeId: '',
                 formattedAddress: fullAddress,
@@ -77,32 +79,30 @@ export class AlarmUtils {
                     longitude: 1
                 })
             };
+        }
 
-            return Parse.Promise.as(fakePlaceObject);
 
-        }).then(function (placeObject) {
-            let Client = Parse.Object.extend("Client");
-            let client = new Client();
+        let Client = Parse.Object.extend("Client");
+        let client = new Client();
 
-            client.set('clientId', id);
-            client.set('automatic', true);
-            client.set('name', name);
-            client.set('fullAddress', fullAddress);
-            client.set('owner', user);
+        client.set('clientId', id);
+        client.set('automatic', true);
+        client.set('name', name);
+        client.set('fullAddress', fullAddress);
+        client.set('owner', user);
 
-            let acl = new Parse.ACL();
-            acl.setReadAccess(user.id, true);
-            acl.setWriteAccess(user.id, true);
-            acl.setPublicReadAccess(false);
-            acl.setPublicWriteAccess(false);
+        let acl = new Parse.ACL();
+        acl.setReadAccess(user.id, true);
+        acl.setWriteAccess(user.id, true);
+        acl.setPublicReadAccess(false);
+        acl.setPublicWriteAccess(false);
 
-            client.setACL(acl);
+        client.setACL(acl);
 
-            _.forOwn(placeObject, function (value, key) {
-                client.set(key, value);
-            });
+        _.forOwn(placeObject, function (value, key) {
+            client.set(key, value);
+        });
 
-            return client.save(null, {useMasterKey: true});
-        })
+        return client.save(null, {useMasterKey: true});
     };
 }

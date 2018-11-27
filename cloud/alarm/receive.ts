@@ -43,7 +43,7 @@ export const handleAlarmRequest = function (request): IPromise<any> {
             return Parse.Promise.error('Unable to find central with sendFrom value: ' + sender);
         }
         central = centralObj;
-        console.log('central: ' + central.get('name'));
+        console.log('central: ' + central.name);
 
         return AlarmUtils.findUser(receiver);
     }).then(function (userObj: User) {

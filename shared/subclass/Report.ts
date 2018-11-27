@@ -15,6 +15,7 @@ export class Report extends EventLog {
     static readonly _tasks = 'tasks';
     static readonly _tasksGroupStarted = 'taskGroupStarted';
     static readonly _eventLogs = 'eventLogs';
+    static readonly _eventCount = 'eventCount';
 
     static readonly _clientName = 'clientName';
     static readonly _clientAddress = 'clientAddress';
@@ -105,6 +106,9 @@ export class Report extends EventLog {
         this.set(Report._timeEnded, timeEnded);
     }
 
+    incrementEventCount() {
+        this.increment(Report._eventCount);
+    }
 }
 
 export class ReportQuery extends QueryBuilder<Report> {
