@@ -13,7 +13,7 @@ export interface IAlarmOptions {
     parsedAlarm: IParsedAlarm
 }
 
-export let createAlarm = function (options: IAlarmOptions) {
+export const createAlarm = async (options: IAlarmOptions) => {
 
     let Alarm = Parse.Object.extend("Task");
     let alarm = new Alarm();
