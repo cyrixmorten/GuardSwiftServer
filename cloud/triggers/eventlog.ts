@@ -71,7 +71,7 @@ let writeEventToReport = async (eventLog: EventLog) => {
 
             // 5) Select the task group started that was created the earliest
             const firstTaskGroupStarted = _.first(
-                _.sortBy<TaskGroupStarted>(taskGroupsStarted, (taskGroupStarted) => taskGroupStarted.timeStarted)
+                _.sortBy<TaskGroupStarted>(taskGroupsStartedRunToday, (taskGroupStarted) => taskGroupStarted.timeStarted)
             );
 
             /*
