@@ -54,20 +54,17 @@ let writeEventToReport = async (eventLog: EventLog) => {
                 return task.taskGroupStarted;
             })));
             const taskGroupsStarted: TaskGroupStarted[] = await Parse.Object.fetchAll(taskGroupStartedPointers, {useMasterKey: true});
-            console.log('taskGroupsStarted', _.map(taskGroupsStarted, TaskGroupStarted._name));
 
             // 3) Investigate if any task groups are not run today
             const taskGroupPointers = _.map(taskGroupsStarted, TaskGroupStarted._taskGroup);
             const taskGroups: TaskGroup[] = await Parse.Object.fetchAll(taskGroupPointers, {useMasterKey: true});
 
             const taskGroupsRunToday = _.filter<TaskGroup>(taskGroups, (taskGroup) => taskGroup.isRunToday());
-            console.log('taskGroupsRunToday', _.map(taskGroupsRunToday, TaskGroup._name));
 
             // 4) Only take those started task groups that run today into account
             const taskGroupsStartedRunToday = _.filter<TaskGroupStarted>(taskGroupsStarted, (taskGroupStarted: TaskGroupStarted) => {
                 return _.some(taskGroupsRunToday, taskGroup => taskGroup.id === taskGroupStarted.taskGroup.id);
             });
-            console.log('taskGroupsStartedRunToday', _.map(taskGroupsStartedRunToday, TaskGroupStarted._name));
 
             // 5) Select the task group started that was created the earliest
             const firstTaskGroupStarted = _.first(
@@ -76,12 +73,11 @@ let writeEventToReport = async (eventLog: EventLog) => {
 
             /*
              * Compare to how it used to be
-             * TODO: Remove
+             * TODO: Remove below logs
              */
             let taskGroupStarted = await eventLog.taskGroupStarted.fetch({useMasterKey: true});
             console.log('Previous search time', _.pick(taskGroupStarted, TaskGroupStarted._name), moment(taskGroupStarted.createdAt).format('DD-MM HH:mm'));
             console.log('Current search time', _.pick(firstTaskGroupStarted, TaskGroupStarted._name), moment(firstTaskGroupStarted.timeStarted).format('DD-MM HH:mm'));
-            // TODO: Remove
 
             // 6) Look for existing report created after the first possible task group started
             reportQuery.createdAfterObject(firstTaskGroupStarted);
