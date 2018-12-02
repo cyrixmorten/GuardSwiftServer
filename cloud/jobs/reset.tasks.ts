@@ -90,7 +90,7 @@ export class ResetTasks {
 
         let newTaskGroupStarted = new TaskGroupStarted();
         newTaskGroupStarted.taskGroup = taskGroup;
-        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted.ACL);
+        newTaskGroupStarted.copyAttributes<TaskGroupStarted>(taskGroup, TaskGroupStarted._name, TaskGroupStarted._owner, TaskGroupStarted._ACL);
         newTaskGroupStarted.timeEnded = undefined;
         newTaskGroupStarted.timeStarted = new Date();
 

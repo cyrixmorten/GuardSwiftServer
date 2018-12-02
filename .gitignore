@@ -43,3 +43,5 @@ api/**/*.js.map
 
 temp/
 index.js*
+
+.tscache

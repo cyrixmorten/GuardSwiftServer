@@ -3,12 +3,15 @@ import {User} from "./User";
 
 export abstract class BaseClass extends Parse.Object {
 
+    static readonly _objectId = 'objectId';
+    static readonly _createdAt = 'createdAt';
+    static readonly _ACL = '_ACL';
+
     static readonly _owner = 'owner';
     static readonly _archive = 'archive';
 
-    static readonly ACL = 'ACL';
 
-    constructor(className?: string, options?: any) {
+    protected constructor(className?: string, options?: any) {
         super(className, options)
     }
 

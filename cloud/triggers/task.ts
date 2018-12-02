@@ -2,7 +2,7 @@ import {Task, TaskStatus, TaskType} from "../../shared/subclass/Task";
 import * as parse from "parse";
 import * as _ from "lodash";
 import * as moment from "moment";
-import {GuardQuery} from "../../shared/subclass/Guard";
+import {Guard, GuardQuery} from "../../shared/subclass/Guard";
 
 import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
@@ -55,13 +55,13 @@ Parse.Cloud.afterSave(Task, async (request) => {
 
     let status: TaskStatus = task.status;
 
-    if (!_.includes(task.get('knownStatus'), status)) {
+    if (!_.includes(task.knownStatus, status)) {
 
         if (task.isType(TaskType.ALARM)) {
             await alarmUpdate(task, status);
         }
 
-        task.addUnique('knownStatus', status);
+        task.addKnownStatus(status);
 
         await task.save(null, {useMasterKey: true});
     }
@@ -70,89 +70,66 @@ Parse.Cloud.afterSave(Task, async (request) => {
 });
 
 
-let sendNotification = (alarm) => {
+let sendNotification = async (alarm: Task) => {
 
     console.log('sendNotification alarm', alarm.id);
 
-    let sendPushNotification = () => {
+    let sendPushNotification = async () => {
         console.log('sendPushNotification');
 
         let installationQuery = new Parse.Query(Parse.Installation);
-        installationQuery.equalTo('owner', alarm.get('owner'));
+        installationQuery.equalTo('owner', alarm.owner);
         installationQuery.equalTo('channels', 'alarm');
         installationQuery.greaterThan('updatedAt', moment().subtract(7, 'days').toDate());
 
-        return installationQuery.find({useMasterKey: true})
-            .then((installations) => {
-                console.log('Sending push to installations', installations.length);
-                _.forEach(installations, (installation) => {
-                    console.log('installation: ', installation.get('name'), installation.id);
-                });
-
-                return Parse.Promise.when();
-            }).then(() => {
-                return Parse.Push.send({
-                    where: installationQuery,
-                    expiration_interval: 600,
-                    data: {
-                        alarmId: alarm.id
-                    }
-                }, {useMasterKey: true})
-                    .then(() => {
-                        console.log('Push notification successfully sent for alarm', alarm.id);
-                    }, (e) => {
-                        console.error('Error sending push notification', e);
-                    })
-            });
+        return Parse.Push.send({
+            where: installationQuery,
+            expiration_interval: 600,
+            data: {
+                alarmId: alarm.id
+            }
+        }, {useMasterKey: true});
     };
 
-    let sendSMS = () => {
-        let prefix = alarm.get('status') === TaskStatus.ABORTED ? 'ANNULERET\n' : ''; // TODO translate
+    let sendSMS = async () => {
+        let prefix = alarm.status === TaskStatus.ABORTED ? 'ANNULERET\n' : ''; // TODO translate
 
-        let guardQuery = new GuardQuery()
-            .matchingOwner(alarm.get('owner'))
+        const guards: Guard[] = await new GuardQuery()
+            .matchingOwner(alarm.owner)
             .whereAlarmSMS(true)
             .build()
-            .include('installation');
+            .include('installation')
+            .find({useMasterKey: true});
 
-        return guardQuery.find({useMasterKey: true}).then((guards) => {
-            console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
+        console.log('Sending SMS for alarm:', alarm.id, ' to ', guards.length, 'guards');
 
-            let smsPromises = [];
+        return Promise.all(_.map(guards, (guard: Guard) => {
+            let installation = guard.installation;
+            let guardMobile = guard.mobileNumber;
+            let installationMobile = installation ? installation.get('mobileNumber') : '';
 
-            _.forEach(guards, (guard) => {
-                let installation = guard.get('installation');
-                let guardMobile = guard.get('mobileNumber');
-                let installationMobile = installation ? installation.get('mobileNumber') : '';
+            console.log('Sending to', guard.name, guardMobile, installationMobile);
 
-                console.log('Sending to', guard.get('name'), guardMobile, installationMobile);
+            if (guardMobile || installationMobile) {
+                let sendTo = (installationMobile) ? installationMobile : guardMobile;
 
-                if (guardMobile || installationMobile) {
-                    let sendTo = (installationMobile) ? installationMobile : guardMobile;
-
-                    let smsPromise = cpsms.send({
-                        to: sendTo,
-                        message: prefix + alarm.get("original"),
-                        flash: true
-                    });
-
-                    smsPromises.push(smsPromise)
-                }
-                else {
-                    console.error('Unable to send SMS to guard', guard.get('name'), 'no mobile number for installation or guard');
-                }
-            });
-
-            return Parse.Promise.when(smsPromises);
-        });
+                return cpsms.send({
+                    to: sendTo,
+                    message: prefix + alarm.original,
+                    flash: true
+                });
+            } else {
+                console.error('Unable to send SMS to guard', guard.name, 'no mobile number for installation or guard');
+            }
+        }));
     };
 
 
-    return (<parse.Promise<any>>sendPushNotification()).always(() => {
-        if (process.env.NODE_ENV === 'production') {
-            return sendSMS()
-        }
-    });
+    await sendPushNotification();
+
+    if (process.env.NODE_ENV === 'production') {
+        return sendSMS()
+    }
 };
 
 let alarmUpdate = async (task: Task, status: TaskStatus) => {
@@ -164,11 +141,13 @@ let alarmUpdate = async (task: Task, status: TaskStatus) => {
                 central.handlePending(task);
             });
 
-            sendNotification(task).then(() => {
+            try {
+                await sendNotification(task);
+
                 console.log('Done sending notification for alarm', task.id);
-            }, (e) => {
+            } catch (e) {
                 console.error('Error sending notification for alarm', task.id, e);
-            });
+            }
 
             break;
         }

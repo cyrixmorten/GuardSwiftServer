@@ -6,11 +6,14 @@ export class Guard extends BaseClass {
     static readonly className = 'Guard';
 
     static readonly _installation = 'installation';
+    
     static readonly _guardId = 'guardId';
     static readonly _name = 'name';
-
+    static readonly _mobileNumber = 'mobileNumber';
+    
     static readonly _alarmNotify = 'alarmNotify';
     static readonly _alarmSMS = 'alarmSMS';
+    
 
 
     constructor() {
@@ -23,6 +26,14 @@ export class Guard extends BaseClass {
 
     set name(name: string) {
         this.set(Guard._name, name);
+    }
+
+    get mobileNumber(): string {
+        return this.get(Guard._mobileNumber);
+    }
+
+    set mobileNumber(mobileNumber: string) {
+        this.set(Guard._mobileNumber, mobileNumber);
     }
 
     get guardId(): number {
@@ -39,6 +50,14 @@ export class Guard extends BaseClass {
 
     set alarmNotify(alarmNotify: boolean) {
         this.set(Guard._alarmNotify, alarmNotify);
+    }
+
+    get installation(): Parse.Object {
+        return this.get(Guard._installation);
+    }
+
+    set installation(installation: Parse.Object) {
+        this.set(Guard._installation, installation);
     }
 }
 
