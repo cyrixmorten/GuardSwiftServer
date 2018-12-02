@@ -1,10 +1,10 @@
 import {BaseClass} from "./BaseClass";
 import {TaskGroup} from "./TaskGroup";
-import {QueryBuilder} from "../QueryBuilder";
 import {Guard} from "./Guard";
 import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
 import {Client} from "./Client";
+import {QueryBuilder} from '../QueryBuilder';
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -237,6 +237,7 @@ export class Task extends BaseClass {
     set timeStartDate(timeStartDate: Date) {
         this.set(Task._timeStartDate, timeStartDate);
     }
+
 
     get timeEndDate(): Date {
         return this.get(Task._timeEndDate);
