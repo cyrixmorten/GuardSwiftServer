@@ -20,7 +20,6 @@ export class ReportToPDF {
 
         query.include(Report._eventLogs);
         query.include(Report._tasks);
-        query.include(Report._client);
 
         // TODO: backwards compatibility
         // TODO: Create job that adds task to tasks array before removing this

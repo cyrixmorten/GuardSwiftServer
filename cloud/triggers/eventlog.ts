@@ -1,16 +1,25 @@
-import {EventLog, TaskEvent} from "../../shared/subclass/EventLog";
-import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {Task, TaskQuery, TaskType} from "../../shared/subclass/Task";
+import { EventLog, TaskEvent } from "../../shared/subclass/EventLog";
+import { Report, ReportQuery } from "../../shared/subclass/Report";
+import { Task, TaskQuery, TaskType } from "../../shared/subclass/Task";
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import {TaskGroupStarted} from '../../shared/subclass/TaskGroupStarted';
-import {QueryBuilder} from '../../shared/QueryBuilder';
-import {BaseClass} from '../../shared/subclass/BaseClass';
-import {TaskGroup} from '../../shared/subclass/TaskGroup';
+import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
+import { TaskGroup } from '../../shared/subclass/TaskGroup';
+import { Client } from '../../shared/subclass/Client';
 
-Parse.Cloud.beforeSave(EventLog, (request, response) => {
+Parse.Cloud.beforeSave(EventLog, async (request, response) => {
 
     let eventLog = <EventLog>request.object;
+
+    if (eventLog.client) {
+        const client: Client = await eventLog.client.fetch({useMasterKey: true});
+        eventLog.clientName = client.name;
+        eventLog.clientCity = client.cityName;
+        eventLog.clientZipcode = client.zipCode;
+        eventLog.clientAddress = client.addressName;
+        eventLog.clientAddressNumber = client.addressNumber;
+        eventLog.clientFullAddress = `${client.addressName} ${client.addressNumber} ${client.zipCode} ${client.cityName}`;
+    }
 
     if (!eventLog.automatic) {
         eventLog.automatic = false;

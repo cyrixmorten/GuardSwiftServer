@@ -31,14 +31,6 @@ export class Client extends BaseClass {
         super(Client.className);
     }
 
-    get name(): string {
-        return this.get(Client._name);
-    }
-
-    set name(name: string) {
-        this.set(Client._name, name);
-    }
-
     set clientId(clientId: string) {
         this.set(Client._clientId, clientId);
     }
@@ -47,6 +39,46 @@ export class Client extends BaseClass {
         return this.get(Client._clientId);
     }
 
+    
+    get name(): string {
+        return this.get(Client._name);
+    }
+
+    set name(name: string) {
+        this.set(Client._name, name);
+    }
+
+    get cityName(): string {
+        return this.get(Client._cityName);
+    }
+
+    set cityName(cityName: string) {
+        this.set(Client._cityName, cityName);
+    }
+
+    get zipCode(): string {
+        return this.get(Client._zipcode);
+    }
+
+    set zipCode(zipCode: string) {
+        this.set(Client._zipcode, zipCode);
+    }
+
+    get addressName(): string {
+        return this.get(Client._addressName);
+    }
+
+    set addressName(addressName: string) {
+        this.set(Client._addressName, addressName);
+    }
+
+    get addressNumber(): string {
+        return this.get(Client._addressNumber);
+    }
+
+    set addressNumber(addressNumber: string) {
+        this.set(Client._addressNumber, addressNumber);
+    }
 
     set fullAddress(fullAddress: string) {
         this.set(Client._fullAddress, fullAddress);

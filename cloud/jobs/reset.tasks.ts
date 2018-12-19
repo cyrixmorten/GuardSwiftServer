@@ -12,7 +12,7 @@ export class ResetTasks {
 
     private now_day: number;
 
-    constructor(private force?: boolean) {
+    constructor(private force?: boolean, private taskGroupId?: string) {
         let now = new Date();
 
         this.now_day = now.getDay();
@@ -27,6 +27,10 @@ export class ResetTasks {
             let queryTaskGroups = new Parse.Query(TaskGroup);
             if (!this.force) {
                 queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
+            }
+            if (this.taskGroupId) {
+                console.log('Targeting taskGroup:', this.taskGroupId);
+                queryTaskGroups.equalTo(TaskGroup._objectId, this.taskGroupId);
             }
             queryTaskGroups.doesNotExist(TaskGroup._archive);
             queryTaskGroups.equalTo(TaskGroup._owner, user);

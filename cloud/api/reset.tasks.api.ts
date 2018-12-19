@@ -9,7 +9,7 @@ Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
     console.log('- resetAllTasks');
     console.log('----\n\n');
     let forceUpdate = request.params.force;
- 
+    let taskGroupId = request.params.taskGroupId;
 
     let now = new Date();
     let now_dayOfWeek = now.getDay();
@@ -20,7 +20,7 @@ Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
     let promises = [];
 
     // TODO iterate only active users
-    promises.push(new ResetTasks(forceUpdate).run());
+    promises.push(new ResetTasks(forceUpdate, taskGroupId).run());
 
     Parse.Promise.when(promises).then(function () {
         // // All tasks completed

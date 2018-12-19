@@ -34,6 +34,12 @@ export class EventLog extends BaseClass {
     static readonly _guardName = 'guardName';
 
     static readonly _client = 'client';
+    static readonly _clientName = 'clientName';
+    static readonly _clientCity = 'clientCity';
+    static readonly _clientZipcode = 'clientZipcode';
+    static readonly _clientAddress = 'clientAddress';
+    static readonly _clientAddressNumber = 'clientAddressNumber';
+    static readonly _clientFullAddress = 'clientFullAddress';
 
     static readonly _event = 'event';
     static readonly _amount = 'amount';
@@ -120,6 +126,55 @@ export class EventLog extends BaseClass {
         this.set(EventLog._client, client);
     }
 
+    get clientName(): string {
+        return this.get(EventLog._clientName);
+    }
+
+    set clientName(clientName: string) {
+        this.set(EventLog._clientName, clientName);
+    }
+
+    get clientCity(): string {
+        return this.get(EventLog._clientCity);
+    }
+
+    set clientCity(clientCity: string) {
+        this.set(EventLog._clientCity, clientCity);
+    }
+
+    get clientZipcode(): string {
+        return this.get(EventLog._clientZipcode);
+    }
+
+    set clientZipcode(clientZipcode: string) {
+        this.set(EventLog._clientZipcode, clientZipcode);
+    }
+
+    get clientAddress(): string {
+        return this.get(EventLog._clientAddress);
+    }
+
+    set clientAddress(clientAddress: string) {
+        this.set(EventLog._clientAddress, clientAddress);
+    }
+
+    get clientAddressNumber(): string {
+        return this.get(EventLog._clientAddressNumber);
+    }
+
+    set clientAddressNumber(clientAddressNumber: string) {
+        this.set(EventLog._clientAddressNumber, clientAddressNumber);
+    }
+
+    get clientFullAddress(): string {
+        return this.get(EventLog._clientFullAddress);
+    }
+
+    set clientFullAddress(clientFullAddress: string) {
+        this.set(EventLog._clientFullAddress, clientFullAddress);
+    }
+    
+    
     get taskTypeName(): string {
         return this.get(EventLog._taskTypeName);
     }
