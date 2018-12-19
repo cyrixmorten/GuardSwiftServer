@@ -1,10 +1,10 @@
-import {EventLog, TaskEvent} from "../../shared/subclass/EventLog";
-import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {Task, TaskQuery, TaskType} from "../../shared/subclass/Task";
+import { EventLog, TaskEvent } from "../../shared/subclass/EventLog";
+import { Report, ReportQuery } from "../../shared/subclass/Report";
+import { Task, TaskQuery, TaskType } from "../../shared/subclass/Task";
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import {TaskGroupStarted} from '../../shared/subclass/TaskGroupStarted';
-import {TaskGroup} from '../../shared/subclass/TaskGroup';
+import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
+import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { Client } from '../../shared/subclass/Client';
 
 Parse.Cloud.beforeSave(EventLog, async (request, response) => {
