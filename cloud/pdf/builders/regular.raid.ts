@@ -189,7 +189,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let onlyWriteAcceptOnce = (eventLogs: EventLog[]): EventLog[] => {
 
-            if (!this.report.matchingTaskType(TaskType.ALARM)) {
+            if (!this.report.isMatchingTaskType(TaskType.ALARM)) {
                 return eventLogs;
             }
 
@@ -219,7 +219,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         let preferArrivalsWithinSchedule = (eventLogs: EventLog[]): EventLog[] => {
-            if (!this.report.matchingTaskType(TaskType.REGULAR, TaskType.RAID)) {
+            if (!this.report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID)) {
                 return eventLogs;
             }
 

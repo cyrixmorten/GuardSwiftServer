@@ -34,11 +34,11 @@ export class ReportToPDF {
             settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(report.taskType).build().first({useMasterKey: true});
 
             let reportBuilder: IReportBuilder;
-            if (report.matchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
+            if (report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
                 // TODO create dedicated alarm report
                 reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone);
             }
-            if (report.matchingTaskType(TaskType.STATIC)) {
+            if (report.isMatchingTaskType(TaskType.STATIC)) {
                 reportBuilder = new StaticReportBuilder(report, settings, timeZone);
             }
 

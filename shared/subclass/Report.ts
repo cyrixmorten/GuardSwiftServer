@@ -3,20 +3,25 @@ import {EventLog} from "./EventLog";
 import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
 import {TaskGroupStarted} from './TaskGroupStarted';
+import { BaseClass } from './BaseClass';
+import * as _ from 'lodash';
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
  * EventLog
  */
-export class Report extends EventLog {
+export class Report extends BaseClass {
 
     static readonly className = 'Report';
 
+    static readonly _task = 'task'; // TODO backwards compatibility - replace with tasks array entry
     static readonly _tasks = 'tasks';
+    static readonly _taskType = 'taskType';
     static readonly _tasksGroupStarted = 'taskGroupStarted';
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
+    static readonly _client = 'client';
     static readonly _clientName = 'clientName';
     static readonly _clientAddress = 'clientAddress';
     static readonly _clientAddressNumber = 'clientAddressNumber';
@@ -47,6 +52,14 @@ export class Report extends EventLog {
 
     set isClosed(isClosed: boolean) {
         this.set(Report._isClosed, isClosed);
+    }
+
+    get client(): Client {
+        return this.get(Report._client);
+    }
+
+    set client(client: Client) {
+        this.set(Report._client, client);
     }
     
     get clientName(): string {
@@ -109,6 +122,27 @@ export class Report extends EventLog {
     incrementEventCount() {
         this.increment(Report._eventCount);
     }
+
+    get taskType(): TaskType {
+        return this.get(EventLog._taskType);
+    }
+
+    set taskType(taskType: TaskType) {
+        this.set(EventLog._taskType, taskType);
+    }
+
+    isMatchingTaskType(...taskType: TaskType[]): boolean {
+        return _.includes(taskType, this.taskType);
+    }
+
+    get task(): Task {
+        return this.get(EventLog._task);
+    }
+
+    set task(task: Task) {
+        this.set(EventLog._task, task);
+    }
+
 }
 
 export class ReportQuery extends QueryBuilder<Report> {
