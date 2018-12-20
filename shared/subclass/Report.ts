@@ -21,6 +21,8 @@ export class Report extends BaseClass {
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
+    static readonly _guardName = 'guardName';
+    
     static readonly _client = 'client';
     static readonly _clientName = 'clientName';
     static readonly _clientAddress = 'clientAddress';
@@ -36,6 +38,14 @@ export class Report extends BaseClass {
 
     constructor() {
         super(Report.className);
+    }
+
+    get guardName(): string {
+        return this.get(Report._guardName) || '';
+    }
+
+    set guardName(guardName: string) {
+        this.set(Report._guardName, guardName);
     }
 
     get tasks(): Task[] {
