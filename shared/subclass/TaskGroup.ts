@@ -1,5 +1,7 @@
 import {BaseClass} from "./BaseClass";
 import * as _ from "lodash";
+import { Holidays } from '../moment-holiday/holidays';
+import { Planning } from '../Planning';
 
 export class TaskGroup extends BaseClass {
 
@@ -52,13 +54,12 @@ export class TaskGroup extends BaseClass {
     }
 
     /**
-     * Is the current day of week included in the days array
-     * 
-     * @returns {boolean}
+     * Returns true if group is planned for today
+     *
+     * @param countryCode used to determine if it is a holiday
      */
-    isRunToday(): boolean {
-        // TODO check against holidays
-        return _.includes(this.days, new Date().getDay());
+    isRunToday(countryCode?: string): boolean {
+        return Planning.isRunToday(this.days, countryCode);
     }
 
     hoursUntilReset(): number {
