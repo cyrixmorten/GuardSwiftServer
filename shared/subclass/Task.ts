@@ -5,6 +5,7 @@ import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
 import {Client} from "./Client";
 import {QueryBuilder} from '../QueryBuilder';
+import { Planning } from '../Planning';
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -272,9 +273,8 @@ export class Task extends BaseClass {
     }
 
 
-    isTaskRunToday(taskGroup?: TaskGroup) {
-        // TODO check against holidays
-        return taskGroup.isRunToday() && _.includes(this.days, new Date().getDay())
+    isTaskRunToday(taskGroup?: TaskGroup, countryCode?: string) {
+        return taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
     }
 
     reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
