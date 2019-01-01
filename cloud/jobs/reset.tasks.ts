@@ -110,7 +110,7 @@ export class ResetTasks {
         const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
-            (task) => task.reset(taskGroup, taskGroupStarted)), {useMasterKey: true});
+            (task: Task) => task.reset(taskGroup, taskGroupStarted)), {useMasterKey: true});
     }
 
 }

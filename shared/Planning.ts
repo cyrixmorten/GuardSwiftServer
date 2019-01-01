@@ -8,7 +8,7 @@ export class Planning {
         const isHoliday = new Holidays(countryCode).isHoliday();
 
         const matchPlannedDay = _.includes(plannedDays, dayOfWeek);
-        const matchHoliday = dayOfWeek === 0 && !!isHoliday; // 0 is sunday
+        const matchHoliday = _.includes(plannedDays, 0) && !!isHoliday; // 0 is sunday
 
         return matchPlannedDay || matchHoliday;
     }
