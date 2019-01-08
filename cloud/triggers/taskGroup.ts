@@ -1,9 +1,12 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
-
-import * as _ from "lodash";
-
 import AfterSaveRequest = Parse.Cloud.AfterSaveRequest;
+import { BeforeSave } from './common/beforeSave';
+import BeforeSaveRequest = Parse.Cloud.BeforeSaveRequest;
+
+Parse.Cloud.beforeSave(TaskGroup, (request: BeforeSaveRequest) => {
+    BeforeSave.settUserAsOwner(request);
+});
 
 Parse.Cloud.afterSave(TaskGroup, (request: AfterSaveRequest) => {
 
@@ -12,9 +15,10 @@ Parse.Cloud.afterSave(TaskGroup, (request: AfterSaveRequest) => {
     if (!taskGroup.existed()) {
         console.log("Create new TaskGroupStarted");
 
-        new TaskGroupStarted({
-            taskGroup: taskGroup,
-        }).save(null, {useMasterKey: true})
+        const taskGroupStarted = new TaskGroupStarted();
+        taskGroupStarted.taskGroup = taskGroup;
+
+        taskGroupStarted.save(null, {useMasterKey: true})
     }
 
     if (taskGroup.archive) {

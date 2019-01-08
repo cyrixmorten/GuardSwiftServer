@@ -1,7 +1,11 @@
 /*
  * Auto set timesUsed to 0 if not defined
  */
+import { BeforeSave } from './common/beforeSave';
+
 Parse.Cloud.beforeSave("EventType", function (request, response) {
+    BeforeSave.settUserAsOwner(request);
+
     if (!request.user) {
         // not saved by user
         response.success();
