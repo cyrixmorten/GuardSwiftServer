@@ -13,20 +13,8 @@ export class TaskGroupStarted extends BaseClass {
     static readonly _timeStarted = 'timeStarted';
     static readonly _timeEnded = 'timeEnded';
 
-    constructor(attr?: {
-        taskGroup: TaskGroup,
-    }) {
+    constructor() {
         super(TaskGroupStarted.className);
-
-        if (attr) {
-            if (attr.taskGroup) {
-                this.owner = attr.taskGroup.owner;
-                this.name = attr.taskGroup.name;
-                this.taskGroup = (<any>attr.taskGroup).toPointer();
-                this.timeStarted = new Date();
-                this.setACL(attr.taskGroup.getACL());
-            }
-        }
     }
 
     get name(): string {
@@ -43,6 +31,10 @@ export class TaskGroupStarted extends BaseClass {
 
     set taskGroup(taskGroup: TaskGroup) {
         this.set(TaskGroupStarted._taskGroup, taskGroup);
+
+        this.name = taskGroup.name;
+        this.timeStarted = new Date();
+        this.setACL(taskGroup.getACL());
     }
 
     get timeStarted(): Date {

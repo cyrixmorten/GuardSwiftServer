@@ -1,7 +1,10 @@
 import { Report } from '../../shared/subclass/Report';
 import { Client } from '../../shared/subclass/Client';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 Parse.Cloud.beforeSave(Report,  async (request, response) => {
+    BeforeSaveUtils.settUserAsOwner(request);
+
     let report = <Report>request.object;
 
     if (report.client) {

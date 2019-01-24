@@ -1,7 +1,10 @@
 import {Guard, GuardQuery} from '../../shared/subclass/Guard';
 import * as _ from 'lodash';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 Parse.Cloud.beforeSave(Guard,  async (request, response) => {
+    BeforeSaveUtils.settUserAsOwner(request);
+
     let guard = <Guard>request.object;
 
     if (_.includes(guard.dirtyKeys(), Guard._alarmNotify) && !guard.alarmNotify) {

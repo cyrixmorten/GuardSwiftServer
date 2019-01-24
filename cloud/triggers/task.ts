@@ -8,9 +8,11 @@ import * as cpsms from '../../api/cpsms';
 import {centrals} from "../centrals/all";
 import {ClientQuery} from "../../shared/subclass/Client";
 import {TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 
 Parse.Cloud.beforeSave(Task, async (request, response) => {
+    BeforeSaveUtils.settUserAsOwner(request);
 
     let task = <Task>request.object;
 

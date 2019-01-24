@@ -2,12 +2,14 @@ import * as GeoCode from '../utils/geocode';
 import * as _ from 'lodash';
 import {Client} from "../../shared/subclass/Client";
 import {Task, TaskQuery} from "../../shared/subclass/Task";
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 /*
  * Sanity check and obtain a GPS position for Client
  */
 Parse.Cloud.beforeSave(Client,  async (request, response) => {
-    
+    BeforeSaveUtils.settUserAsOwner(request);
+
     let client = <Client>request.object;
 
     const shouldUpdatePosition = [Client._cityName, Client._zipcode, Client._addressName, Client._addressNumber]

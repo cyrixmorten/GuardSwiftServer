@@ -4,7 +4,8 @@
   "description": "GuardSwift server",
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
-    "dev": "nodemon --exec 'ts-node --cache-directory .tscache' ./index.ts"
+    "dev": "nodemon --exec 'ts-node --cache-directory .tscache' ./index.ts",
+    "clean": "rm -rf cloud/**/*.js cloud/**/*.js.map shared/**/*.js shared/**/*.js.map"
   },
   "dependencies": {
     "@parse/s3-files-adapter": "^1.2.1",
