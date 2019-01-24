@@ -6,6 +6,7 @@ import {TaskGroupStarted} from "./TaskGroupStarted";
 import {Client} from "./Client";
 import {QueryBuilder} from '../QueryBuilder';
 import { Planning } from '../Planning';
+import moment = require('moment');
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -49,6 +50,7 @@ export class Task extends BaseClass {
     static readonly _supervisions = 'supervisions';
     static readonly _timeStartDate = 'timeStartDate';
     static readonly _timeEndDate = 'timeEndDate';
+    static readonly _expireDate = 'expireDate';
 
     static readonly _isRunToday = 'isRunToday';
     static readonly _geofenceRadius = 'geofenceRadius';
@@ -247,6 +249,24 @@ export class Task extends BaseClass {
     set timeEndDate(timeEndDate: Date) {
         this.set(Task._timeEndDate, timeEndDate);
     }
+
+    get expireDate(): Date {
+        return this.get(Task._expireDate);
+    }
+
+    set expireDate(expireDate: Date) {
+        this.set(Task._expireDate, expireDate);
+    }
+
+    daysUntilExpire(): number {
+        const expireDate = this.expireDate;
+        if (!expireDate) {
+            return Number.MAX_SAFE_INTEGER
+        }
+
+
+        return moment(expireDate).diff(moment(), 'days', true);
+    }
     
     get geofenceRadius(): number {
         return this.get(Task._geofenceRadius);
@@ -288,6 +308,10 @@ export class Task extends BaseClass {
         }
         if (taskGroupStarted) {
             this.taskGroupStarted = taskGroupStarted;
+        }
+
+        if (this.daysUntilExpire() < 0) {
+            this.archive = true;
         }
 
         return this;

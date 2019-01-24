@@ -7,7 +7,9 @@ import "tslib";
 import {User} from "../../shared/subclass/User";
 import {ReportQuery} from '../../shared/subclass/Report';
 
-
+/**
+ * This task is run daily to create new TaskGroupStarted entries and reset the tasks within
+ */
 export class ResetTasks {
 
     private now_day: number;
@@ -18,23 +20,29 @@ export class ResetTasks {
         this.now_day = now.getDay();
     }
 
+    private taskGroupsMatchingDayAndUser(dayOfWeek: number, user: Parse.User) {
+        let queryTaskGroups = new Parse.Query(TaskGroup);
+        if (!this.force) {
+            queryTaskGroups.notEqualTo(TaskGroup._createdDay, dayOfWeek);
+        }
+        if (this.taskGroupId) {
+            console.log('Targeting taskGroup:', this.taskGroupId);
+            queryTaskGroups.equalTo(TaskGroup._objectId, this.taskGroupId);
+        }
+        queryTaskGroups.doesNotExist(TaskGroup._archive);
+        queryTaskGroups.equalTo(TaskGroup._owner, user);
+
+        return queryTaskGroups;
+    }
+
     async run(): Promise<any> {
         let query = new Parse.Query(Parse.User);
         query.equalTo(User._active, true);
 
         return query.each((user) => {
 
-            let queryTaskGroups = new Parse.Query(TaskGroup);
-            if (!this.force) {
-                queryTaskGroups.notEqualTo(TaskGroup._createdDay, this.now_day);
-            }
-            if (this.taskGroupId) {
-                console.log('Targeting taskGroup:', this.taskGroupId);
-                queryTaskGroups.equalTo(TaskGroup._objectId, this.taskGroupId);
-            }
-            queryTaskGroups.doesNotExist(TaskGroup._archive);
-            queryTaskGroups.equalTo(TaskGroup._owner, user);
-            return queryTaskGroups.each(async (taskGroup: TaskGroup) => {
+
+            return this.taskGroupsMatchingDayAndUser(this.now_day, user).each(async (taskGroup: TaskGroup) => {
 
                 console.log('Resetting TaskGroup: ', taskGroup.name,
                     'Is run today: ', taskGroup.isRunToday(),
@@ -107,7 +115,7 @@ export class ResetTasks {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
         // TODO: hard limit of 1000 tasks per group
-        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(1000).find({useMasterKey: true});
+        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).notArchived().build().limit(1000).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
             (task: Task) => task.reset(taskGroup, taskGroupStarted)), {useMasterKey: true});
