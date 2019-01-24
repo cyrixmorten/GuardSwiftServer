@@ -1,11 +1,13 @@
 import {TaskGroup} from "../../shared/subclass/TaskGroup";
 import {TaskGroupStarted, TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
 import AfterSaveRequest = Parse.Cloud.AfterSaveRequest;
-import { BeforeSave } from './common/beforeSave';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 import BeforeSaveRequest = Parse.Cloud.BeforeSaveRequest;
 
-Parse.Cloud.beforeSave(TaskGroup, (request: BeforeSaveRequest) => {
-    BeforeSave.settUserAsOwner(request);
+Parse.Cloud.beforeSave(TaskGroup, (request: BeforeSaveRequest, response) => {
+    BeforeSaveUtils.settUserAsOwner(request);
+
+    response.success();
 });
 
 Parse.Cloud.afterSave(TaskGroup, (request: AfterSaveRequest) => {

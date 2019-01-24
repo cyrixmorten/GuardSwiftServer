@@ -1,9 +1,9 @@
 import {Guard, GuardQuery} from '../../shared/subclass/Guard';
 import * as _ from 'lodash';
-import { BeforeSave } from './common/beforeSave';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 Parse.Cloud.beforeSave(Guard,  async (request, response) => {
-    BeforeSave.settUserAsOwner(request);
+    BeforeSaveUtils.settUserAsOwner(request);
 
     let guard = <Guard>request.object;
 

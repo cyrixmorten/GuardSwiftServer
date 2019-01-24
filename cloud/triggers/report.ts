@@ -1,9 +1,9 @@
 import { Report } from '../../shared/subclass/Report';
 import { Client } from '../../shared/subclass/Client';
-import { BeforeSave } from './common/beforeSave';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 Parse.Cloud.beforeSave(Report,  async (request, response) => {
-    BeforeSave.settUserAsOwner(request);
+    BeforeSaveUtils.settUserAsOwner(request);
 
     let report = <Report>request.object;
 

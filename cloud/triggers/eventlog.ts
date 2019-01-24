@@ -6,10 +6,10 @@ import * as _ from 'lodash';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { Client } from '../../shared/subclass/Client';
-import { BeforeSave } from './common/beforeSave';
+import { BeforeSaveUtils } from './BeforeSaveUtils';
 
 Parse.Cloud.beforeSave(EventLog, async (request, response) => {
-    BeforeSave.settUserAsOwner(request);
+    BeforeSaveUtils.settUserAsOwner(request);
 
     let eventLog = <EventLog>request.object;
 
