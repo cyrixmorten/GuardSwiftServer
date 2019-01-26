@@ -57,6 +57,7 @@ let writeEventToReport = async (eventLog: EventLog) => {
             // 1) Locate all tasks assigned to this client
             const tasks: Task[] = await new TaskQuery()
                 .matchingClient(eventLog.client)
+                .notArchived()
                 .build()
                 .find({useMasterKey: true});
 
