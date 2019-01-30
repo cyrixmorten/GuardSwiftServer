@@ -1,10 +1,8 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import {TaskType} from "../../shared/subclass/Task";
-import {Report, ReportQuery} from "../../shared/subclass/Report";
-import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {User} from "../../shared/subclass/User";
-import {sendReport} from "./send.report.api";
+import { SendReports } from '../jobs/send.reports';
 
 
 export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
@@ -79,11 +77,11 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
             console.log('Sending reports for user: ', user.get('username'));
 
             return Promise.all(_.map(taskTypes, async (taskType: TaskType) => {
-                // wrap try-catch to ignore errors (missing reportSettings for a user should not prevent remaining
-                // reports from being sent)
+                // wrap try-catch to ignore errors
+                // missing reportSettings for a user should not prevent remaining reports from being sent
                 try {
                     console.log('Sending reports for taskType: ', taskType);
-                    return await sendReportsToClient(user, fromDate(), toDate(), taskType);
+                    return await new SendReports().sendAll(user, fromDate(), toDate(), taskType);
                 } catch (e) {
                     console.error(`Failed to send ${taskType} reports`, e);
                 }
@@ -100,52 +98,6 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
 
 
-let sendReportsToClient = async (user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType) => {
-
-    let reportSettings: ReportSettings = await new ReportSettingsQuery()
-            .matchingOwner(user)
-            .matchingTaskType(taskType)
-            .build().first({useMasterKey: true});
-
-    if (!reportSettings) {
-        throw new Error(`Missing reportSettings for user: ${user.get('username')} and taskType: ${taskType}`)
-    }
-
-    // regular/raid
-    let reportQueryBuilder: ReportQuery = new ReportQuery()
-        .hasClient()
-        .matchingOwner(user)
-        .matchingTaskType(taskType);
-
-
-    if (taskType === TaskType.ALARM) {
-        reportQueryBuilder
-            .lessThan('timeEnded', fromDate)
-            .lessThan('updatedAt', fromDate)
-            .isNotSent();
-    } else {
-        reportQueryBuilder
-            .createdAfter(fromDate)
-            .createdBefore(toDate)
-            .isClosed()
-            .isNotSent();
-    }
-
-    await reportQueryBuilder.build().each( async (report: Report) => {
-        try {
-            if (_.includes([TaskType.ALARM, TaskType.STATIC], taskType)) {
-                // mark report as closed
-                report.isClosed = true;
-
-                await report.save(null, {useMasterKey: true});
-            }
-
-            await sendReport(report.id, reportSettings);
-        } catch (e) {
-            console.error('Error sending report', report.id, e);
-        }
-    }, { useMasterKey: true });
-};
 
 
 
