@@ -25,7 +25,8 @@ export interface IParams {
         amount: number;
         unit: 'minutes' | 'days';
     },
-    taskTypes: TaskType[]
+    taskTypes: TaskType[],
+    force: boolean;
 }
 
 Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
@@ -34,6 +35,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     const params: IParams = request.params;
 
+    const force = params.force; // ignore the isSent flag if true
     const taskTypes = params.taskTypes ? _.concat([], params.taskTypes) : [TaskType.REGULAR, TaskType.RAID];
     const timeBack = params.timeBack;
     if (timeBack) {
@@ -81,7 +83,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
                 // missing reportSettings for a user should not prevent remaining reports from being sent
                 try {
                     console.log('Sending reports for taskType: ', taskType);
-                    return await new SendReports().sendAll(user, fromDate(), toDate(), taskType);
+                    return await new SendReports().sendAll(user, fromDate(), toDate(), taskType, force);
                 } catch (e) {
                     console.error(`Failed to send ${taskType} reports`, e);
                 }

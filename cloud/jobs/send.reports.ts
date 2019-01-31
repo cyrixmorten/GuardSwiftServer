@@ -18,7 +18,7 @@ export class SendReports {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     }
 
-     async sendAll(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType)  {
+     async sendAll(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType, force: boolean = false)  {
 
         let reportSettings: ReportSettings = await new ReportSettingsQuery()
             .matchingOwner(user)
@@ -45,8 +45,12 @@ export class SendReports {
             reportQueryBuilder
                 .createdAfter(fromDate)
                 .createdBefore(toDate)
-                .isClosed()
-                .isNotSent();
+                .isClosed();
+
+            if (!force) (
+                reportQueryBuilder.isNotSent()
+            )
+
         }
 
         await reportQueryBuilder.build().each( async (report: Report) => {
@@ -142,17 +146,17 @@ export class SendReports {
             return {name: reportSettings.replyToName, email: reportSettings.replyToEmail}
         };
 
-        if (!_.isEmpty(receivers)) {
 
-            const mailData: MailData = {
-                from: getFrom(),
-                to: getTo(),
-                replyTo: getReplyTo(),
-                subject: getSubject(),
-                text: getText(),
-                attachments: await this.getAttachments(report, reportSettings)
-            };
+        const mailData: MailData = {
+            from: getFrom(),
+            to: getTo(),
+            replyTo: getReplyTo(),
+            subject: getSubject(),
+            text: getText(),
+            attachments: await this.getAttachments(report, reportSettings)
+        };
 
+        if (!_.isEmpty(mailData.to)) {
             let result: [RequestResponse, {}] = await sgMail.send(mailData);
 
 
