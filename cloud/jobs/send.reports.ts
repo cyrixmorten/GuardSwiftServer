@@ -62,7 +62,7 @@ export class SendReports {
                     await report.save(null, {useMasterKey: true});
                 }
 
-                await this.sendToClients(report.id, reportSettings);
+                // await this.sendToClients(report.id, reportSettings);
                 await this.sendToOwners(report.id, reportSettings);
             } catch (e) {
                 console.error('Error sending report', report.id, e);
@@ -180,8 +180,8 @@ export class SendReports {
         let query = new ReportQuery().matchingId(reportId).build();
 
         query.include(Report._owner);
-        query.include(Report._client);
         query.include(Report._tasksGroupStarted);
+        query.include(`${Report._client}.${Client._contacts}`);
 
         let report = await query.first({useMasterKey: true});
 
@@ -201,8 +201,26 @@ export class SendReports {
             return `${taskGroupName} - ${clientName} - ${reportName} -  ${createdAtFormatted}`;
         };
 
-        let getText = (): string => {
-            return 'Rapporten er vedhæftet som PDF dokument'; // TODO translate
+        let getHTML = (): string => {
+            const contacts: ClientContact[] = _.filter(
+                report.client.contacts, (contact: ClientContact) => {
+                    return contact.receiveReports && !!contact.email;
+                });
+
+            if (_.isEmpty(contacts)) {
+                return '<p>Der er ingen kontaktpersoner der modtager rapporter for denne kunde</p>'
+            }
+
+            let text = 'Denne rapport er blevet sendt til følgende kontaktpersoner:';
+            text += '<p>';
+            _.forEach(contacts, (contact: ClientContact) => {
+                text += `${contact.name} ${contact.email}`;
+                text += '<br/>'
+            });
+            text += '</p>';
+
+
+            return text;
         };
 
         let getFrom = (): EmailData => {
@@ -249,7 +267,7 @@ export class SendReports {
             bcc: getBcc(),
             replyTo: getReplyTo(),
             subject: getSubject(),
-            text: getText(),
+            html: getHTML(),
             attachments: await this.getAttachments(report, reportSettings)
         };
 
