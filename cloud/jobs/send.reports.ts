@@ -62,7 +62,7 @@ export class SendReports {
                     await report.save(null, {useMasterKey: true});
                 }
 
-                // await this.sendToClients(report.id, reportSettings);
+                await this.sendToClients(report.id, reportSettings);
                 await this.sendToOwners(report.id, reportSettings);
             } catch (e) {
                 console.error('Error sending report', report.id, e);
