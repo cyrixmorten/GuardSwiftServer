@@ -8,9 +8,10 @@ import { Client } from '../../shared/subclass/Client';
 import { ClientContact } from '../../shared/subclass/ClientContact';
 import { ReportToPDF } from '../pdf/report.to.pdf';
 import { RequestResponse } from 'request';
-import {EmailData} from "@sendgrid/helpers/classes/email-address";
+import { EmailData } from "@sendgrid/helpers/classes/email-address";
 import { AttachmentData } from '@sendgrid/helpers/classes/attachment';
 import { MailData } from '@sendgrid/helpers/classes/mail';
+import { User } from '../../shared/subclass/User';
 
 export class SendReports {
 
@@ -18,7 +19,31 @@ export class SendReports {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     }
 
-     async sendAll(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType, force: boolean = false)  {
+    async sendToAllUsers(fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
+        let query = new Parse.Query(Parse.User);
+        query.equalTo(User._active, true);
+        return query.each((user) => {
+
+            return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
+
+        }, {useMasterKey: true})
+    }
+
+    async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
+        return Promise.all(_.map(taskTypes, async (taskType: TaskType) => {
+            // wrap try-catch to ignore errors
+            // missing reportSettings for a user should not prevent remaining reports from being sent
+            try {
+                return await this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
+            } catch (e) {
+                console.error(`Failed to send ${taskType} reports`, e);
+            }
+        }));
+    }
+
+    private async sendAllMatchingTaskType(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType, force: boolean = false) {
+
+        console.log('Sending reports for user:', user.get('username'), 'taskType', taskType);
 
         let reportSettings: ReportSettings = await new ReportSettingsQuery()
             .matchingOwner(user)
@@ -53,7 +78,7 @@ export class SendReports {
 
         }
 
-        await reportQueryBuilder.build().each( async (report: Report) => {
+        await reportQueryBuilder.build().each(async (report: Report) => {
             try {
                 if (_.includes([TaskType.ALARM, TaskType.STATIC], taskType)) {
                     // mark report as closed
@@ -67,7 +92,7 @@ export class SendReports {
             } catch (e) {
                 console.error('Error sending report', report.id, e);
             }
-        }, { useMasterKey: true });
+        }, {useMasterKey: true});
     }
 
     async sendToClients(reportId: string, reportSettings?: ReportSettings): Promise<any> {
