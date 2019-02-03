@@ -64,19 +64,17 @@ export class SendReports {
         if (taskType === TaskType.ALARM) {
             reportQueryBuilder
                 .lessThan('timeEnded', fromDate)
-                .lessThan('updatedAt', fromDate)
-                .isNotSent();
+                .lessThan('updatedAt', fromDate);
         } else {
             reportQueryBuilder
                 .createdAfter(fromDate)
                 .createdBefore(toDate)
                 .isClosed();
-
-            if (!force) (
-                reportQueryBuilder.isNotSent()
-            )
-
         }
+
+        if (!force) (
+            reportQueryBuilder.isNotSent()
+        )
 
         await reportQueryBuilder.build().each(async (report: Report) => {
             try {
@@ -181,19 +179,17 @@ export class SendReports {
             attachments: await this.getAttachments(report, reportSettings)
         };
 
-        if (!_.isEmpty(mailData.to)) {
-            let result: [RequestResponse, {}] = await sgMail.send(mailData);
+        let result: [RequestResponse, {}] = await sgMail.send(mailData);
 
 
-            let httpResponse = result[0];
+        let httpResponse = result[0];
 
-            report.mailStatus = {
-                to: mailData.to,
-                status: httpResponse.statusCode
-            };
+        report.mailStatus = {
+            to: mailData.to,
+            status: httpResponse.statusCode
+        };
 
-            return report.save(null, {useMasterKey: true});
-        }
+        return report.save(null, {useMasterKey: true});
     }
 
     async sendToOwners(reportId: string, reportSettings?: ReportSettings): Promise<any> {
