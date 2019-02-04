@@ -29,11 +29,11 @@ export class SendReports {
     }
 
     async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
-        return Promise.all(_.map(taskTypes,  (taskType: TaskType) => {
+        return Promise.all(_.map(taskTypes,  async (taskType: TaskType) => {
             // wrap try-catch to ignore errors
             // missing reportSettings for a user should not prevent remaining reports from being sent
             try {
-                return this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
+                await this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
             } catch (e) {
                 console.error(`Failed to send ${taskType} reports`, e);
             }
@@ -92,7 +92,7 @@ export class SendReports {
 
     async send(report: Report, reportSettings?: ReportSettings): Promise<any> {
 
-        if (!report.owner || !report.taskGroupStarted || !report.client || !report.client.contacts) {
+        if (!report.owner || !report.taskGroupStarted || !report.client) {
             report = await new ReportQuery().matchingId(report.id)
                 .include(...this.getReportIncludes()).build()
                 .first({useMasterKey: true});

@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import {TaskType} from "../../shared/subclass/Task";
-import {User} from "../../shared/subclass/User";
 import { SendReports } from '../jobs/send.reports';
 
 
@@ -74,6 +73,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request, status
 
     try {
         await new SendReports().sendToAllUsers(fromDate(), toDate(), taskTypes, force);
+        status.success('Done sending mail reports');
     } catch(e) {
         status.error(e);
     }

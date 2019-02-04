@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import {API_FUNCTION_SEND_REPORTS_TO_CLIENTS} from "../cloud/api/send.daily.reports.api";
+
 var _ = require('lodash');
 
 require("dotenv").config({ path: '../local.env' });
@@ -12,7 +14,7 @@ var request = require('request');
 
 request({
     method: 'POST',
-    url: process.env.SERVER_URL+'/functions/sendReportsToClients',
+    url: process.env.SERVER_URL+'/functions/'+API_FUNCTION_SEND_REPORTS_TO_CLIENTS,
     headers: {
         'X-Parse-Application-Id': process.env.APP_ID,
         'X-Parse-Master-Key': process.env.MASTER_KEY,
