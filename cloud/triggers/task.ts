@@ -1,14 +1,14 @@
-import {Task, TaskStatus, TaskType} from "../../shared/subclass/Task";
-import * as parse from "parse";
+import { Task, TaskStatus, TaskType } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as moment from "moment";
-import {Guard, GuardQuery} from "../../shared/subclass/Guard";
+import { Guard, GuardQuery } from "../../shared/subclass/Guard";
 
 import * as cpsms from '../../api/cpsms';
-import {centrals} from "../centrals/all";
-import {ClientQuery} from "../../shared/subclass/Client";
-import {TaskGroupStartedQuery} from "../../shared/subclass/TaskGroupStarted";
+import { centrals } from "../centrals/all";
+import { ClientQuery } from "../../shared/subclass/Client";
+import { TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
 import { BeforeSaveUtils } from './BeforeSaveUtils';
+import { ReportHelper } from '../utils/ReportHelper';
 
 
 Parse.Cloud.beforeSave(Task, async (request, response) => {
@@ -64,6 +64,10 @@ Parse.Cloud.afterSave(Task, async (request) => {
         }
 
         task.addKnownStatus(status);
+
+        if (status === TaskStatus.FINISHED) {
+            await ReportHelper.closeIfLastTask(task);
+        }
 
         await task.save(null, {useMasterKey: true});
     }

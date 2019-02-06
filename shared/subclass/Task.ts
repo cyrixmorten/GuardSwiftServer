@@ -344,6 +344,11 @@ export class TaskQuery extends QueryBuilder<Task>{
         return this;
     }
 
+    isRunToday(isRunToday: boolean = true): TaskQuery {
+        this.query.equalTo(Task._isRunToday, isRunToday);
+        return this;
+    }
+
     matchingClient(client: Client) {
         this.query.equalTo(Task._client, client);
         return this;
