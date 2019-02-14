@@ -77,6 +77,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request, status
     } catch(e) {
         status.error(e);
     }
+
 });
 
 
