@@ -3,7 +3,7 @@ import {Dictionary} from 'lodash';
 import * as fs from 'fs';
 import * as XLSX from 'xlsx';
 import {WorkSheet} from 'xlsx';
-import * as moment from 'moment-timezone-all';
+import * as moment from 'moment-timezone';
 import {EventLog, EventLogQuery, TaskEvent} from '../../../shared/subclass/EventLog';
 import FunctionResponse = Parse.Cloud.FunctionResponse;
 import FunctionRequest = Parse.Cloud.FunctionRequest;

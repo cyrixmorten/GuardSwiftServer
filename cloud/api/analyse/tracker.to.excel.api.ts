@@ -3,7 +3,7 @@ import * as fs from 'fs'
 import {Tracker, TrackerQuery} from "../../../shared/subclass/Tracker";
 import * as XLSX from "xlsx"
 import * as zlib from "zlib";
-import * as moment from "moment-timezone-all"
+import * as moment from "moment-timezone"
 import HttpResponse = Parse.Cloud.HttpResponse;
 import FunctionResponse = Parse.Cloud.FunctionResponse;
 import FunctionRequest = Parse.Cloud.FunctionRequest;
@@ -58,7 +58,7 @@ Parse.Cloud.define(API_FUNCTION_TRACKER_TO_CSV, async (request: FunctionRequest,
                 let gpsJSONArray = _.map(JSON.parse(gpsString), (gpsData: Partial<GPSData>) => {
                     gpsData = _.pick(gpsData, 'time', 'latitude', 'longitude');
 
-                    gpsData.time = moment(gpsData.time).tz(timeZone).format('HH:mm:ss DD-MM');
+                    gpsData.time = moment(gpsData.time).tz(timeZone).format('HH:mm:ss DD-MM') as any;
 
                     let link = `https://www.google.com/maps/?q=${gpsData.latitude},${gpsData.longitude}`;
                     gpsLinks.push(link);

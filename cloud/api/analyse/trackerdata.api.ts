@@ -1,4 +1,4 @@
-import * as moment from "moment-timezone-all"
+import * as moment from "moment-timezone"
 import FunctionRequest = Parse.Cloud.FunctionRequest;
 import FunctionResponse = Parse.Cloud.FunctionResponse;
 import {ClientQuery, Client} from "../../../shared/subclass/Client";

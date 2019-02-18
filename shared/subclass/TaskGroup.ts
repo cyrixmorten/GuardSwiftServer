@@ -1,7 +1,6 @@
 import {BaseClass} from "./BaseClass";
-import * as _ from "lodash";
-import { Holidays } from '../moment-holiday/holidays';
 import { Planning } from '../Planning';
+import { QueryBuilder } from '../QueryBuilder';
 
 export class TaskGroup extends BaseClass {
 
@@ -72,4 +71,12 @@ export class TaskGroup extends BaseClass {
     resetNow(): boolean {
         return this.hoursUntilReset() <= 0;
     }
+}
+
+export class TaskGroupQuery extends QueryBuilder<TaskGroup> {
+
+    constructor() {
+        super(TaskGroup);
+    }
+
 }

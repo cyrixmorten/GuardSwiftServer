@@ -9,6 +9,7 @@ import { ClientQuery } from "../../shared/subclass/Client";
 import { TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
 import { BeforeSaveUtils } from './BeforeSaveUtils';
 import { ReportHelper } from '../utils/ReportHelper';
+import { TaskGroup, TaskGroupQuery } from '../../shared/subclass/TaskGroup';
 
 
 Parse.Cloud.beforeSave(Task, async (request, response) => {
@@ -36,10 +37,10 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
     // TaskGroup updated
     if (task.taskGroup && (task.dirty(Task._taskGroup) || task.dirty(Task._days))) {
 
-        const taskGroup = await task.taskGroup.fetch({useMasterKey: true});
+        const taskGroup = await new TaskGroupQuery().include(TaskGroup._owner).build().first({useMasterKey: true});
         const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
 
-        task.reset(taskGroup, taskGroupStarted);
+        task.dailyReset(taskGroup.owner, taskGroup, taskGroupStarted);
     }
 
     // task is either newly created or pointed to another client

@@ -1,12 +1,13 @@
-import {BaseClass} from "./BaseClass";
-import {TaskGroup} from "./TaskGroup";
-import {Guard} from "./Guard";
+import { BaseClass } from "./BaseClass";
+import { TaskGroup } from "./TaskGroup";
+import { Guard } from "./Guard";
 import * as _ from "lodash";
-import {TaskGroupStarted} from "./TaskGroupStarted";
-import {Client} from "./Client";
-import {QueryBuilder} from '../QueryBuilder';
+import { TaskGroupStarted } from "./TaskGroupStarted";
+import { Client } from "./Client";
+import { QueryBuilder } from '../QueryBuilder';
 import { Planning } from '../Planning';
-import moment = require('moment');
+import * as moment from "moment-timezone"
+import { User } from './User';
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -38,7 +39,7 @@ export class Task extends BaseClass {
     static readonly _taskGroupStarted = 'taskGroupStarted';
     static readonly _timesArrived = 'timesArrived';
     static readonly _knownStatus = 'knownStatus';
-    
+
     static readonly _client = 'client';
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
@@ -69,7 +70,7 @@ export class Task extends BaseClass {
     set type(type: string) {
         this.set(Task._type, type);
     }
-    
+
     get name(): string {
         return this.get(Task._name);
     }
@@ -134,7 +135,7 @@ export class Task extends BaseClass {
     addKnownStatus(knownStatus: TaskStatus) {
         this.addUnique(Task._knownStatus, knownStatus);
     }
-    
+
     set guard(guard: Guard) {
         if (_.isUndefined(guard)) {
             this.unset(Task._guard);
@@ -267,7 +268,7 @@ export class Task extends BaseClass {
 
         return moment(expireDate).diff(moment(), 'days', true);
     }
-    
+
     get geofenceRadius(): number {
         return this.get(Task._geofenceRadius);
     }
@@ -283,7 +284,7 @@ export class Task extends BaseClass {
     set original(original: string) {
         this.set(Task._original, original);
     }
-    
+
     isType(type: TaskType) {
         return this.taskType === type;
     }
@@ -297,28 +298,51 @@ export class Task extends BaseClass {
         return taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
     }
 
-    reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
+    reset(): Task {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
         this.timesArrived = 0;
 
+        return this;
+    }
 
-        if (taskGroup) {
-            this.isRunToday = this.isTaskRunToday(taskGroup);
-        }
-        if (taskGroupStarted) {
-            this.taskGroupStarted = taskGroupStarted;
-        }
+    dailyReset(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Task {
+
+        this.reset();
+        this.isRunToday = this.isTaskRunToday(taskGroup);
+        this.taskGroupStarted = taskGroupStarted;
 
         if (this.daysUntilExpire() < 0) {
             this.archive = true;
+        }
+
+        const baseDate = moment(taskGroup.timeResetDate).tz(owner.get(User._timeZone));
+
+        const newStartDate = baseDate.hour(this.timeStartDate.getUTCHours()).minutes(this.timeStartDate.getUTCMinutes());
+
+        if (newStartDate.hour() < baseDate.hour()) {
+            newStartDate.add(1, 'day');
+        }
+
+        if (newStartDate.isDST()) {
+            newStartDate.add(1, 'hour');
+        }
+
+        const newEndDate = baseDate.hour(this.timeEndDate.getUTCHours()).minutes(this.timeEndDate.getUTCMinutes());
+
+        if (newEndDate.hour() < baseDate.hour()) {
+            newEndDate.add(1, 'day');
+        }
+
+        if (newEndDate.isDST()) {
+            newEndDate.add(1, 'hour');
         }
 
         return this;
     }
 }
 
-export class TaskQuery extends QueryBuilder<Task>{
+export class TaskQuery extends QueryBuilder<Task> {
 
     constructor() {
         super(Task);
