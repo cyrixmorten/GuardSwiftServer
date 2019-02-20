@@ -51,6 +51,8 @@ export class Task extends BaseClass {
     static readonly _supervisions = 'supervisions';
     static readonly _timeStartDate = 'timeStartDate';
     static readonly _timeEndDate = 'timeEndDate';
+    static readonly _startDate = 'startDate';
+    static readonly _endDate = 'endDate';
     static readonly _expireDate = 'expireDate';
 
     static readonly _isRunToday = 'isRunToday';
@@ -239,16 +241,35 @@ export class Task extends BaseClass {
     }
 
     set timeStartDate(timeStartDate: Date) {
+        timeStartDate.setSeconds(0);
         this.set(Task._timeStartDate, timeStartDate);
     }
-
 
     get timeEndDate(): Date {
         return this.get(Task._timeEndDate);
     }
 
     set timeEndDate(timeEndDate: Date) {
+        timeEndDate.setSeconds(0);
         this.set(Task._timeEndDate, timeEndDate);
+    }
+
+    get startDate(): Date {
+        return this.get(Task._startDate);
+    }
+
+    set startDate(startDate: Date) {
+        startDate.setSeconds(0);
+        this.set(Task._startDate, startDate);
+    }
+
+    get endDate(): Date {
+        return this.get(Task._endDate);
+    }
+
+    set endDate(endDate: Date) {
+        endDate.setSeconds(0);
+        this.set(Task._endDate, endDate);
     }
 
     get expireDate(): Date {
@@ -316,26 +337,37 @@ export class Task extends BaseClass {
             this.archive = true;
         }
 
-        const baseDate = moment(taskGroup.timeResetDate).tz(owner.get(User._timeZone));
+        if (taskGroup.resetDate) {
+            // year, month and day
+            const baseDate = moment(taskGroup.resetDate).tz(owner.get(User._timeZone));
 
-        const newStartDate = baseDate.hour(this.timeStartDate.getUTCHours()).minutes(this.timeStartDate.getUTCMinutes());
+            if (this.timeStartDate) {
+                const newStartDate = baseDate.clone().hour(this.timeStartDate.getHours()).minutes(this.timeStartDate.getMinutes());
 
-        if (newStartDate.hour() < baseDate.hour()) {
-            newStartDate.add(1, 'day');
-        }
+                if (newStartDate.hour() <= baseDate.hour()) {
+                    newStartDate.add(1, 'day');
+                }
 
-        if (newStartDate.isDST()) {
-            newStartDate.add(1, 'hour');
-        }
+                if (newStartDate.isDST()) {
+                    newStartDate.add(1, 'hour');
+                }
 
-        const newEndDate = baseDate.hour(this.timeEndDate.getUTCHours()).minutes(this.timeEndDate.getUTCMinutes());
+                this.startDate = newStartDate.toDate();
+            }
 
-        if (newEndDate.hour() < baseDate.hour()) {
-            newEndDate.add(1, 'day');
-        }
+            if (this.timeEndDate) {
+                const newEndDate = baseDate.clone().hour(this.timeEndDate.getHours()).minutes(this.timeEndDate.getMinutes());
 
-        if (newEndDate.isDST()) {
-            newEndDate.add(1, 'hour');
+                if (newEndDate.hour() <= baseDate.hour()) {
+                    newEndDate.add(1, 'day');
+                }
+
+                if (newEndDate.isDST()) {
+                    newEndDate.add(1, 'hour');
+                }
+
+                this.endDate = newEndDate.toDate();
+            }
         }
 
         return this;

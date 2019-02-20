@@ -5,9 +5,10 @@ import * as _ from "lodash";
 import * as util from "util";
 import "tslib";
 import { User } from "../../shared/subclass/User";
-import { ReportQuery } from '../../shared/subclass/Report';
+import { Report, ReportQuery } from '../../shared/subclass/Report';
 import { SendReports } from './send.reports';
 import moment = require('moment');
+import { ReportHelper } from '../utils/ReportHelper';
 
 /**
  * This task is run daily to create new TaskGroupStarted entries and reset the tasks within
@@ -67,10 +68,7 @@ export class ResetTasks {
                     _.forEach(endedTaskGroups, async (taskGroupStarted) => {
                         const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).build().find({useMasterKey: true});
 
-                        await Parse.Object.saveAll(_.map(reports, (report) => {
-                            report.isClosed = true;
-                            return report;
-                        }), {useMasterKey: true});
+                        await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
                     });
 
                     // send out all reports that have been closed
@@ -107,7 +105,7 @@ export class ResetTasks {
     }
 
     private async createNewTaskGroupStarted(taskGroup: TaskGroup): Promise<TaskGroupStarted> {
-        taskGroup.timeResetDate = moment().hour(taskGroup.timeResetDate.getUTCHours()).minutes(taskGroup.timeResetDate.getUTCMinutes()).toDate();
+        taskGroup.resetDate = moment().hour(taskGroup.timeResetDate.getHours()).minutes(taskGroup.timeResetDate.getMinutes()).toDate();
         taskGroup.createdDay = this.now_day;
         // Save day of creation to taskGroup
         await taskGroup.save(null, {useMasterKey: true});

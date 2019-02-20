@@ -11,6 +11,7 @@ import { EmailData } from "@sendgrid/helpers/classes/email-address";
 import { AttachmentData } from '@sendgrid/helpers/classes/attachment';
 import { MailData } from '@sendgrid/helpers/classes/mail';
 import { User } from '../../shared/subclass/User';
+import { ReportHelper } from '../utils/ReportHelper';
 
 export class SendReports {
 
@@ -197,7 +198,7 @@ export class SendReports {
 
         // Alarm and static reports are closed when sent
         if (_.includes([TaskType.ALARM, TaskType.STATIC], report.taskType)) {
-            report.isClosed = true;
+            ReportHelper.closeReport(report);
         }
 
         return report.save(null, {useMasterKey: true});

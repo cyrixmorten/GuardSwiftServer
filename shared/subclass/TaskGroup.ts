@@ -10,6 +10,7 @@ export class TaskGroup extends BaseClass {
     static readonly _createdDay = 'createdDay';
     static readonly _days = 'days';
     static readonly _timeResetDate = 'timeResetDate';
+    static readonly _resetDate = 'resetDate';
 
     constructor() {
         super(TaskGroup.className);
@@ -45,7 +46,17 @@ export class TaskGroup extends BaseClass {
     }
 
     set timeResetDate(date: Date) {
+        date.setSeconds(0);
         this.set(TaskGroup._timeResetDate, date);
+    }
+
+    get resetDate(): Date {
+        return this.get(TaskGroup._resetDate);
+    }
+
+    set resetDate(date: Date) {
+        date.setSeconds(0);
+        this.set(TaskGroup._resetDate, date);
     }
 
     get timeResetHour(): number {
