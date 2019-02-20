@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import {API_FUNCTION_SEND_REPORTS_TO_CLIENTS} from "../cloud/api/send.daily.reports.api";
-
 var _ = require('lodash');
 
 require("dotenv").config({ path: '../local.env' });
