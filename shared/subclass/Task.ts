@@ -327,7 +327,7 @@ export class Task extends BaseClass {
         return this;
     }
 
-    dailyReset(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Task {
+    dailyReset(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
 
         this.reset();
         this.isRunToday = this.isTaskRunToday(taskGroup);
@@ -348,10 +348,6 @@ export class Task extends BaseClass {
                     newStartDate.add(1, 'day');
                 }
 
-                if (newStartDate.isDST()) {
-                    newStartDate.add(1, 'hour');
-                }
-
                 this.startDate = newStartDate.toDate();
             }
 
@@ -360,10 +356,6 @@ export class Task extends BaseClass {
 
                 if (newEndDate.hour() <= baseDate.hour()) {
                     newEndDate.add(1, 'day');
-                }
-
-                if (newEndDate.isDST()) {
-                    newEndDate.add(1, 'hour');
                 }
 
                 this.endDate = newEndDate.toDate();
@@ -409,4 +401,17 @@ export class TaskQuery extends QueryBuilder<Task> {
         this.query.equalTo(Task._client, client);
         return this;
     }
+}
+
+export class TaskQueries {
+
+    public static async getAllRunTodayMatchingClient(client: Client): Promise<Task[]> {
+        // Locate all tasks assigned to this client
+        return new TaskQuery()
+            .matchingClient(client)
+            .isRunToday()
+            .build()
+            .find({useMasterKey: true});
+    }
+
 }

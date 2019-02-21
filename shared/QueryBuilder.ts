@@ -74,7 +74,7 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    notArchived() {
+    private notArchived() {
         const doesNotExist = this.query.doesNotExist(BaseClass._archive);
         const isFalse = this.query.notEqualTo(BaseClass._archive, false);
 
@@ -83,7 +83,11 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    build(): Parse.Query<T> {
+    build(excludeArchived = true): Parse.Query<T> {
+        if (excludeArchived) {
+            this.notArchived();
+        }
+
         return this.query;
     }
 }

@@ -206,4 +206,9 @@ export class ReportQuery extends QueryBuilder<Report> {
         this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
         return this;
     }
+
+    notClosed() {
+        this.query.equalTo(Report._isClosed, false);
+        return this;
+    }
 }

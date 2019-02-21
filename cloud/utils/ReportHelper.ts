@@ -1,11 +1,10 @@
 import { Report, ReportQuery } from '../../shared/subclass/Report';
-import { Task, TaskQuery, TaskType } from '../../shared/subclass/Task';
+import { Task, TaskQueries, TaskQuery, TaskType } from '../../shared/subclass/Task';
 import * as _ from 'lodash';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { Client } from '../../shared/subclass/Client';
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
-import moment = require('moment');
 
 export class ReportHelper {
 
@@ -17,7 +16,7 @@ export class ReportHelper {
             reportQuery.matchingTask(task);
         } else {
             // Append all task events to the same report
-            const tasks: Task[] = await ReportHelper.getAllReportTasks(client);
+            const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
             const taskGroupStarted: TaskGroupStarted = await ReportHelper.getFirstTaskStarted(tasks);
 
             // Look for existing report created after the first possible task group started
@@ -27,15 +26,7 @@ export class ReportHelper {
         return reportQuery.build().first({useMasterKey: true});
     }
 
-    public static async getAllReportTasks(client: Client): Promise<Task[]> {
-        // Locate all tasks assigned to this client
-        return new TaskQuery()
-            .matchingClient(client)
-            .notArchived()
-            .isRunToday()
-            .build()
-            .find({useMasterKey: true});
-    }
+
 
     public static async writeEvent(report: Report, eventLog: EventLog) {
         console.log('Writing event to report: ' + report.id);
@@ -133,18 +124,18 @@ export class ReportHelper {
         });
 
         // Select the task group started that was created the earliest
-        const firstTaskGroupStarted =  _.first(
+        return _.head(
             _.sortBy<TaskGroupStarted>(taskGroupsStartedRunToday, (taskGroupStarted) => taskGroupStarted.timeStarted)
         );
-
-        return firstTaskGroupStarted;
     }
 
-    public static async closeIfLastTask(task: Task) {
-        const tasks: Task[] = await ReportHelper.getAllReportTasks(task.client);
+    public static async closeReportIfLastTask(task: Task) {
+        const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(task.client);
 
         const byDateAsc: Task[] = _.sortBy(tasks, (t: Task) => t.endDate);
 
+        console.log('byDateAsc', byDateAsc);
+        
         if (_.isEqual(task, _.last(byDateAsc))) {
             const report = await ReportHelper.findReport(task.client, task, task.taskType);
 

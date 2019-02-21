@@ -1,6 +1,7 @@
-import {BaseClass} from "./BaseClass";
+import { BaseClass } from "./BaseClass";
 import { Planning } from '../Planning';
 import { QueryBuilder } from '../QueryBuilder';
+import * as moment from 'moment-timezone';
 
 export class TaskGroup extends BaseClass {
 
@@ -59,8 +60,12 @@ export class TaskGroup extends BaseClass {
         this.set(TaskGroup._resetDate, date);
     }
 
-    get timeResetHour(): number {
-        return this.timeResetDate.getHours();
+    getResetDay(): number {
+        return this.resetDate ? this.resetDate.getDay() : this.createdDay;
+    }
+
+    getResetHour(timeZone: string): number {
+        return moment(this.timeResetDate).tz(timeZone).hours();
     }
 
     /**
@@ -72,15 +77,15 @@ export class TaskGroup extends BaseClass {
         return Planning.isRunToday(this.days, countryCode);
     }
 
-    hoursUntilReset(): number {
-        return this.timeResetHour - new Date().getHours();
+    hoursUntilReset(timeZone: string): number {
+        return this.getResetHour(timeZone) - new Date().getHours();
     }
 
     /**
      * Is the current hour in time equal to or less than resetTime
      */
-    resetNow(): boolean {
-        return this.hoursUntilReset() <= 0;
+    resetNow(timeZone: string): boolean {
+        return this.hoursUntilReset(timeZone) <= 0;
     }
 }
 

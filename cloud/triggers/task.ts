@@ -67,7 +67,7 @@ Parse.Cloud.afterSave(Task, async (request) => {
         task.addKnownStatus(status);
 
         if (status === TaskStatus.FINISHED) {
-            await ReportHelper.closeIfLastTask(task);
+            await ReportHelper.closeReportIfLastTask(task);
         }
 
         await task.save(null, {useMasterKey: true});
