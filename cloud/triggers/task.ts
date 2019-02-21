@@ -58,9 +58,6 @@ Parse.Cloud.afterSave(Task, async (request) => {
 
     let status: TaskStatus = task.status;
 
-    console.log('status', status);
-    console.log('task.knownStatus', task.knownStatus);
-
     if (!_.includes(task.knownStatus, status)) {
 
         if (task.isType(TaskType.ALARM)) {
