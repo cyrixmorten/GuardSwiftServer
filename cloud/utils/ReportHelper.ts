@@ -135,7 +135,7 @@ export class ReportHelper {
         const byDateAsc: Task[] = _.sortBy(tasks, (t: Task) => t.endDate);
 
         console.log('byDateAsc', byDateAsc);
-        
+
         if (_.isEqual(task, _.last(byDateAsc))) {
             const report = await ReportHelper.findReport(task.client, task, task.taskType);
 

@@ -323,6 +323,7 @@ export class Task extends BaseClass {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
         this.timesArrived = 0;
+        this.knownStatus = [];
 
         return this;
     }
