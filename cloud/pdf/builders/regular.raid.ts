@@ -1,10 +1,10 @@
 import * as moment from 'moment-timezone-all';
 import * as _ from 'lodash';
-import {ReportSettings} from "../../../shared/subclass/ReportSettings";
-import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
-import {Report} from "../../../shared/subclass/Report";
-import {Task, TaskType} from "../../../shared/subclass/Task";
-import {BaseReportBuilder} from "./base.builder";
+import { ReportSettings } from "../../../shared/subclass/ReportSettings";
+import { EventLog, TaskEvent } from "../../../shared/subclass/EventLog";
+import { Report } from "../../../shared/subclass/Report";
+import { Task, TaskType } from "../../../shared/subclass/Task";
+import { BaseReportBuilder } from "./base.builder";
 
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
@@ -75,19 +75,17 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         };
 
-        let eventTimestamp = (eventLog: EventLog) => {
-            // return moment(eventLog.deviceTimestamp).tz(timeZone)
-            //     .format('HH:mm');
-            return !eventLog.matchingTaskEvent(TaskEvent.OTHER) ? moment(eventLog.deviceTimestamp).tz(timeZone)
-                .format('HH:mm') : '';
-        };
-
         let tableContent = () => {
-            let rows = [];
-            _.map(eventLogs, (eventLog: EventLog) => {
+
+            const rows = [];
+
+            const writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
+
+            _.forEach(eventLogs, (eventLog: EventLog) => {
+
                 rows.push([
-                    eventLog.guardInitials,
-                    eventTimestamp(eventLog),
+                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? eventLog.guardInitials : '',
+                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
                     eventLog.event,
                     eventLog.amount || '',
                     eventLog.people,
@@ -100,8 +98,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             });
 
             // Add default text if nothing is written
-            let writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
-            if (writtenEvents.length === 0) {
+
+            if (_.isEmpty(writtenEvents)) {
                 // TODO translate
                 rows.push(['',
                     '',
@@ -251,10 +249,10 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         taskEventLogs = removeNonReportEvents(taskEventLogs);
-        taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
+        // taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
-        return taskEventLogs;
+        return _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
     }
 
 
