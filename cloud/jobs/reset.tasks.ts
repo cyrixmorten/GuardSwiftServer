@@ -1,14 +1,13 @@
 import { TaskGroup } from "../../shared/subclass/TaskGroup";
 import { TaskGroupStarted, TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
-import { Task, TaskQuery, TaskType } from "../../shared/subclass/Task";
+import { Task, TaskQuery } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as util from "util";
-import "tslib";
 import { User } from "../../shared/subclass/User";
-import { Report, ReportQuery } from '../../shared/subclass/Report';
-import { SendReports } from './send.reports';
+import { ReportQuery } from '../../shared/subclass/Report';
 import moment = require('moment');
 import { ReportHelper } from '../utils/ReportHelper';
+import "tslib";
 
 /**
  * This task is run daily to create new TaskGroupStarted entries and reset the tasks within
@@ -74,12 +73,6 @@ export class ResetTasks {
 
                         await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
                     });
-
-                    // send out all reports that have been closed
-                    await new SendReports().sendAllMatchingTaskTypes(user,
-                        moment().subtract(2, 'days').toDate(), new Date(),
-                        [TaskType.REGULAR, TaskType.RAID]);
-
                 }
 
             }, {useMasterKey: true});
