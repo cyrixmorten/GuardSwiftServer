@@ -132,9 +132,7 @@ export class ReportHelper {
     public static async closeReportIfLastTask(task: Task) {
         const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(task.client);
 
-        const byDateAsc: Task[] = _.sortBy(tasks, (t: Task) => t.endDate);
-
-        const lastPlannedTask = _.last(byDateAsc);
+        const lastPlannedTask = _.last(_.sortBy(tasks, (t: Task) => t.endDate));
 
         if (_.isEqual(task.id, lastPlannedTask.id)) {
             const report = await ReportHelper.findReport(task.client, task, task.taskType);
@@ -150,9 +148,8 @@ export class ReportHelper {
             return;
         }
 
-        console.log('Closing report!', report.clientName);
-
         report.isClosed = true;
+        
         return report
     }
 }
