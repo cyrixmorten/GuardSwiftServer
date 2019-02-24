@@ -1,4 +1,4 @@
-import * as moment from 'moment-timezone-all';
+import * as moment from 'moment-timezone';
 import * as _ from 'lodash';
 import {ReportSettings} from "../../../shared/subclass/ReportSettings";
 import {Report} from "../../../shared/subclass/Report";

@@ -1,12 +1,13 @@
-import {BaseClass} from "./BaseClass";
-import {TaskGroup} from "./TaskGroup";
-import {Guard} from "./Guard";
+import { BaseClass } from "./BaseClass";
+import { TaskGroup } from "./TaskGroup";
+import { Guard } from "./Guard";
 import * as _ from "lodash";
-import {TaskGroupStarted} from "./TaskGroupStarted";
-import {Client} from "./Client";
-import {QueryBuilder} from '../QueryBuilder';
+import { TaskGroupStarted } from "./TaskGroupStarted";
+import { Client } from "./Client";
+import { QueryBuilder } from '../QueryBuilder';
 import { Planning } from '../Planning';
-import moment = require('moment');
+import * as moment from "moment-timezone"
+import { User } from './User';
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -38,7 +39,7 @@ export class Task extends BaseClass {
     static readonly _taskGroupStarted = 'taskGroupStarted';
     static readonly _timesArrived = 'timesArrived';
     static readonly _knownStatus = 'knownStatus';
-    
+
     static readonly _client = 'client';
     static readonly _clientId = 'clientId';
     static readonly _clientName = 'clientName';
@@ -50,6 +51,8 @@ export class Task extends BaseClass {
     static readonly _supervisions = 'supervisions';
     static readonly _timeStartDate = 'timeStartDate';
     static readonly _timeEndDate = 'timeEndDate';
+    static readonly _startDate = 'startDate';
+    static readonly _endDate = 'endDate';
     static readonly _expireDate = 'expireDate';
 
     static readonly _isRunToday = 'isRunToday';
@@ -69,7 +72,7 @@ export class Task extends BaseClass {
     set type(type: string) {
         this.set(Task._type, type);
     }
-    
+
     get name(): string {
         return this.get(Task._name);
     }
@@ -134,7 +137,7 @@ export class Task extends BaseClass {
     addKnownStatus(knownStatus: TaskStatus) {
         this.addUnique(Task._knownStatus, knownStatus);
     }
-    
+
     set guard(guard: Guard) {
         if (_.isUndefined(guard)) {
             this.unset(Task._guard);
@@ -238,16 +241,35 @@ export class Task extends BaseClass {
     }
 
     set timeStartDate(timeStartDate: Date) {
+        timeStartDate.setSeconds(0);
         this.set(Task._timeStartDate, timeStartDate);
     }
-
 
     get timeEndDate(): Date {
         return this.get(Task._timeEndDate);
     }
 
     set timeEndDate(timeEndDate: Date) {
+        timeEndDate.setSeconds(0);
         this.set(Task._timeEndDate, timeEndDate);
+    }
+
+    get startDate(): Date {
+        return this.get(Task._startDate);
+    }
+
+    set startDate(startDate: Date) {
+        startDate.setSeconds(0);
+        this.set(Task._startDate, startDate);
+    }
+
+    get endDate(): Date {
+        return this.get(Task._endDate);
+    }
+
+    set endDate(endDate: Date) {
+        endDate.setSeconds(0);
+        this.set(Task._endDate, endDate);
     }
 
     get expireDate(): Date {
@@ -267,7 +289,7 @@ export class Task extends BaseClass {
 
         return moment(expireDate).diff(moment(), 'days', true);
     }
-    
+
     get geofenceRadius(): number {
         return this.get(Task._geofenceRadius);
     }
@@ -283,7 +305,7 @@ export class Task extends BaseClass {
     set original(original: string) {
         this.set(Task._original, original);
     }
-    
+
     isType(type: TaskType) {
         return this.taskType === type;
     }
@@ -297,28 +319,55 @@ export class Task extends BaseClass {
         return taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
     }
 
-    reset(taskGroup?: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
+    reset(): Task {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
         this.timesArrived = 0;
+        this.knownStatus = [];
 
+        return this;
+    }
 
-        if (taskGroup) {
-            this.isRunToday = this.isTaskRunToday(taskGroup);
-        }
-        if (taskGroupStarted) {
-            this.taskGroupStarted = taskGroupStarted;
-        }
+    dailyReset(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
+
+        this.reset();
+        this.isRunToday = this.isTaskRunToday(taskGroup);
+        this.taskGroupStarted = taskGroupStarted;
 
         if (this.daysUntilExpire() < 0) {
             this.archive = true;
+        }
+
+        if (taskGroup.resetDate) {
+            // year, month and day
+            const baseDate = moment(taskGroup.resetDate).tz(owner.get(User._timeZone));
+
+            if (this.timeStartDate) {
+                const newStartDate = baseDate.clone().hour(this.timeStartDate.getHours()).minutes(this.timeStartDate.getMinutes());
+
+                if (newStartDate.hour() <= baseDate.hour()) {
+                    newStartDate.add(1, 'day');
+                }
+
+                this.startDate = newStartDate.toDate();
+            }
+
+            if (this.timeEndDate) {
+                const newEndDate = baseDate.clone().hour(this.timeEndDate.getHours()).minutes(this.timeEndDate.getMinutes());
+
+                if (newEndDate.hour() <= baseDate.hour()) {
+                    newEndDate.add(1, 'day');
+                }
+
+                this.endDate = newEndDate.toDate();
+            }
         }
 
         return this;
     }
 }
 
-export class TaskQuery extends QueryBuilder<Task>{
+export class TaskQuery extends QueryBuilder<Task> {
 
     constructor() {
         super(Task);
@@ -344,8 +393,26 @@ export class TaskQuery extends QueryBuilder<Task>{
         return this;
     }
 
+    isRunToday(isRunToday: boolean = true): TaskQuery {
+        this.query.equalTo(Task._isRunToday, isRunToday);
+        return this;
+    }
+
     matchingClient(client: Client) {
         this.query.equalTo(Task._client, client);
         return this;
     }
+}
+
+export class TaskQueries {
+
+    public static async getAllRunTodayMatchingClient(client: Client): Promise<Task[]> {
+        // Locate all tasks assigned to this client
+        return new TaskQuery()
+            .matchingClient(client)
+            .isRunToday()
+            .build()
+            .find({useMasterKey: true});
+    }
+
 }

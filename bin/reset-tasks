@@ -28,5 +28,5 @@ request({
         return;
     }
 
-    console.log(res.code, res.headers, body);
+    process.exit();
 });
