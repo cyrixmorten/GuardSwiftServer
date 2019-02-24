@@ -6,7 +6,7 @@ export abstract class QueryBuilder<T extends Parse.Object> {
     protected query: Parse.Query<T>;
 
 
-    protected constructor(object: new(...args: any[]) => T, includeArchived) {
+    protected constructor(object: new(...args: any[]) => T, includeArchived?) {
         this.query = new Parse.Query(object);
 
         if (!includeArchived) {
