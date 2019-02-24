@@ -48,6 +48,10 @@ export class Client extends BaseClass {
         this.set(Client._name, name);
     }
 
+    get idAndName(): string {
+        return `${this.clientId} ${this.name}`;
+    }
+
     get cityName(): string {
         return this.get(Client._cityName);
     }

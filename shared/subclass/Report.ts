@@ -35,6 +35,7 @@ export class Report extends BaseClass {
     static readonly _timeEnded = 'timeEnded';
 
     static readonly _isClosed = 'isClosed';
+    static readonly _isSent= 'isSent';
 
     constructor() {
         super(Report.className);
@@ -62,6 +63,14 @@ export class Report extends BaseClass {
 
     set isClosed(isClosed: boolean) {
         this.set(Report._isClosed, isClosed);
+    }
+
+    get isSent(): boolean {
+        return this.get(Report._isSent);
+    }
+
+    set isSent(isSent: boolean) {
+        this.set(Report._isSent, isSent);
     }
 
     get client(): Client {
@@ -198,12 +207,16 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     isNotSent(): ReportQuery {
-        this.doesNotExist('mailStatus');
-        return this;
+        return this.doesNotExistOrFalse(Report._isSent);
     }
 
     matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
         this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
+        return this;
+    }
+
+    notClosed() {
+        this.query.equalTo(Report._isClosed, false);
         return this;
     }
 }

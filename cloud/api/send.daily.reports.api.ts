@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
 import {TaskType} from "../../shared/subclass/Task";
-import {User} from "../../shared/subclass/User";
 import { SendReports } from '../jobs/send.reports';
 
 
@@ -29,7 +28,7 @@ export interface IParams {
     force: boolean;
 }
 
-Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
+Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request, status) => {
 
     console.log(API_FUNCTION_SEND_REPORTS_TO_CLIENTS, JSON.stringify(request.params));
 
@@ -72,30 +71,13 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  (request, status) => {
 
     let toDate = () => moment().toDate();
 
-    let query = new Parse.Query(Parse.User);
-    query.equalTo(User._active, true);
-    query.each( (user) =>  {
+    try {
+        await new SendReports().sendToAllUsers(fromDate(), toDate(), taskTypes, force);
+        status.success('Done sending mail reports');
+    } catch(e) {
+        status.error(e);
+    }
 
-            console.log('Sending reports for user: ', user.get('username'));
-
-            return Promise.all(_.map(taskTypes, async (taskType: TaskType) => {
-                // wrap try-catch to ignore errors
-                // missing reportSettings for a user should not prevent remaining reports from being sent
-                try {
-                    console.log('Sending reports for taskType: ', taskType);
-                    return await new SendReports().sendAll(user, fromDate(), toDate(), taskType, force);
-                } catch (e) {
-                    console.error(`Failed to send ${taskType} reports`, e);
-                }
-            }));
-
-        }, { useMasterKey: true })
-        .then( () => {
-            status.success('Done generating mail reports');
-        },  (error) => {
-            console.error(error);
-            status.error(error);
-        });
 });
 
 
