@@ -9,6 +9,7 @@ Parse.Cloud.beforeSave(Report,  async (request, response) => {
 
     if (!report.existed()) {
         report.isClosed = false;
+        report.isSent = false;
     }
 
     if (report.client) {

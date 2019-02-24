@@ -1,6 +1,4 @@
 import * as _ from 'lodash';
-import sgMail = require("@sendgrid/mail");
-import moment = require('moment');
 import { TaskType } from '../../shared/subclass/Task';
 import { ReportSettings, ReportSettingsQuery } from '../../shared/subclass/ReportSettings';
 import { Report, ReportQuery } from '../../shared/subclass/Report';
@@ -12,6 +10,9 @@ import { AttachmentData } from '@sendgrid/helpers/classes/attachment';
 import { MailData } from '@sendgrid/helpers/classes/mail';
 import { User } from '../../shared/subclass/User';
 import { ReportHelper } from '../utils/ReportHelper';
+import sgMail = require("@sendgrid/mail");
+import moment = require('moment');
+import { Dictionary } from 'underscore';
 
 export class SendReports {
 
@@ -105,9 +106,32 @@ export class SendReports {
 
         reportQueryBuilder.include(...this.getReportIncludes());
 
-        await reportQueryBuilder.build().each(async (report: Report) => {
-                await this.send(report, reportSettings);
-        }, {useMasterKey: true});
+        const reports = await reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
+
+        if (taskType === TaskType.ALARM) {
+            await Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
+        }
+
+        const groupedByTaskGroup: Dictionary<Report[]> = _.groupBy(reports, (report: Report) => report.taskGroupStarted.name);
+
+        await this.sendReportsForTaskGroup(groupedByTaskGroup, reportSettings);
+    }
+
+    private async sendReportsForTaskGroup(groupedByTaskGroup: Dictionary<Report[]>, reportSettings?: ReportSettings) {
+        const sortedGroupNames = _.keys(groupedByTaskGroup).sort().reverse();
+
+        for (const groupName of sortedGroupNames) {
+            await this.sendReports(groupedByTaskGroup[groupName], reportSettings);
+        }
+    }
+
+    private async sendReports(reports: Report[], reportSettings?: ReportSettings) {
+        const sortedReports = _.sortBy(reports, (report: Report) => report.client.idAndName).reverse();
+
+        for (const report of sortedReports) {
+            console.log(report.client.idAndName);
+            await this.send(report, reportSettings);
+        }
     }
 
 
@@ -186,6 +210,7 @@ export class SendReports {
             attachments: await this.getAttachments(report, reportSettings)
         };
 
+        report.isSent = true;
         report.mailStatus = {
             to: mailData.to || [],
             statusCode: 0,

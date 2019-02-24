@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 import { BaseClass } from './subclass/BaseClass';
 
-export abstract class QueryBuilder<T extends Parse.Object> {
+export abstract class QueryBuilder<T extends BaseClass> {
 
     protected query: Parse.Query<T>;
 
@@ -10,7 +10,7 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         this.query = new Parse.Query(object);
 
         if (!includeArchived) {
-            this.notArchived();
+            this.doesNotExistOrFalse(BaseClass._archive);
         }
     }
 
@@ -78,14 +78,15 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    private notArchived() {
-        const doesNotExist = this.query.doesNotExist(BaseClass._archive);
-        const isFalse = this.query.notEqualTo(BaseClass._archive, false);
+    doesNotExistOrFalse(attribute: keyof T) {
+        const doesNotExist = this.query.doesNotExist(attribute);
+        const isFalse = this.query.notEqualTo(attribute, false);
 
         this.query = Parse.Query.or(this.query, doesNotExist, isFalse);
 
         return this;
     }
+
 
     build(): Parse.Query<T> {
         return this.query;
