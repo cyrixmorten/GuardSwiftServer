@@ -24,19 +24,46 @@ export class SendReports {
         query.equalTo(User._active, true);
         return query.each((user) => {
 
-            return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
+            try {
+                return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
+            } catch (e) {
+                console.error(`Error while sending to user ${user.getUsername()}`)
+                console.error(e);
+            }
+
 
         }, {useMasterKey: true})
     }
 
-    async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
+    async send(report: Report, reportSettings?: ReportSettings): Promise<any> {
+
+        // TODO parse-server >= 2.0.2 use report.fetchWithInclude
+        if (!report.owner || !report.taskGroupStarted || !report.client) {
+            report = await new ReportQuery().matchingId(report.id)
+                .include(...this.getReportIncludes()).build()
+                .first({useMasterKey: true});
+        }
+
+        if (!reportSettings) {
+            reportSettings = await new ReportSettingsQuery().matchingOwner(report.owner)
+                .matchingTaskType(report.taskType).build().first({useMasterKey: true});
+        }
+
+        return Promise.all([
+            this.sendToClients(report, reportSettings),
+            this.sendToOwners(report, reportSettings),
+        ]);
+    }
+
+    private async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
         return Promise.all(_.map(taskTypes,  async (taskType: TaskType) => {
             // wrap try-catch to ignore errors
             // missing reportSettings for a user should not prevent remaining reports from being sent
             try {
                 await this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
             } catch (e) {
-                console.error(`Failed to send ${taskType} reports`, e);
+                console.error(e);
+                throw new Error(`Failed to send ${taskType} reports for user ${user.getUsername()}`);
             }
         }));
     }
@@ -79,39 +106,19 @@ export class SendReports {
         reportQueryBuilder.include(...this.getReportIncludes());
 
         await reportQueryBuilder.build().each(async (report: Report) => {
-            try {
                 await this.send(report, reportSettings);
-            } catch (e) {
-                console.error('Error sending report', report.id, e);
-            }
         }, {useMasterKey: true});
     }
 
+
     private getReportIncludes(): Array<keyof Report> {
-        return [Report._owner, Report._tasksGroupStarted, `${Report._client}.${Client._contacts}` as any]
-    }
-
-    async send(report: Report, reportSettings?: ReportSettings): Promise<any> {
-
-        if (!report.owner || !report.taskGroupStarted || !report.client) {
-            report = await new ReportQuery().matchingId(report.id)
-                .include(...this.getReportIncludes()).build()
-                .first({useMasterKey: true});
-        }
-
-        if (!reportSettings) {
-            reportSettings = await new ReportSettingsQuery().matchingOwner(report.owner)
-                .matchingTaskType(report.taskType).build().first({useMasterKey: true});
-        }
-
-        return Promise.all([
-            this.sendToClients(report, reportSettings),
-            this.sendToOwners(report, reportSettings),
-        ]);
+        return [Report._owner, Report._tasksGroupStarted, Report._client, `${Report._client}.${Client._contacts}` as any]
     }
 
     private async sendToClients(report: Report, reportSettings: ReportSettings): Promise<any> {
         const receivers: string[] = [];
+
+        const client: Client = report.client;
 
         let getSubject = (): string => {
             // TODO translate
@@ -122,7 +129,7 @@ export class SendReports {
 
             const createdAtFormatted = moment(report.createdAt).format('DD-MM-YYYY'); //TODO hardcoded date format
 
-            return `${report.client.name} - ${reportName} -  ${createdAtFormatted}`;
+            return `${client.name} - ${reportName} -  ${createdAtFormatted}`;
         };
 
         let getText = (): string => {
@@ -138,7 +145,7 @@ export class SendReports {
             let to: EmailData[] = [];
 
             const contacts: ClientContact[] = _.filter(
-                report.client.contacts, (contact: ClientContact) => {
+                client.contacts, (contact: ClientContact) => {
                     return contact.receiveReports && !!contact.email;
                 });
 
@@ -207,10 +214,11 @@ export class SendReports {
     private async sendToOwners(report: Report, reportSettings: ReportSettings): Promise<any> {
         const receivers: string[] = [];
 
+        const client: Client = report.client;
 
         let getSubject = (): string => {
             const taskGroupName = report.taskGroupStarted.name;
-            const clientName = _.trim(`${report.client.clientId} ${report.client.name}`);
+            const clientName = _.trim(client.idAndName);
             const reportName = (report.taskType === TaskType.STATIC) ? 'Fastvagt' : 'Vagtrapport'; // TODO translate
             const createdAtFormatted = moment(report.createdAt).format('DD-MM-YYYY'); //TODO hardcoded date format
 
@@ -219,7 +227,7 @@ export class SendReports {
 
         let getHTML = (): string => {
             const contacts: ClientContact[] = _.filter(
-                report.client.contacts, (contact: ClientContact) => {
+                client.contacts, (contact: ClientContact) => {
                     return contact.receiveReports && !!contact.email;
                 });
 

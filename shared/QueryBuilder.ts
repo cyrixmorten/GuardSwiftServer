@@ -1,13 +1,17 @@
 import * as _ from "lodash";
-import {BaseClass} from './subclass/BaseClass';
+import { BaseClass } from './subclass/BaseClass';
 
 export abstract class QueryBuilder<T extends Parse.Object> {
 
     protected query: Parse.Query<T>;
 
 
-    protected constructor(object: new(...args: any[]) => T) {
+    protected constructor(object: new(...args: any[]) => T, includeArchived) {
         this.query = new Parse.Query(object);
+
+        if (!includeArchived) {
+            this.notArchived();
+        }
     }
 
     include(...includes: Array<keyof T>) {
@@ -83,11 +87,7 @@ export abstract class QueryBuilder<T extends Parse.Object> {
         return this;
     }
 
-    build(excludeArchived = true): Parse.Query<T> {
-        if (excludeArchived) {
-            this.notArchived();
-        }
-
+    build(): Parse.Query<T> {
         return this.query;
     }
 }
