@@ -2,5 +2,6 @@
   "watch": ["."],
   "ext": "ts",
   "ignore": ["./node_modules","./**/*.spec.ts"],
-  "exec": "ts-node ./index.ts"
+  "exec": "node --inspect -r ts-node/register ./index.ts",
+  "inspect": true
 }
