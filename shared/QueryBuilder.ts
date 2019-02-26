@@ -79,10 +79,15 @@ export abstract class QueryBuilder<T extends BaseClass> {
     }
 
     doesNotExistOrFalse(attribute: keyof T) {
+
         const doesNotExist = this.query.doesNotExist(attribute);
         const isFalse = this.query.notEqualTo(attribute, false);
 
-        this.query = Parse.Query.or(this.query, doesNotExist, isFalse);
+        // @ts-ignore
+        this.query = Parse.Query.and(
+            this.query,
+            Parse.Query.or(doesNotExist, isFalse)
+        );
 
         return this;
     }
