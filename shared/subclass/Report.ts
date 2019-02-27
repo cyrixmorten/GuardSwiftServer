@@ -1,8 +1,8 @@
-import {QueryBuilder} from "../QueryBuilder";
-import {EventLog} from "./EventLog";
-import {Task, TaskType} from "./Task";
-import {Client} from "./Client";
-import {TaskGroupStarted} from './TaskGroupStarted';
+import { QueryBuilder } from "../QueryBuilder";
+import { EventLog } from "./EventLog";
+import { Task, TaskType } from "./Task";
+import { Client } from "./Client";
+import { TaskGroupStarted } from './TaskGroupStarted';
 import { BaseClass } from './BaseClass';
 import * as _ from 'lodash';
 
@@ -22,7 +22,7 @@ export class Report extends BaseClass {
     static readonly _eventCount = 'eventCount';
 
     static readonly _guardName = 'guardName';
-    
+
     static readonly _client = 'client';
     static readonly _clientName = 'clientName';
     static readonly _clientAddress = 'clientAddress';
@@ -35,7 +35,7 @@ export class Report extends BaseClass {
     static readonly _timeEnded = 'timeEnded';
 
     static readonly _isClosed = 'isClosed';
-    static readonly _isSent= 'isSent';
+    static readonly _isSent = 'isSent';
 
     constructor() {
         super(Report.className);
@@ -80,7 +80,7 @@ export class Report extends BaseClass {
     set client(client: Client) {
         this.set(Report._client, client);
     }
-    
+
     get clientName(): string {
         return this.get(Report._clientName);
     }
@@ -207,7 +207,8 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     isNotSent(): ReportQuery {
-        return this.doesNotExistOrFalse(Report._isSent);
+        this.query.equalTo(Report._isSent, false);
+        return this;
     }
 
     matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {

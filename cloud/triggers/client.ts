@@ -1,14 +1,16 @@
 import * as GeoCode from '../utils/geocode';
 import * as _ from 'lodash';
-import {Client} from "../../shared/subclass/Client";
-import {Task, TaskQuery} from "../../shared/subclass/Task";
-import { BeforeSaveUtils } from './BeforeSaveUtils';
+import { Client } from "../../shared/subclass/Client";
+import { Task, TaskQuery } from "../../shared/subclass/Task";
+import AfterSaveRequest = Parse.Cloud.AfterSaveRequest;
+import { BeforeSave } from './BeforeSave';
 
 /*
  * Sanity check and obtain a GPS position for Client
  */
-Parse.Cloud.beforeSave(Client,  async (request, response) => {
-    BeforeSaveUtils.settUserAsOwner(request);
+Parse.Cloud.beforeSave(Client, async (request, response) => {
+    BeforeSave.setArchiveFalse(request);
+    BeforeSave.settUserAsOwner(request);
 
     let client = <Client>request.object;
 
@@ -27,7 +29,7 @@ Parse.Cloud.beforeSave(Client,  async (request, response) => {
     response.success();
 });
 
-Parse.Cloud.afterSave(Client,  async (request) => {
+Parse.Cloud.afterSave(Client, async (request: AfterSaveRequest) => {
 
     let client = <Client>request.object;
 
@@ -35,7 +37,7 @@ Parse.Cloud.afterSave(Client,  async (request) => {
         .matchingClient(client)
         .build().find({useMasterKey: true});
 
-    return Promise.all(_.map(tasks, (task: Task) => {
+    await Promise.all(_.map(tasks, (task: Task) => {
         task.client = client;
         return task.save(null, {useMasterKey: true});
     }));
