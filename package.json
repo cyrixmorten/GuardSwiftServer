@@ -15,7 +15,7 @@
     "@types/lodash": "^4.14.118",
     "@types/moment-timezone": "^0.5.10",
     "@types/node": "^10.12.5",
-    "@types/parse": "^2.1.1",
+    "@types/parse": "^2.2.0",
     "@types/request": "^2.48.1",
     "@types/request-promise-native": "^1.0.15",
     "body-parser": "^1.18.3",

@@ -1,4 +1,4 @@
-Parse.Cloud.beforeSave("_User", function (request, response) {
+Parse.Cloud.beforeSave("_User",  (request, response) => {
     let user = <Parse.User>request.object;
     if (!user.existed()) {
         if (!user.has('timeZone')) {

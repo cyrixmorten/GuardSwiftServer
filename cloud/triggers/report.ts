@@ -1,18 +1,20 @@
 import { Report } from '../../shared/subclass/Report';
 import { Client } from '../../shared/subclass/Client';
-import { BeforeSaveUtils } from './BeforeSaveUtils';
+import BeforeSaveRequest = Parse.Cloud.BeforeSaveRequest;
+import { BeforeSave } from './BeforeSave';
 
-Parse.Cloud.beforeSave(Report,  async (request, response) => {
-    BeforeSaveUtils.settUserAsOwner(request);
+Parse.Cloud.beforeSave(Report, async (request: BeforeSaveRequest, response) => {
+    BeforeSave.setArchiveFalse(request);
+    BeforeSave.settUserAsOwner(request);
 
     let report = <Report>request.object;
 
-    if (!report.existed()) {
-        report.isClosed = false;
-        report.isSent = false;
+    report.isClosed = report.has(Report._isClosed) ? report.isClosed: false;
+    if (!report.has(Report._isSent)) {
+        report.isSent =  report.isSent || report.has(Report._mailStatus);
     }
 
-    if (report.client) {
+    if (report.client && !report.has(Report._clientName)) {
         const client: Client = await report.client.fetch({useMasterKey: true});
         report.clientName = client.name;
         report.clientAddress = client.addressName;

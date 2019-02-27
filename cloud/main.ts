@@ -1,4 +1,4 @@
-import {RegisterSubclasses} from "../shared/subclass/RegisterSubclasses";
+import {AllSubClasses} from "../shared/subclass/AllSubClasses";
 
 let requireGlob = require('require-glob');
 
@@ -7,7 +7,7 @@ requireGlob('../shared/**/*.ts').then((res) => {
 
     console.log('Registering subclasses');
 
-    RegisterSubclasses.register();
+    AllSubClasses.register();
 
 }, (e) => {
     console.error('Failed to requireGlob for shared: ' + e);

@@ -1,10 +1,11 @@
 import { EventLog } from "../../shared/subclass/EventLog";
 import { Client } from '../../shared/subclass/Client';
-import { BeforeSaveUtils } from './BeforeSaveUtils';
 import { ReportHelper } from '../utils/ReportHelper';
+import { BeforeSave } from './BeforeSave';
 
 Parse.Cloud.beforeSave(EventLog, async (request, response) => {
-    BeforeSaveUtils.settUserAsOwner(request);
+    BeforeSave.setArchiveFalse(request);
+    BeforeSave.settUserAsOwner(request);
 
     const eventLog = <EventLog>request.object;
 

@@ -10,7 +10,7 @@ export abstract class QueryBuilder<T extends BaseClass> {
         this.query = new Parse.Query(object);
 
         if (!includeArchived) {
-            this.doesNotExistOrFalse(BaseClass._archive);
+            this.notArchived();
         }
     }
 
@@ -78,16 +78,11 @@ export abstract class QueryBuilder<T extends BaseClass> {
         return this;
     }
 
-    doesNotExistOrFalse(attribute: keyof T) {
+    private notArchived() {
+        const doesNotExist = this.query.doesNotExist(BaseClass._archive);
+        const isFalse = this.query.notEqualTo(BaseClass._archive, false);
 
-        const doesNotExist = this.query.doesNotExist(attribute);
-        const isFalse = this.query.notEqualTo(attribute, false);
-
-        // @ts-ignore
-        this.query = Parse.Query.and(
-            this.query,
-            Parse.Query.or(doesNotExist, isFalse)
-        );
+        this.query = Parse.Query.or(this.query, doesNotExist, isFalse);
 
         return this;
     }
