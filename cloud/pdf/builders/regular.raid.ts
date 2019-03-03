@@ -5,7 +5,7 @@ import { EventLog, TaskEvent } from "../../../shared/subclass/EventLog";
 import { Report } from "../../../shared/subclass/Report";
 import { Task, TaskType } from "../../../shared/subclass/Task";
 import { BaseReportBuilder } from "./base.builder";
-
+import move from 'lodash-move'
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
@@ -174,6 +174,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         let taskIds = _.map(tasks, (task: Task) => task.id);
         let taskEventLogs = _.filter(this.report.eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
 
+        const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+        
         let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
             return _.filter(eventLogs, (eventLog: EventLog) => {
                 if (_.sample(tasks).isType(TaskType.ALARM)) {
@@ -252,7 +254,15 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         // taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
-        return _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
+        taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
+
+        // move arrival to top if there is only one
+        if (arrivalEvents.length === 1) {
+            const fromIndex = _.indexOf(taskEventLogs, _.head(arrivalEvents));
+            taskEventLogs = move(taskEventLogs, fromIndex, 0);
+        }
+
+        return taskEventLogs;
     }
 
 

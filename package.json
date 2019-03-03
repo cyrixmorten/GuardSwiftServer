@@ -5,9 +5,10 @@
   "scripts": {
     "start": "./node_modules/.bin/ts-node index.ts",
     "dev": "nodemon",
-    "clean": "npm run clean:cloud && npm run clean:shared",
+    "clean": "npm run clean:cloud && npm run clean:shared && npm run clean:api",
     "clean:cloud": "find ./cloud -name \\*.js\\* -type f -delete",
-    "clean:shared": "find ./shared -name \\*.js\\* -type f -delete"
+    "clean:shared": "find ./shared -name \\*.js\\* -type f -delete",
+    "clean:api": "find ./api -name \\*.js\\* -type f -delete"
   },
   "dependencies": {
     "@parse/s3-files-adapter": "^1.2.1",
@@ -26,8 +27,10 @@
     "json2csv": "^4.3.0",
     "kerberos": "~1.1.x",
     "lodash": "^4.17.11",
+    "lodash-move": "^1.1.1",
     "moment-holiday": "^1.5.1",
     "moment-timezone": "^0.5.23",
+    "node-zip": "^1.1.1",
     "parse": "~2.1.0",
     "parse-server": "^2.7.4",
     "parse-server-push-adapter": "^2.0.2",
