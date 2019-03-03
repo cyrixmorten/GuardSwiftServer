@@ -174,8 +174,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         let taskIds = _.map(tasks, (task: Task) => task.id);
         let taskEventLogs = _.filter(this.report.eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
 
-        const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
-        
         let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
             return _.filter(eventLogs, (eventLog: EventLog) => {
                 if (_.sample(tasks).isType(TaskType.ALARM)) {
@@ -250,17 +248,48 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return eventLogs;
         };
 
+        const moveFirstArrivalToTop = (eventLogs: EventLog[]): EventLog[] => {
+            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+
+            if (!_.isEmpty(arrivalEvents)) {
+                const fromIndex = _.indexOf(taskEventLogs, _.head(arrivalEvents));
+                eventLogs = move(taskEventLogs, fromIndex, 0);
+            }
+
+            return eventLogs;
+        };
+
+        const excludeOverlappingArrivalEvents = (eventLogs: EventLog[]): EventLog[] => {
+            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+
+            if (_.isEmpty(arrivalEvents)) {
+                return eventLogs;
+            }
+
+            let currentArrivalTime = moment(_.head(arrivalEvents).deviceTimestamp);
+
+            const discardArrivalEvents = _.map(_.tail(arrivalEvents), (arrivalEvent) => {
+                const arrivalEventTime = moment(arrivalEvent.deviceTimestamp);
+
+                const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
+
+                if (Math.abs(diffMinutes) > 5) {
+                    currentArrivalTime = moment(arrivalEvent.deviceTimestamp)
+                } else {
+                    return arrivalEvent;
+                }
+            });
+
+            return _.difference(eventLogs, discardArrivalEvents);
+        };
+
         taskEventLogs = removeNonReportEvents(taskEventLogs);
         // taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
         taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
-
-        // move arrival to top if there is only one
-        if (arrivalEvents.length === 1) {
-            const fromIndex = _.indexOf(taskEventLogs, _.head(arrivalEvents));
-            taskEventLogs = move(taskEventLogs, fromIndex, 0);
-        }
+        taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
+        taskEventLogs = excludeOverlappingArrivalEvents(taskEventLogs);
 
         return taskEventLogs;
     }
