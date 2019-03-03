@@ -30,6 +30,7 @@ export class Report extends BaseClass {
     static readonly _clientFullAddress = 'clientFullAddress';
 
     static readonly _mailStatus = 'mailStatus';
+    static readonly _mailStatuses = 'mailStatuses';
 
     static readonly _timeStarted = 'timeStarted';
     static readonly _timeEnded = 'timeEnded';
@@ -119,6 +120,7 @@ export class Report extends BaseClass {
 
     set mailStatus(mailStatus: Object) {
         this.set(Report._mailStatus, mailStatus);
+        this.add(Report._mailStatuses, mailStatus);
     }
 
 
