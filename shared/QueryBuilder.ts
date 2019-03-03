@@ -6,12 +6,8 @@ export abstract class QueryBuilder<T extends BaseClass> {
     protected query: Parse.Query<T>;
 
 
-    protected constructor(object: new(...args: any[]) => T, includeArchived?) {
+    protected constructor(object: new(...args: any[]) => T) {
         this.query = new Parse.Query(object);
-
-        if (!includeArchived) {
-            this.notArchived();
-        }
     }
 
     include(...includes: Array<keyof T>) {
@@ -78,7 +74,7 @@ export abstract class QueryBuilder<T extends BaseClass> {
         return this;
     }
 
-    private notArchived() {
+    public notArchived() {
         const doesNotExist = this.query.doesNotExist(BaseClass._archive);
         const isFalse = this.query.notEqualTo(BaseClass._archive, false);
 

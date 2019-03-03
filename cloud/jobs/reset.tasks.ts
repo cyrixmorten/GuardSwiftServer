@@ -124,7 +124,7 @@ export class ResetTasks {
     private async resetTasksMatchingGroup(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Promise<Task[]> {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
-        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(9999).find({useMasterKey: true});
+        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).notArchived().build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
             (task: Task) => task.dailyReset(owner, taskGroup, taskGroupStarted)), {useMasterKey: true});
