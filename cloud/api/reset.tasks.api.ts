@@ -1,9 +1,8 @@
 import {ResetTasks} from "../jobs/reset.tasks";
-import * as _ from "lodash"
 
 export const API_FUNCTION_RESET_TASKS = "resetTasks";
 
-Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
+Parse.Cloud.define(API_FUNCTION_RESET_TASKS, async (request, status) => {
 
     console.log('----');
     console.log('- resetAllTasks');
@@ -17,19 +16,14 @@ Parse.Cloud.define(API_FUNCTION_RESET_TASKS, function (request, status) {
 
     console.log("resetTasks day: " + now_dayOfWeek + " hour: " + now_hour + " forced update: " + (forceUpdate == true));
 
-    let promises = [];
-
-    // TODO iterate only active users
-    promises.push(new ResetTasks(forceUpdate, taskGroupId).run());
-
-    Parse.Promise.when(promises).then(function () {
-        // // All tasks completed
+    try {
+        await new ResetTasks(forceUpdate, taskGroupId).run();
         console.log("all done");
         status.success("completed successfully");
-    }, function (error) {
-        console.error("failed to reset tasks", error);
-        status.error("an error occurred: \n" + JSON.stringify(error));
-    });
+    } catch (e) {
+        console.error("failed to reset tasks", e);
+        status.error("an error occurred: \n" + JSON.stringify(e));
+    }
 
 });
 

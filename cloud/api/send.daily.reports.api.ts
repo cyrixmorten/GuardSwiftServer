@@ -22,7 +22,7 @@ export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
 export interface IParams {
     timeBack: {
         amount: number;
-        unit: 'minutes' | 'days';
+        unit: moment.unitOfTime.DurationConstructor;
     },
     taskTypes: TaskType[],
     force: boolean;

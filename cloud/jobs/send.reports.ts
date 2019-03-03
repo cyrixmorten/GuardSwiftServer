@@ -12,7 +12,7 @@ import { User } from '../../shared/subclass/User';
 import { ReportHelper } from '../utils/ReportHelper';
 import sgMail = require("@sendgrid/mail");
 import moment = require('moment');
-import { Dictionary } from 'underscore';
+import { Dictionary } from 'lodash';
 
 export class SendReports {
 
@@ -28,7 +28,7 @@ export class SendReports {
             try {
                 return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
             } catch (e) {
-                console.error(`Error while sending to user ${user.getUsername()}`)
+                console.error(`Error while sending to user ${user.getUsername()}`);
                 console.error(e);
             }
 
@@ -101,7 +101,7 @@ export class SendReports {
         }
 
         if (!force) {
-            reportQueryBuilder.isNotSent()
+            reportQueryBuilder.isNotSent();
         }
 
         reportQueryBuilder.include(...this.getReportIncludes());
@@ -109,7 +109,7 @@ export class SendReports {
         const reports = await reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
         if (taskType === TaskType.ALARM) {
-            await Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
+            return Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
         }
 
         const groupedByTaskGroup: Dictionary<Report[]> = _.groupBy(reports, (report: Report) => report.taskGroupStarted.name);
@@ -210,22 +210,20 @@ export class SendReports {
             attachments: await this.getAttachments(report, reportSettings)
         };
 
+        // mark as sent no matter what so we do not keep attempting to send it
         report.isSent = true;
-        report.mailStatus = {
-            to: mailData.to || [],
-            statusCode: 0,
-            statusMessage: ''
-        };
 
         if (!_.isEmpty(mailData.to)) {
             const [httpResponse] = await sgMail.send(mailData);
 
             const {statusCode, statusMessage} = httpResponse;
 
-            _.assign(report.mailStatus, {
+            report.mailStatus = {
+                to: mailData.to,
+                date: new Date(),
                 statusCode,
                 statusMessage
-            })
+            }
         }
 
         // Alarm and static reports are closed when sent
@@ -257,9 +255,11 @@ export class SendReports {
                 });
 
             if (_.isEmpty(contacts)) {
+                // TODO: translate
                 return '<p>Der er ingen kontaktpersoner der modtager rapporter for denne kunde</p>'
             }
 
+            // TODO: translate
             let text = 'Denne rapport er blevet sendt til følgende kontaktpersoner:';
             text += '<p>';
             _.forEach(contacts, (contact: ClientContact) => {
@@ -320,7 +320,20 @@ export class SendReports {
             attachments: await this.getAttachments(report, reportSettings)
         };
 
-        return sgMail.send(mailData);
+        if (!_.isEmpty(mailData.to)) {
+            const [httpResponse] = await sgMail.send(mailData);
+
+            const {statusCode, statusMessage} = httpResponse;
+
+            report.mailStatus = {
+                to: mailData.to,
+                date: new Date(),
+                statusCode,
+                statusMessage
+            }
+        }
+
+        return report.save(null, {useMasterKey: true});
     }
 
     private async getAttachments(report: Report, reportSettings?: ReportSettings): Promise<AttachmentData[]> {

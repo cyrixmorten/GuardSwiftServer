@@ -6,11 +6,11 @@ export abstract class QueryBuilder<T extends BaseClass> {
     protected query: Parse.Query<T>;
 
 
-    protected constructor(object: new(...args: any[]) => T, includeArchived?) {
+    protected constructor(object: new(...args: any[]) => T, includeAchived?) {
         this.query = new Parse.Query(object);
 
-        if (!includeArchived) {
-            this.doesNotExistOrFalse(BaseClass._archive);
+        if (!includeAchived) {
+            this.query.notEqualTo(BaseClass._archive, true);
         }
     }
 
@@ -23,7 +23,9 @@ export abstract class QueryBuilder<T extends BaseClass> {
     }
 
     matchingId(id: string) {
-        this.query.equalTo(BaseClass._objectId, id);
+        if (id) {
+            this.query.equalTo(BaseClass._objectId, id);
+        }
 
         return this;
     }
@@ -74,15 +76,6 @@ export abstract class QueryBuilder<T extends BaseClass> {
 
     lessThan(key: keyof T, date: Date) {
         this.query.lessThan(key, date);
-
-        return this;
-    }
-
-    doesNotExistOrFalse(attribute: keyof T) {
-        const doesNotExist = this.query.doesNotExist(attribute);
-        const isFalse = this.query.notEqualTo(attribute, false);
-
-        this.query = Parse.Query.or(this.query, doesNotExist, isFalse);
 
         return this;
     }

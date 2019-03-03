@@ -5,7 +5,7 @@ import { EventLog, TaskEvent } from "../../../shared/subclass/EventLog";
 import { Report } from "../../../shared/subclass/Report";
 import { Task, TaskType } from "../../../shared/subclass/Task";
 import { BaseReportBuilder } from "./base.builder";
-
+import move from 'lodash-move'
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
@@ -248,11 +248,50 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return eventLogs;
         };
 
+        const moveFirstArrivalToTop = (eventLogs: EventLog[]): EventLog[] => {
+            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+
+            if (!_.isEmpty(arrivalEvents)) {
+                const fromIndex = _.indexOf(taskEventLogs, _.head(arrivalEvents));
+                eventLogs = move(taskEventLogs, fromIndex, 0);
+            }
+
+            return eventLogs;
+        };
+
+        const excludeOverlappingArrivalEvents = (eventLogs: EventLog[]): EventLog[] => {
+            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
+
+            if (_.isEmpty(arrivalEvents)) {
+                return eventLogs;
+            }
+
+            let currentArrivalTime = moment(_.head(arrivalEvents).deviceTimestamp);
+
+            const discardArrivalEvents = _.map(_.tail(arrivalEvents), (arrivalEvent) => {
+                const arrivalEventTime = moment(arrivalEvent.deviceTimestamp);
+
+                const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
+
+                if (Math.abs(diffMinutes) > 5) {
+                    currentArrivalTime = moment(arrivalEvent.deviceTimestamp)
+                } else {
+                    return arrivalEvent;
+                }
+            });
+
+            return _.difference(eventLogs, discardArrivalEvents);
+        };
+
         taskEventLogs = removeNonReportEvents(taskEventLogs);
         // taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
-        return _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
+        taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
+        taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
+        taskEventLogs = excludeOverlappingArrivalEvents(taskEventLogs);
+
+        return taskEventLogs;
     }
 
 
