@@ -12,7 +12,6 @@ Parse.Cloud.beforeSave(Guard,  async (request, response) => {
         const alarmNotifyCount = await new GuardQuery().
             matchingOwner(guard.owner).
             whereAlarmNotify(true).
-            notArchived().
             build().
             count({useMasterKey: true});
 

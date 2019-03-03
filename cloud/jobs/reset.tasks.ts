@@ -1,4 +1,4 @@
-import { TaskGroup } from "../../shared/subclass/TaskGroup";
+import { TaskGroup, TaskGroupQuery } from "../../shared/subclass/TaskGroup";
 import { TaskGroupStarted, TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
 import { Task, TaskQuery } from "../../shared/subclass/Task";
 import * as _ from "lodash";
@@ -20,17 +20,6 @@ export class ResetTasks {
         this.now_day = new Date().getDay();
     }
 
-    private taskGroupsMatchingUser(user: Parse.User) {
-        let queryTaskGroups = new Parse.Query(TaskGroup);
-        if (this.taskGroupId) {
-            console.log('Targeting taskGroup:', this.taskGroupId);
-            queryTaskGroups.equalTo(TaskGroup._objectId, this.taskGroupId);
-        }
-        queryTaskGroups.doesNotExist(TaskGroup._archive);
-        queryTaskGroups.equalTo(TaskGroup._owner, user);
-
-        return queryTaskGroups;
-    }
 
     async run(): Promise<any> {
         let query = new Parse.Query(Parse.User);
@@ -38,44 +27,47 @@ export class ResetTasks {
 
         return query.each(async (user: Parse.User) => {
 
+            console.log('Username:', user.getUsername());
+
             const timeZone = user.get(User._timeZone);
 
-            await this.taskGroupsMatchingUser(user).each(async (taskGroup: TaskGroup) => {
+            await new TaskGroupQuery().matchingOwner(user).matchingId(this.taskGroupId).build()
+                .each(async (taskGroup: TaskGroup) => {
 
-                const alreadyReset = taskGroup.getResetDay() === this.now_day;
+                    const alreadyReset = taskGroup.getResetDay() === this.now_day;
 
-                const performReset = this.force || (!alreadyReset && taskGroup.resetNow(timeZone));
+                    const performReset = this.force || (!alreadyReset && taskGroup.resetNow(timeZone));
 
-                console.log('Resetting TaskGroup: ', taskGroup.name,
-                    'Is run today: ', taskGroup.isRunToday(),
-                    'Already reset today:', alreadyReset,
-                    'Hours until reset: ', taskGroup.hoursUntilReset(timeZone),
-                    'Perform reset: ', performReset);
+                    console.log('Resetting TaskGroup: ', taskGroup.name,
+                        'Is run today: ', taskGroup.isRunToday(),
+                        'Already reset today:', alreadyReset,
+                        'Hours until reset: ', taskGroup.hoursUntilReset(timeZone),
+                        'Perform reset: ', performReset);
 
-                if (performReset) {
+                    if (performReset) {
 
-                    // set reset date on task group
-                    await this.resetTaskGroup(taskGroup);
+                        // set reset date on task group
+                        await this.resetTaskGroup(taskGroup);
 
-                    // end task group started objects matching taskgroup
-                    const endedTaskGroups: TaskGroupStarted[] = await this.endTaskGroupsStarted(taskGroup);
+                        // end task group started objects matching taskgroup
+                        const endedTaskGroups: TaskGroupStarted[] = await this.endTaskGroupsStarted(taskGroup);
 
-                    // create new task group started if run today
-                    const newTaskGroupStarted = taskGroup.isRunToday() ? await this.createNewTaskGroupStarted(taskGroup) : undefined;
+                        // create new task group started if run today
+                        const newTaskGroupStarted = taskGroup.isRunToday() ? await this.createNewTaskGroupStarted(taskGroup) : undefined;
 
-                    // reset all tasks matching task group
-                    await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
+                        // reset all tasks matching task group
+                        await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
 
 
-                    // close reports matching ended task groups that are still open
-                    _.forEach(endedTaskGroups, async (taskGroupStarted) => {
-                        const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
+                        // close reports matching ended task groups that are still open
+                        _.forEach(endedTaskGroups, async (taskGroupStarted) => {
+                            const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
 
-                        await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
-                    });
-                }
+                            await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
+                        });
+                    }
 
-            }, {useMasterKey: true});
+                }, {useMasterKey: true});
 
         }, {useMasterKey: true});
 
@@ -124,7 +116,7 @@ export class ResetTasks {
     private async resetTasksMatchingGroup(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Promise<Task[]> {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
-        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).notArchived().build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
+        const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
             (task: Task) => task.dailyReset(owner, taskGroup, taskGroupStarted)), {useMasterKey: true});
