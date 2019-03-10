@@ -14,6 +14,7 @@ import { Tracker } from "./Tracker";
 import { TrackerData } from "./TrackerData";
 import { Dictionary } from 'lodash';
 import * as _ from 'lodash';
+import { EventType } from './EventType';
 
 export class AllSubClasses {
 
@@ -21,6 +22,7 @@ export class AllSubClasses {
         [User.className]: User,
         [Guard.className]: Guard,
         [Client.className]: Client,
+        [EventType.className]: EventType,
         [Task.className]: Task,
         [TaskGroup.className]: TaskGroup,
         [TaskGroupStarted.className]: TaskGroupStarted,

@@ -1,13 +1,12 @@
 import * as _ from 'lodash';
-import {parseAlarm} from "./alarm.parse";
-import {createAlarm} from "./alarm.create";
-import {AlarmUtils} from "./utils";
-import IPromise = Parse.IPromise;
-import {User} from "../../shared/subclass/User";
-import {Central} from "../../shared/subclass/Central";
+import { parseAlarm } from "./alarm.parse";
+import { createAlarm } from "./alarm.create";
+import { AlarmUtils } from "./utils";
+import { User } from "../../shared/subclass/User";
+import { Central } from "../../shared/subclass/Central";
 
 
-export const handleAlarmRequest = function (request): IPromise<any> {
+export const handleAlarmRequest = async (request) => {
 
     let sender = request.params.sender;
     let receiver = request.params.receiver;
@@ -32,56 +31,49 @@ export const handleAlarmRequest = function (request): IPromise<any> {
             error += 'Missing alarm ';
         }
 
-        return Parse.Promise.error(error);
+        throw error;
     }
 
-    let central: Central;
-    let user: User;
 
-    return AlarmUtils.findCentral(sender).then(function (centralObj: any) {
-        if (_.isEmpty(centralObj)) {
-            return Parse.Promise.error('Unable to find central with sendFrom value: ' + sender);
-        }
-        central = centralObj;
-        console.log('central: ' + central.name);
+    const central: Central = await AlarmUtils.findCentral(sender) as Central;
+    const user: User = await AlarmUtils.findUser(receiver) as User;
 
-        return AlarmUtils.findUser(receiver);
-    }).then(function (userObj: User) {
-        if (!userObj) {
-            return Parse.Promise.error('Unable to find user with sendTo value: ' + receiver);
-        }
-        user = userObj;
-        console.log('user: ' + user.get('username'));
+    if (!central) {
+        throw 'Unable to find central with sendFrom value: ' + sender;
+    }
 
-        return parseAlarm(central, alarmMsg);
-    }).then(function (parsed) {
-        console.log('parsed.action: ', parsed.action);
-        if (parsed.action === 'create') {
-            return createAlarm({
-                sender: sender,
-                receiver: receiver,
-                central: central,
-                user: user,
-                parsedAlarm: parsed
-            }).then(function() {
-                return 'Successfully created alarm';
-            });
-        }
-        if (parsed.action === 'abort') {
-            return AlarmUtils.findAlarm({
-                central: central,
-                user: user,
-                parsed: parsed
-            }).then(function (alarm) {
-                alarm.set('status', 'aborted');
-                return alarm.save(null, {useMasterKey: true});
-            }).then(function () {
-                return 'Alarm aborted';
-            });
+    if (!user) {
+        throw 'Unable to find user with sendTo value: ' + receiver;
+    }
 
-        }
-    })
+    const parsed = await parseAlarm(central, alarmMsg);
 
+    if (parsed.action === 'create') {
+
+        console.log('Create alarm');
+
+        return createAlarm({
+            sender: sender,
+            receiver: receiver,
+            central: central,
+            user: user,
+            parsedAlarm: parsed
+        });
+    }
+    if (parsed.action === 'abort') {
+        console.log('Abort alarm');
+
+        const alarm = await AlarmUtils.findAlarm({
+            central: central,
+            user: user,
+            parsed: parsed
+        });
+
+        alarm.set('status', 'aborted');
+
+        return alarm.save(null, {useMasterKey: true});
+
+    }
 
 };
 

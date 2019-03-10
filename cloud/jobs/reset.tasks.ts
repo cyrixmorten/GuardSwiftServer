@@ -7,7 +7,6 @@ import { User } from "../../shared/subclass/User";
 import { ReportQuery } from '../../shared/subclass/Report';
 import moment = require('moment');
 import { ReportHelper } from '../utils/ReportHelper';
-import "tslib";
 
 /**
  * This task is run daily to create new TaskGroupStarted entries and reset the tasks within
