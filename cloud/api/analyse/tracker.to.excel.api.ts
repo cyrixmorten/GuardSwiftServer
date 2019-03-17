@@ -9,6 +9,7 @@ import FunctionRequest = Parse.Cloud.FunctionRequest;
 import { GPSData } from "../../../shared/GPSData";
 import { Dictionary } from "lodash";
 import { WorkSheet } from "xlsx";
+import { User } from '../../../shared/subclass/User';
 
 export const API_FUNCTION_TRACKER_TO_CSV = "trackerToExcel";
 

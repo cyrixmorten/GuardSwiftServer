@@ -7,6 +7,7 @@ import {IReportBuilder} from "./builders/base.builder";
 import {StaticReportBuilder} from "./builders/static";
 
 import * as _ from 'lodash';
+import { User } from '../../shared/subclass/User';
 
 export class ReportToPDF {
 

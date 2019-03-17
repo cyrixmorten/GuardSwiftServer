@@ -328,7 +328,7 @@ export class Task extends BaseClass {
         return this;
     }
 
-    dailyReset(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
+    dailyReset(owner: User, taskGroup: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
 
         this.reset();
         this.isRunToday = this.isTaskRunToday(taskGroup);
@@ -340,7 +340,7 @@ export class Task extends BaseClass {
 
         if (taskGroup.resetDate) {
             // year, month and day
-            const baseDate = moment(taskGroup.resetDate).tz(owner.get(User._timeZone));
+            const baseDate = moment(taskGroup.resetDate).tz(owner.timeZone);
 
             if (this.timeStartDate) {
                 const newStartDate = baseDate.clone().hour(this.timeStartDate.getHours()).minutes(this.timeStartDate.getMinutes());

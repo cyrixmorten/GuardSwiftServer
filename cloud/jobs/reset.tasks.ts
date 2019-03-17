@@ -3,7 +3,7 @@ import { TaskGroupStarted, TaskGroupStartedQuery } from "../../shared/subclass/T
 import { Task, TaskQuery } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as util from "util";
-import { User } from "../../shared/subclass/User";
+import { User, UserQuery } from "../../shared/subclass/User";
 import { ReportQuery } from '../../shared/subclass/Report';
 import moment = require('moment');
 import { ReportHelper } from '../utils/ReportHelper';
@@ -21,10 +21,7 @@ export class ResetTasks {
 
 
     async run(): Promise<any> {
-        let query = new Parse.Query(Parse.User);
-        query.equalTo(User._active, true);
-
-        return query.each(async (user: Parse.User) => {
+        return new UserQuery().isActive().build().each(async (user: User) => {
 
             console.log('Username:', user.getUsername());
 
@@ -112,7 +109,7 @@ export class ResetTasks {
     }
 
 
-    private async resetTasksMatchingGroup(owner: Parse.User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Promise<Task[]> {
+    private async resetTasksMatchingGroup(owner: User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted): Promise<Task[]> {
         console.log(util.format('Resetting taskGroup: %s', taskGroup.name));
 
         const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
