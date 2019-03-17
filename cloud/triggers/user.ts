@@ -1,12 +1,12 @@
 import { User } from '../../shared/subclass/User';
 
-Parse.Cloud.beforeSave("_User",  (request) => {
-    let user = request.object as Parse.User;
+Parse.Cloud.beforeSave(User,  (request) => {
+    let user = request.object as User;
 
     if (!user.existed()) {
-        if (!user.has(User._timeZone)) {
+        if (!user.timeZone) {
             // TODO investigate removal
-            user.set(User._timeZone, 'Europe/Copenhagen');
+            user.timeZone =  'Europe/Copenhagen';
         }
     }
 });

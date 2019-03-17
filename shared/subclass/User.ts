@@ -7,10 +7,6 @@ export class User extends Parse.User {
     static readonly _active = 'active';
     static readonly _timeZone = 'timeZone';
 
-    constructor() {
-        super(User.className);
-    }
-
     get name(): string {
         return this.get(User._name);
     }
