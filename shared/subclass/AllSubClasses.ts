@@ -19,7 +19,7 @@ import { EventType } from './EventType';
 export class AllSubClasses {
 
     private static nameToObject: Dictionary<any> = {
-        [User.className]: User,
+        ['_User']: User,
         [Guard.className]: Guard,
         [Client.className]: Client,
         [EventType.className]: EventType,
