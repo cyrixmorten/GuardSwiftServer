@@ -1,5 +1,7 @@
 export class User extends Parse.User {
 
+    static readonly className = '_User';
+
     static readonly _name = 'name';
     static readonly _active = 'active';
     static readonly _timeZone = 'timeZone';
