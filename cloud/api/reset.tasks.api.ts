@@ -9,7 +9,6 @@ Parse.Cloud.define(API_FUNCTION_RESET_TASKS, async (request) => {
         taskGroupId,
     } = request.params;
 
-
     await new ResetTasks(force, taskGroupId).run();
 
 });

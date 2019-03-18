@@ -43,6 +43,9 @@ export class UserQuery {
 
     protected query: Parse.Query<User>;
 
+    constructor() {
+        this.query = new Parse.Query(User)
+    }
     isActive() {
         this.query.equalTo(User._active, true);
 
