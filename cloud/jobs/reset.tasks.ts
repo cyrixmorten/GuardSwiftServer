@@ -23,8 +23,6 @@ export class ResetTasks {
     async run(): Promise<any> {
         return new UserQuery().isActive().build().each(async (user: User) => {
 
-            console.log('Username:', user.getUsername());
-
             const timeZone = user.get(User._timeZone);
 
             await new TaskGroupQuery().matchingOwner(user).matchingId(this.taskGroupId).build()
