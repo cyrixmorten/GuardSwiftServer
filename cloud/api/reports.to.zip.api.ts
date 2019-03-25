@@ -11,7 +11,7 @@ const zip = new require('node-zip')();
 
 export const API_FUNCTION_REPORT_TO_ZIP = "reportsToZip";
 
-Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request, response) => {
+Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request) => {
     const searchFrom = moment().subtract(6, 'months').toDate();
 
     const reports = await new ReportQuery()
@@ -26,8 +26,7 @@ Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request, response) => {
     console.log('reports.length', reports.length);
 
     if (reports.length === 0) {
-        response.success('No reports');
-        return;
+        return 'No reports';
     }
 
     const firstReport = _.head(reports);
@@ -51,7 +50,5 @@ Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request, response) => {
     const data = zip.generate({ base64:false, compression: 'DEFLATE' });
 
     fs.writeFileSync('Tivoli Friheden.zip', data, 'binary');
-
-    response.success(':)');
 });
 

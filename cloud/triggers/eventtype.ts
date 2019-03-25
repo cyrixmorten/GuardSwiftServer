@@ -1,14 +1,11 @@
 import { BeforeSave } from './BeforeSave';
+import { EventType } from '../../shared/subclass/EventType';
+import * as parse from "parse";
 
-Parse.Cloud.beforeSave("EventType", function (request, response) {
+Parse.Cloud.beforeSave(EventType,  (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
     BeforeSave.settUserAsOwner(request);
 
-    if (!request.user) {
-        // not saved by user
-        response.success();
-        return;
-    }
 
     let EventType = request.object;
 
@@ -20,5 +17,4 @@ Parse.Cloud.beforeSave("EventType", function (request, response) {
         EventType.increment('timesUsed');
     }
 
-    response.success();
 });

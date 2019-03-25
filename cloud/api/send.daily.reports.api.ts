@@ -1,63 +1,38 @@
 import * as moment from 'moment';
 import * as _ from 'lodash';
-import {TaskType} from "../../shared/subclass/Task";
 import { SendReports } from '../jobs/send.reports';
 
 
 export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
 
-/**
- * Send all reports
- *
- * params: {
- *      days: number - amount of days to look back
- *      time_back: {
- *          amount: number
- *          unit: 'minutes' | 'days'
- *      },
- *      taskTypes: TaskType[]
- * }
- *
- */
-export interface IParams {
-    timeBack: {
-        amount: number;
-        unit: moment.unitOfTime.DurationConstructor;
-    },
-    taskTypes: TaskType[],
-    force: boolean;
-}
 
-Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request, status) => {
+Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
 
-    console.log(API_FUNCTION_SEND_REPORTS_TO_CLIENTS, JSON.stringify(request.params));
+    const {
+        force,
+        taskTypes,
+        timeBack
+    } = request.params;
 
-    const params: IParams = request.params;
+    if (!_.isArray(taskTypes)) {
+        throw 'Missing taskTypes param (must be array)';
+    }
 
-    const force = params.force; // ignore the isSent flag if true
-    const taskTypes = params.taskTypes ? _.concat([], params.taskTypes) : [TaskType.REGULAR, TaskType.RAID];
-    const timeBack = params.timeBack;
+    if (!_.isObject(timeBack)) {
+        throw 'Missing timeBack param';
+    }
+
     if (timeBack) {
         if (!timeBack.amount || !timeBack.unit) {
-            status.error(`When passing timeBack both units and amount should be added\n
-                    Example: {
-                            timeBack: {
-                                amount: 15, 
-                                units: 'minutes'
-                            }
-                    }`
-            );
-            return;
+            throw 'Missing amount or unit on timeBack param';
         }
 
         if (!_.isNumber(timeBack.amount)) {
-            status.error('timeBack amount must be a number');
-            return;
+            throw 'timeBack amount must be a number';
         }
 
         if (!_.isString(timeBack.unit)) {
-            status.error('timeBack unit must be a string');
-            return;
+            throw 'timeBack unit must be a string';
         }
     }
 
@@ -71,13 +46,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request, status
 
     let toDate = () => moment().toDate();
 
-    try {
-        await new SendReports().sendToAllUsers(fromDate(), toDate(), taskTypes, force);
-        status.success('Done sending mail reports');
-    } catch(e) {
-        status.error(e);
-    }
-
+    await new SendReports().sendToAllUsers(fromDate(), toDate(), taskTypes, force);
 });
 
 

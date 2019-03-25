@@ -2,12 +2,13 @@ import { EventLog } from "../../shared/subclass/EventLog";
 import { Client } from '../../shared/subclass/Client';
 import { ReportHelper } from '../utils/ReportHelper';
 import { BeforeSave } from './BeforeSave';
+import * as parse from "parse";
 
-Parse.Cloud.beforeSave(EventLog, async (request, response) => {
+Parse.Cloud.beforeSave(EventLog, async (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
     BeforeSave.settUserAsOwner(request);
 
-    const eventLog = <EventLog>request.object;
+    const eventLog = request.object as EventLog;
 
     if (eventLog.client) {
         const client: Client = await eventLog.client.fetch({useMasterKey: true});
@@ -22,10 +23,6 @@ Parse.Cloud.beforeSave(EventLog, async (request, response) => {
     if (!eventLog.automatic) {
         eventLog.automatic = false;
     }
-
-    response.success();
-
-
 });
 
 Parse.Cloud.afterSave(EventLog, (request) => {

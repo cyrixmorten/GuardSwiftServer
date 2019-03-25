@@ -1,8 +1,9 @@
 import * as _ from 'lodash';
-import {ICentral} from "./central.interface";
+import { ICentralAlarmHandler } from "./central.interface";
+
 let cpsms = require('../../api/cpsms');
 
-export class G4SCentral implements ICentral {
+export class G4SCentral implements ICentralAlarmHandler {
 
     getName() {
         return "G4S";
@@ -10,7 +11,7 @@ export class G4SCentral implements ICentral {
 
     matchesCentral(alarmOrCentral) {
 
-        let centralName =  alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
+        let centralName = alarmOrCentral.has('taskType') ? alarmOrCentral.get('centralName') : alarmOrCentral.get('name');
 
         return centralName === this.getName();
     };
@@ -47,7 +48,7 @@ export class G4SCentral implements ICentral {
     };
 
     private smsToCentral(alarm, message) {
-        this.findGuardMobile(alarm).then(function(mobileNumber) {
+        this.findGuardMobile(alarm).then(function (mobileNumber) {
             cpsms.send({
                 to: alarm.get('sentFrom'),
                 from: mobileNumber,
@@ -57,23 +58,20 @@ export class G4SCentral implements ICentral {
         });
     };
 
-    private findGuardMobile(alarm) {
-        let fallback = Parse.Promise.as(alarm.get('sentTo'));
+    private async findGuardMobile(alarm) {
+        const sentTo = alarm.get('sentTo');
 
-        let guardPointer = alarm.get('guard');
-        if (guardPointer) {
-            return guardPointer.fetch({useMasterKey: true}).then(function (guard) {
-                let mobile = guard.get('mobileNumber');
+        try {
+            const guard = alarm.get('guard').fetch({useMasterKey: true});
 
-                return mobile && mobile.length > 6 ? mobile : fallback;
-            }).fail(function() {
-                return fallback;
-            });
+            const mobile = guard.get('mobileNumber');
+
+            return mobile && mobile.length > 6 ? mobile : sentTo;
+        } catch (e) {
+            return sentTo;
         }
-
-        return fallback;
     };
-    
+
     handlePending(alarm) {
         if (!this.matchesCentral(alarm)) {
             return;

@@ -6,10 +6,10 @@ export abstract class QueryBuilder<T extends BaseClass> {
     protected query: Parse.Query<T>;
 
 
-    protected constructor(object: new(...args: any[]) => T, includeAchived?) {
+    protected constructor(object: new(...args: any[]) => T, includeArchived?) {
         this.query = new Parse.Query(object);
 
-        if (!includeAchived) {
+        if (!includeArchived) {
             this.query.notEqualTo(BaseClass._archive, true);
         }
     }

@@ -1,11 +1,9 @@
-Parse.Cloud.beforeSave("_User",  (request, response) => {
-    let user = <Parse.User>request.object;
-    if (!user.existed()) {
-        if (!user.has('timeZone')) {
-            // TODO investigate removal
-            user.set('timeZone', 'Europe/Copenhagen');
-        }
-    }
+import { User } from '../../shared/subclass/User';
 
-    response.success();
+Parse.Cloud.beforeSave(User,  (request) => {
+    let user = request.object as User;
+
+    if (!user.timeZone) {
+        user.timeZone = 'Europe/Copenhagen';
+    }
 });

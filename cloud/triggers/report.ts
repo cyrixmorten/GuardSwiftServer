@@ -1,17 +1,17 @@
 import { Report } from '../../shared/subclass/Report';
 import { Client } from '../../shared/subclass/Client';
-import BeforeSaveRequest = Parse.Cloud.BeforeSaveRequest;
 import { BeforeSave } from './BeforeSave';
+import * as parse from "parse";
 
-Parse.Cloud.beforeSave(Report, async (request: BeforeSaveRequest, response) => {
+Parse.Cloud.beforeSave(Report, async (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
     BeforeSave.settUserAsOwner(request);
 
-    let report = <Report>request.object;
+    let report = request.object as Report;
 
-    report.isClosed = report.has(Report._isClosed) ? report.isClosed: false;
+    report.isClosed = report.has(Report._isClosed) ? report.isClosed : false;
     if (!report.has(Report._isSent)) {
-        report.isSent =  report.isSent || report.has(Report._mailStatus);
+        report.isSent = report.isSent || report.has(Report._mailStatus);
     }
 
     if (report.client && !report.has(Report._clientName)) {
@@ -21,6 +21,4 @@ Parse.Cloud.beforeSave(Report, async (request: BeforeSaveRequest, response) => {
         report.clientAddressNumber = client.addressNumber;
         report.clientFullAddress = `${client.addressName} ${client.addressNumber} ${client.zipCode} ${client.cityName}`;
     }
-
-    response.success();
 });

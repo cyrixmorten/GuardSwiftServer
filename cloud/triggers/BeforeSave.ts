@@ -1,4 +1,4 @@
-import * as parse from 'parse';
+import * as parse from 'parse/node';
 import { BaseClass } from '../../shared/subclass/BaseClass';
 
 
