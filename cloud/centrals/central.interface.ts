@@ -1,4 +1,4 @@
-export interface ICentral {
+export interface ICentralAlarmHandler {
     getName(): string;
     matchesCentral(alarmOrCentral): boolean;
 

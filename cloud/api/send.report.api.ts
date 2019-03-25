@@ -6,19 +6,15 @@ export const API_FUNCTION_SEND_REPORT = "sendReport";
 /**
  * Send a single report to client receivers
  */
-Parse.Cloud.define(API_FUNCTION_SEND_REPORT, (request, response) => {
+Parse.Cloud.define(API_FUNCTION_SEND_REPORT, async (request) => {
 
-    const reportId = request.params.reportId;
+    const {reportId} = request.params;
 
     if (!reportId) {
-        response.error('Missing reportId param');
+        throw 'Missing reportId param';
     }
 
-    new SendReports().send(Report.createWithoutData(reportId)).then(() => {
-        response.success('Report successfully sent!')
-    }, (error) => {
-        response.error(error)
-    })
+    await new SendReports().send(Report.createWithoutData(reportId));
 });
 
 

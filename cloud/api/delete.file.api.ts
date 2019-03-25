@@ -1,16 +1,14 @@
-import * as _ from "lodash";
-
 export const API_FUNCTION_DELETE_FILE = "fileDelete";
 
 /**
  * Delete a file written to Parse
  */
-Parse.Cloud.define(API_FUNCTION_DELETE_FILE,  (request, response) => {
+Parse.Cloud.define(API_FUNCTION_DELETE_FILE,  (request) => {
 
     let fileUrl: string = request.params.fileUrl;
 
     if (!fileUrl) {
-        response.error('Missing fileUrl param');
+        throw 'Missing fileUrl param';
     }
 
 
@@ -25,19 +23,5 @@ Parse.Cloud.define(API_FUNCTION_DELETE_FILE,  (request, response) => {
             "X-Parse-Application-Id": process.env.APP_ID,
             "X-Parse-Master-Key" : process.env.MASTER_KEY
         }
-    }).then(() => {
-        let msg = 'File successfully deleted';
-
-        console.log(msg);
-        response.success(msg);
-    }, (error) => {
-
-        console.error('Error deleting file');
-        console.error(error);
-
-        response.error(error);
     });
-
-
-
 });

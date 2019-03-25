@@ -33,7 +33,7 @@ export const createAlarm = async (options: IAlarmOptions) => {
     console.log('alarmObj: ', alarmObject);
 
     if (!alarmObject.fullAddress) {
-        return Parse.Promise.error('Address missing from alarm: ' + alarmMsg);
+        throw 'Address missing from alarm: ' + alarmMsg;
     }
 
     _.forOwn(alarmObject, function (value, key) {

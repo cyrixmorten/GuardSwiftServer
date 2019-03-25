@@ -2,11 +2,11 @@
  * GUARDSWIFT CENTRAL
  */
 import * as _ from 'lodash';
-import {ICentral} from "./central.interface";
+import {ICentralAlarmHandler} from "./central.interface";
 let cpsms = require('../../api/cpsms');
 
 
-export class GuardswiftCentral implements ICentral{
+export class GuardswiftCentral implements ICentralAlarmHandler{
 
     getName() {
         return "GuardSwift";

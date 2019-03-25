@@ -2,29 +2,26 @@ import { Task, TaskStatus, TaskType } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Guard, GuardQuery } from "../../shared/subclass/Guard";
-
 import * as cpsms from '../../api/cpsms';
-import { centrals } from "../centrals/all";
-import { ClientQuery } from "../../shared/subclass/Client";
+import { centralAlarmHandlers } from "../centrals/all";
 import { TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
 import { ReportHelper } from '../utils/ReportHelper';
 import { TaskGroup, TaskGroupQuery } from '../../shared/subclass/TaskGroup';
 import { BeforeSave } from './BeforeSave';
+import * as parse from "parse";
 
 
-Parse.Cloud.beforeSave(Task, async (request, response) => {
+Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
     BeforeSave.settUserAsOwner(request);
 
-    let task = <Task>request.object;
+    let task = request.object as Task;
 
     if (!task.client) {
-        console.error('Task must point to a client!');
+        console.error('Task must point to a client!', task.id);
     }
 
     if (!task.existed()) {
-        console.log('New task');
-
         task.reset();
 
         const client = await task.client.fetch({useMasterKey: true});
@@ -46,16 +43,14 @@ Parse.Cloud.beforeSave(Task, async (request, response) => {
 
     // task is either newly created or pointed to another client
     if (task.client && task.dirty(Task._client)) {
-        task.client = await new ClientQuery().matchingId(task.client.id).build().first({useMasterKey: true});
+        task.client = await task.client.fetch({useMasterKey: true});
     }
-
-    response.success();
 
 });
 
 Parse.Cloud.afterSave(Task, async (request) => {
 
-    let task = <Task>request.object;
+    let task = request.object as Task;
 
     let status: TaskStatus = task.status;
 
@@ -145,7 +140,7 @@ let alarmUpdate = async (task: Task, status: TaskStatus) => {
     switch (status) {
         case TaskStatus.PENDING: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(centralAlarmHandlers, (central) => {
                 central.handlePending(task);
             });
 
@@ -161,14 +156,14 @@ let alarmUpdate = async (task: Task, status: TaskStatus) => {
         }
         case TaskStatus.ACCEPTED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(centralAlarmHandlers, (central) => {
                 central.handleAccepted(task);
             });
             break;
         }
         case TaskStatus.ARRIVED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(centralAlarmHandlers, (central) => {
                 central.handleArrived(task);
             });
             break;
@@ -177,14 +172,14 @@ let alarmUpdate = async (task: Task, status: TaskStatus) => {
 
             await sendNotification(task);
 
-            _.forEach(centrals, (central) => {
+            _.forEach(centralAlarmHandlers, (central) => {
                 central.handleAborted(task);
             });
             break;
         }
         case TaskStatus.FINISHED: {
 
-            _.forEach(centrals, (central) => {
+            _.forEach(centralAlarmHandlers, (central) => {
                 central.handleFinished(task);
             });
             break;

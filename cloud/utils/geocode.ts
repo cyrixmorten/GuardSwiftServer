@@ -1,50 +1,34 @@
 import * as _ from 'lodash';
-import IPromise = Parse.IPromise;
-
-// TODO rewrite as TypeScript class
 
 /**
  * Returns {lat: latitude, lng: longitude} object
  *
  * @param searchAddress
- * @returns {Parse.Promise}
  */
-export let lookupAddress =  (searchAddress):  IPromise<Parse.GeoPoint> => {
-    let promise = new Parse.Promise<Parse.GeoPoint>();
-    Parse.Cloud.httpRequest({
+export let lookupAddress = async (searchAddress) => {
+    const httpResponse = await Parse.Cloud.httpRequest({
         url: 'https://maps.googleapis.com/maps/api/geocode/json',
         params: {
             address: searchAddress,
             key: process.env.GOOGLE_GEOCODE_API_KEY
         },
-        success: function (httpResponse) {
-            let data = httpResponse.data;
-            if (data.status == "OK") {
-
-                let latlng = data.results[0].geometry.location;
-
-                let lat = latlng.lat;
-                let lng = latlng.lng;
-
-                let point = new Parse.GeoPoint({
-                    latitude: lat,
-                    longitude: lng
-                });
-
-                promise.resolve(point);
-
-            } else {
-                console.error(httpResponse);
-                promise.reject("Failed to locate coordinate for : "
-                    + searchAddress);
-            }
-        },
-        error: function (httpResponse) {
-            promise.reject(httpResponse);
-            console.error(httpResponse);
-        }
     });
-    return promise;
+
+    let data = httpResponse.data;
+    if (data.status == "OK") {
+
+        let latlng = data.results[0].geometry.location;
+
+        let lat = latlng.lat;
+        let lng = latlng.lng;
+
+        return new Parse.GeoPoint({
+            latitude: lat,
+            longitude: lng
+        });
+    }
+
+    throw "Failed to locate coordinate for : " + searchAddress;
 };
 
 
@@ -65,52 +49,43 @@ export let lookupAddress =  (searchAddress):  IPromise<Parse.GeoPoint> => {
  * @param retryCount
  * @returns {Parse.Promise}
  */
-export let lookupPlaceObject = function (searchAddress, retryCount?) {
+export let lookupPlaceObject = async (searchAddress, retryCount?) => {
 
-    let promise = new Parse.Promise();
-    Parse.Cloud.httpRequest({
-        url: 'https://maps.googleapis.com/maps/api/geocode/json',
-        params: {
-            address: searchAddress,
-            key: process.env.GOOGLE_GEOCODE_API_KEY
-        },
-        success: function (httpResponse) {
-            let data = httpResponse.data;
-            if (data.status == "OK") {
+    try {
+        const httpResponse = await Parse.Cloud.httpRequest({
+            url: 'https://maps.googleapis.com/maps/api/geocode/json',
+            params: {
+                address: searchAddress,
+                key: process.env.GOOGLE_GEOCODE_API_KEY
+            },
+        });
 
-                let placeObject = unwrapPlaceObject(data.results[0]);
+        let data = httpResponse.data;
+        if (data.status == "OK") {
 
-                console.log('Found placeObject for: ' + searchAddress);
+            let placeObject = unwrapPlaceObject(data.results[0]);
 
-                promise.resolve(placeObject);
+            console.log('Found placeObject for: ' + searchAddress);
 
-            } else {
-                let errorMsg = "Failed to locate coordinate for : "  + searchAddress;
-                console.error(errorMsg);
+            return placeObject;
 
-                promise.reject(errorMsg);
-            }
-        },
-        error: function (httpResponse) {
-            promise.reject(httpResponse);
         }
-    });
 
-    return promise.fail(function() {
+    } catch (e) {
         if (retryCount) {
-            return Parse.Promise.error("Failed to look up address despite retrying");
+            throw "Failed to locate GPS coordinates for : " + searchAddress;
         }
 
         let searchWords: string[] = _.words(searchAddress);
 
-        let zipcodes: string[] = _.filter(searchWords, function(word) {
+        let zipCodes: string[] = _.filter(searchWords, function (word) {
             return word.length === 4;
         });
 
-        let others = _.without(searchWords, ...zipcodes);
+        let others = _.without(searchWords, ...zipCodes);
 
         console.log('searchWords: ', searchWords);
-        console.log('zipcodes: ', zipcodes);
+        console.log('zipcodes: ', zipCodes);
         console.log('others: ', others);
 
         let newAddress = '';
@@ -125,18 +100,19 @@ export let lookupPlaceObject = function (searchAddress, retryCount?) {
             }
         }
 
-        let zipcode = _.last(zipcodes);
-        if (zipcode) {
-            newAddress += zipcode;
+        let zipCode = _.last(zipCodes);
+        if (zipCode) {
+            newAddress += zipCode;
         }
 
         console.log('Retrying with: ' + newAddress);
 
         return exports.lookupPlaceObject(newAddress, 1);
-    });
+    }
+
 };
 
-let unwrapPlaceObject = function (placeObject) {
+let unwrapPlaceObject =  (placeObject) => {
 
     let addressComponentByType = function (components: any[], type) {
         if (_.isEmpty(components)) {

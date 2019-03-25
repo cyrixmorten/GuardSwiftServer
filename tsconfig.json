@@ -3,7 +3,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "pretty": true,
-    "target": "es5",
+    "target": "es2015",
     "sourceMap": true,
     "skipLibCheck": true, // suppress error in parse typings
     "importHelpers": true,

@@ -1,5 +1,3 @@
-import { Holidays } from './shared/moment-holiday/holidays';
-
 require("dotenv").config({ path: 'local.env' });
 let requireEnv = require("require-environment-variables");
 requireEnv([
