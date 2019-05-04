@@ -136,13 +136,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             this.contentReportId(this.report.id)
         ];
 
-        let taskTypeHeader = (task: Task) => {
-            if (task.type) {
-                return task.type;
-            }
-
-            // TODO translate
-            switch (task.taskType) {
+        let taskTypeHeader = (taskType: TaskType) => {
+            switch (taskType) {
                 case TaskType.STATIC:
                     return "Fastvagt";
                 case TaskType.ALARM:
@@ -154,12 +149,20 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             }
         };
 
-        let groupTasksByHeader = _.groupBy(this.report.tasks || [this.report.task], taskTypeHeader);
+        const allTasks = this.report.tasks || [this.report.task];
+        const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
+
+        const organizedTaskEventsAcrossGroups = this.organizeEvents(this.report.eventLogs, allTasks);
 
         // add event table for each task in report
-        _.forOwn(groupTasksByHeader, (tasks: Task[], header: string) => {
-            content.push(header);
-            content.push(this.contentEventTable(this.organizeEvents(tasks), this.timeZone));
+        _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
+
+            const organizedTaskGroupEvents = this.organizeEvents(organizedTaskEventsAcrossGroups, tasks);
+
+            if (!_.isEmpty(organizedTaskGroupEvents)) {
+                content.push(taskTypeHeader(taskType));
+                content.push(this.contentEventTable(organizedTaskGroupEvents, this.timeZone));
+            }
         });
 
         this.write({
@@ -169,10 +172,10 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         return this;
     }
 
-    organizeEvents(tasks: Task[]): EventLog[] {
+    organizeEvents(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
         let taskIds = _.map(tasks, (task: Task) => task.id);
-        let taskEventLogs = _.filter(this.report.eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
+        let taskEventLogs = _.filter(eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
 
         let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
             return _.filter(eventLogs, (eventLog: EventLog) => {
@@ -266,18 +269,24 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 return eventLogs;
             }
 
-            let currentArrivalTime = moment(_.head(arrivalEvents).deviceTimestamp);
+            let currentArrivalEvent = _.head(arrivalEvents);
 
             const discardArrivalEvents = _.map(_.tail(arrivalEvents), (arrivalEvent) => {
                 const arrivalEventTime = moment(arrivalEvent.deviceTimestamp);
+                let currentArrivalTime = moment(currentArrivalEvent.deviceTimestamp);
 
                 const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
 
-                if (Math.abs(diffMinutes) > 5) {
-                    currentArrivalTime = moment(arrivalEvent.deviceTimestamp)
-                } else {
+                if (Math.abs(diffMinutes) < 5) {
+                    // guard has driven to the client and then started walking
+                    if (currentArrivalEvent.taskType !== arrivalEvent.taskType && arrivalEvent.taskType === TaskType.REGULAR) {
+                        arrivalEvent = currentArrivalEvent;
+                    }
+
                     return arrivalEvent;
                 }
+
+                currentArrivalEvent = arrivalEvent;
             });
 
             return _.difference(eventLogs, discardArrivalEvents);
@@ -288,8 +297,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
 
         taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
-        taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
         taskEventLogs = excludeOverlappingArrivalEvents(taskEventLogs);
+
+        taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
 
         return taskEventLogs;
     }
