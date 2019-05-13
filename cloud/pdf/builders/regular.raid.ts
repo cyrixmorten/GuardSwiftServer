@@ -227,6 +227,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             let targetSupervisions = _.sum(_.map(tasks, (task) => task.supervisions));
             let arrivalEvents = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE);
 
+            // reverse to throw out latest arrivals
+            arrivalEvents = _.reverse(arrivalEvents);
+
             let extraArrivals = arrivalEvents.length - targetSupervisions;
 
             if (extraArrivals > 0) {
@@ -277,7 +280,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
 
-                if (Math.abs(diffMinutes) < 5) {
+                if (Math.abs(diffMinutes) < 15) {
                     // guard has driven to the client and then started walking
                     if (currentArrivalEvent.taskType !== arrivalEvent.taskType && arrivalEvent.taskType === TaskType.REGULAR) {
                         arrivalEvent = currentArrivalEvent;
@@ -299,6 +302,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
         taskEventLogs = excludeOverlappingArrivalEvents(taskEventLogs);
 
+        taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
         taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
 
         return taskEventLogs;
