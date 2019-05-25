@@ -9,6 +9,7 @@ import { ReportHelper } from '../utils/ReportHelper';
 import { TaskGroup, TaskGroupQuery } from '../../shared/subclass/TaskGroup';
 import { BeforeSave } from './BeforeSave';
 import * as parse from "parse";
+import { ClientQuery } from '../../shared/subclass/Client';
 
 
 Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
@@ -18,7 +19,17 @@ Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
     let task = request.object as Task;
 
     if (!task.client) {
-        console.error('Task must point to a client!', task.id);
+        // In some edge cases the daily reset of tasks will throw away the client pointer
+        // Have not been able to figure out why so made this bit to resurrect the pointer if it is missing
+        if (task.clientId) {
+            try {
+                task.client = await new ClientQuery().matchingClientId(task.clientId).build().first({useMasterKey: true});
+            } catch (e) {
+                console.warn('Was unable to restore client pointer for task', task.id)
+            }
+        } else {
+            console.error('Task must point to a client!', task.id);
+        }
     }
 
     if (!task.existed()) {

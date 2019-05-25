@@ -1,7 +1,7 @@
-import {BaseClass} from "./BaseClass";
-import {QueryBuilder} from "../QueryBuilder";
-import {ClientContact} from "./ClientContact";
-import {TaskType} from './Task';
+import { BaseClass } from "./BaseClass";
+import { QueryBuilder } from "../QueryBuilder";
+import { ClientContact } from "./ClientContact";
+import { TaskType } from './Task';
 
 export type TaskRadiusMap = Map<TaskType, number>;
 
@@ -39,7 +39,7 @@ export class Client extends BaseClass {
         return this.get(Client._clientId);
     }
 
-    
+
     get name(): string {
         return this.get(Client._name);
     }
@@ -131,6 +131,9 @@ export class ClientQuery extends QueryBuilder<Client> {
         super(Client);
     }
 
-
+    matchingClientId(id: string): ClientQuery {
+        this.query.equalTo(Client._clientId, id);
+        return this;
+    }
 
 }
