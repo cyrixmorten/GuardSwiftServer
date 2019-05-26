@@ -97,11 +97,11 @@ export class SendReports {
             reportQueryBuilder
                 .createdAfter(fromDate)
                 .createdBefore(toDate)
-                .isClosed();
+                .isClosed(true);
         }
 
         if (!force) {
-            reportQueryBuilder.isNotSent();
+            reportQueryBuilder.isSent(false);
         }
 
         reportQueryBuilder.include(...this.getReportIncludes());

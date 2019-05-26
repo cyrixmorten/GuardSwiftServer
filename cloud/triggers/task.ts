@@ -23,7 +23,9 @@ Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
         // Have not been able to figure out why so made this bit to resurrect the pointer if it is missing
         if (task.clientId) {
             try {
-                task.client = await new ClientQuery().matchingClientId(task.clientId).build().first({useMasterKey: true});
+                task.client = await new ClientQuery()
+                    .matchingOwner(task.owner)
+                    .matchingClientId(task.clientId).build().first({useMasterKey: true});
             } catch (e) {
                 console.warn('Was unable to restore client pointer for task', task.id)
             }

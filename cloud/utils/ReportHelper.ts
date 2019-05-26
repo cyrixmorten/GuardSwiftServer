@@ -8,8 +8,10 @@ import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 
 export class ReportHelper {
 
-    public static async findReport(client: Client, task: Task, taskType: TaskType): Promise<Report> {
-        let reportQuery = new ReportQuery().matchingClient(client);
+    public static async findActiveReport(client: Client, task: Task, taskType: TaskType): Promise<Report> {
+        let reportQuery = new ReportQuery()
+            .isSent(false)
+            .matchingClient(client);
 
         if (_.includes([TaskType.STATIC, TaskType.ALARM], taskType)) {
             // Simply write one report per task
@@ -36,7 +38,7 @@ export class ReportHelper {
             report.set('extraTimeSpent', eventLog.amount);
         }
 
-        eventLog.reported = true;
+        eventLog.report = report;
 
         report.addUnique(Report._eventLogs, eventLog);
 
@@ -71,10 +73,10 @@ export class ReportHelper {
 
         let task: Task = eventLog.task;
 
-        if (task && !eventLog.reported) {
+        if (task && !eventLog.report) {
             let report: Report;
             try {
-                report = await ReportHelper.findReport(eventLog.client, eventLog.task, eventLog.taskType);
+                report = await ReportHelper.findActiveReport(eventLog.client, eventLog.task, eventLog.taskType);
             } catch (e) {
                 console.error('Error while finding report:');
                 console.error(e);
@@ -135,7 +137,7 @@ export class ReportHelper {
         const lastPlannedTask = _.last(_.sortBy(tasks, (t: Task) => t.endDate));
 
         if (_.isEqual(task.id, lastPlannedTask.id)) {
-            const report = await ReportHelper.findReport(task.client, task, task.taskType);
+            const report = await ReportHelper.findActiveReport(task.client, task, task.taskType);
 
             ReportHelper.closeReport(report);
 

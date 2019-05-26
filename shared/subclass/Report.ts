@@ -180,8 +180,8 @@ export class ReportQuery extends QueryBuilder<Report> {
         super(Report);
     }
 
-    isClosed(): any {
-        this.query.equalTo(Report._isClosed, true);
+    isClosed(val: boolean): any {
+        this.query.equalTo(Report._isClosed, val);
 
         return this;
     }
@@ -208,8 +208,8 @@ export class ReportQuery extends QueryBuilder<Report> {
         return this;
     }
 
-    isNotSent(): ReportQuery {
-        this.query.equalTo(Report._isSent, false);
+    isSent(val: boolean): ReportQuery {
+        this.query.equalTo(Report._isSent, val);
         return this;
     }
 

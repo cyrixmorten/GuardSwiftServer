@@ -4,6 +4,7 @@ import {Task, TaskType} from "./Task";
 import {Client} from "./Client";
 import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
+import { Report } from './Report';
 
 
 export enum TaskEvent {
@@ -51,8 +52,9 @@ export class EventLog extends BaseClass {
     static readonly _distanceMeters = 'clientDistanceMeters';
     static readonly _automatic = 'automatic';
     static readonly _withinSchedule = 'withinSchedule';
-    static readonly _reported = 'reported';
-    
+
+    static readonly _report = 'report';
+
 
     constructor(className?: string) {
         super(className || EventLog.className);
@@ -244,12 +246,12 @@ export class EventLog extends BaseClass {
         this.set(EventLog._automatic, automatic);
     }
 
-    get reported(): boolean {
-        return this.get(EventLog._reported);
+    get report(): Report {
+        return this.get(EventLog._report);
     }
 
-    set reported(reported: boolean) {
-        this.set(EventLog._reported, reported);
+    set report(report: Report) {
+        this.set(EventLog._report, report);
     }
 
     get withinSchedule(): boolean {
