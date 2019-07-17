@@ -280,11 +280,11 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
 
-                if (Math.abs(diffMinutes) < 15) {
+                if (Math.abs(diffMinutes) < 10) {
                     // guard has driven to the client and then started walking
                     if (currentArrivalEvent.taskType !== arrivalEvent.taskType && arrivalEvent.taskType === TaskType.REGULAR) {
                         arrivalEvent = currentArrivalEvent;
-                    }
+                    }   
 
                     return arrivalEvent;
                 }
