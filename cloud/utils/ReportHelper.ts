@@ -71,40 +71,22 @@ export class ReportHelper {
 
     public static async writeEventToReport(eventLog: EventLog) {
 
-        let task: Task = eventLog.task;
-
-        if (task && !eventLog.report) {
-            let report: Report;
-            try {
-                report = await ReportHelper.findActiveReport(eventLog.client, eventLog.task, eventLog.taskType);
-            } catch (e) {
-                console.error('Error while finding report:');
-                console.error(e);
-            }
-
-            if (report) {
-                try {
-                    await ReportHelper.writeEvent(report, eventLog);
-                } catch (e) {
-                    console.error('Error while writing event to report:');
-                    console.error(e);
-                }
-            } else {
-                try {
-                    await ReportHelper.createReport(eventLog);
-                } catch (e) {
-                    console.error('Error while creating report:');
-                    console.error(e);
-                }
-            }
-
-
-        } else if (task) {
-            console.log('Already written to report');
-        } else {
-            console.log('Not a report event');
+        if (!eventLog.task || eventLog.report) {
+            return;
         }
 
+        if (eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.OTHER)) {
+            try {
+                const report = await ReportHelper.findActiveReport(eventLog.client, eventLog.task, eventLog.taskType);
+                if (!report) {
+                    await ReportHelper.createReport(eventLog);
+                } else {
+                    await ReportHelper.writeEvent(report, eventLog);
+                }
+            } catch (e) {
+                console.error('Error writing event to report: ', e);
+            }
+        }
     };
 
     public static async getFirstTaskStarted(tasks: Task[]): Promise<TaskGroupStarted> {
