@@ -68,7 +68,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
     private contentEventTable(eventLogs: EventLog[], timeZone: string): Object {
 
-
         let tableHeader = (...headerText: string[]) => {
             return _.map(headerText, (header) => {
                 return {text: header, style: 'tableHeader'}
@@ -77,52 +76,72 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let tableContent = () => {
 
-            const rows = [];
+            const contentRows = _.flatMap(eventLogs, (eventLog) => {
+                const eventRow = [
+                    {text: eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? eventLog.guardInitials : ''},
+                    {text: eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : ''},
+                    {text: _.upperFirst(eventLog.event)},
+                    {text: eventLog.amount || '', alignment: 'center'},
+                ];
+                const peopleRow = eventLog.people ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.people), colSpan: 2}] : undefined;
+                const locationRow = eventLog.clientLocation ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.clientLocation), colSpan: 2}] : undefined;
+                const remarksRow = eventLog.remarks ? [
+                    {text: ''}, 
+                    {text: ''}, 
+                    {text: _.upperFirst(eventLog.remarks), colSpan: 2, fillColor: '#f2f2f2'}
+                ] : undefined;
+
+                const allRows = _.compact([eventRow, peopleRow, locationRow, remarksRow]);
+
+                // remove border from all rows
+                allRows.forEach((row) => {
+                    row.forEach((entry) => {
+                        _.assign(entry, {
+                            border: [false, false, false, false]
+                        })                        
+                    });
+                });
+
+                // add border to last row for event
+                const bottomMostRow = remarksRow || locationRow || peopleRow || eventRow;
+                for (let i = 2; i<bottomMostRow.length; i++) {
+                    const entry = bottomMostRow[i];
+                    _.assign(entry, {
+                        border: [false, false, false, true]
+                    })
+                }
+
+                return allRows;
+            });
 
             const writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
 
-            _.forEach(eventLogs, (eventLog: EventLog) => {
-
-                rows.push([
-                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? eventLog.guardInitials : '',
-                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
-                    eventLog.event,
-                    eventLog.amount || '',
-                    eventLog.people,
-                    eventLog.clientLocation
-                ]);
-
-                if (!_.isEmpty(eventLog.remarks)) {
-                    rows.push(['', '', {text: eventLog.remarks, colSpan: 4, fillColor: '#eeeeee'}]);
-                }
-            });
-
-            // Add default text if nothing is written
-
             if (_.isEmpty(writtenEvents)) {
                 // TODO translate
-                rows.push(['',
-                    '',
+                contentRows.push([
+                    {text: ''},
+                    {text: ''},
                     {
                         text: "Ingen uregelmæssigheder blev observeret under tilsynet",
-                        colSpan: 4,
-                        fillColor: '#eeeeee'
-                    }]);
+                        colSpan: 2,
+                        border: [false, false, false, true]
+                    } as any
+                ]);
             }
 
-            return rows;
+            return contentRows;
         };
 
         return {
             table: {
-                widths: [30, 50, 75, 30, '*', '*'],
+                widths: [30, 50, '*', 35],
                 headerRows: 1,
                 body: [
-                    tableHeader('Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering'), // TODO translate
+                    tableHeader('Vagt', 'Tidspunkt', 'Hændelse', ''), // TODO translate
                     ...tableContent()
                 ]
             },
-            layout: 'headerLineOnly',
+            layout: 'lightHorizontalLines',
             // margin: [left, top, right, bottom]
             margin: [0, 0, 0, 10]
         }
@@ -136,6 +155,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             this.contentReportId(this.report.id)
         ];
 
+        // TODO: translate
         let taskTypeHeader = (taskType: TaskType) => {
             switch (taskType) {
                 case TaskType.STATIC:
@@ -310,8 +330,3 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
 
 }
-
-
-
-
-
