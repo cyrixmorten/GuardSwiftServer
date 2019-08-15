@@ -207,7 +207,7 @@ export class SendReports {
             replyTo: getReplyTo(),
             subject: getSubject(),
             text: getText(),
-            attachments: await this.getAttachments(report, reportSettings)
+            attachments: await this.getAttachments(report, true, reportSettings)
         };
 
         // mark as sent no matter what so we do not keep attempting to send it
@@ -317,7 +317,7 @@ export class SendReports {
             replyTo: getReplyTo(),
             subject: getSubject(),
             html: getHTML(),
-            attachments: await this.getAttachments(report, reportSettings)
+            attachments: await this.getAttachments(report, false, reportSettings)
         };
 
         if (!_.isEmpty(mailData.to)) {
@@ -336,10 +336,10 @@ export class SendReports {
         return report.save(null, {useMasterKey: true});
     }
 
-    private async getAttachments(report: Report, reportSettings?: ReportSettings): Promise<AttachmentData[]> {
+    private async getAttachments(report: Report, customerFacing: boolean, reportSettings?: ReportSettings): Promise<AttachmentData[]> {
         const createdAtFormatted = moment(report.createdAt).format('DD-MM-YYYY'); //TODO hardcoded date format
 
-        let pdfBuffer = await ReportToPDF.buildPdf(report.id, reportSettings);
+        let pdfBuffer = await ReportToPDF.buildPdf(report.id, customerFacing, reportSettings);
 
         return [
             {

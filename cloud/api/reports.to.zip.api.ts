@@ -38,7 +38,7 @@ Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request) => {
 
     await Promise.all(
         reports.map(async (report) => {
-            const pdfBuffer = await ReportToPDF.buildPdf(report.id, settings);
+            const pdfBuffer = await ReportToPDF.buildPdf(report.id, !!request.params.customerFacing, settings);
             zip.file(
                 moment(report.createdAt).format( 'YYYY-MM-DD')+'.pdf',
                 pdfBuffer
