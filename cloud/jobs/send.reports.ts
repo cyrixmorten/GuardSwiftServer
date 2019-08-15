@@ -317,7 +317,7 @@ export class SendReports {
             replyTo: getReplyTo(),
             subject: getSubject(),
             html: getHTML(),
-            attachments: await this.getOwnerReportAttachment(report, reportSettings)
+            attachments: await this.getOwnerReportAttachments(report, reportSettings)
         };
 
         if (!_.isEmpty(mailData.to)) {
@@ -342,7 +342,7 @@ export class SendReports {
         ];
     }
 
-    private async getOwnerReportAttachment(report: Report, reportSettings: ReportSettings): Promise<AttachmentData[]> {
+    private async getOwnerReportAttachments(report: Report, reportSettings: ReportSettings): Promise<AttachmentData[]> {
         const ownerReport = await this.getPDFAttachment(report, reportSettings, false);
         ownerReport.filename = `INTERN_${this.reportFileName(report)}`;
 
