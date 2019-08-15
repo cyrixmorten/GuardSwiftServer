@@ -85,11 +85,16 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 const createEventRow = () => {
                         const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalInitials = !showInitials && !this.customerFacing;
+
                         const showTimeStamp = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
                         const internalTimeStamp = !showTimeStamp && !this.customerFacing;
 
                         return [
-                            {text: showInitials ? eventLog.guardInitials : ''},
+                            {
+                                text: showInitials || internalInitials ? eventLog.guardInitials : '',
+                                color: internalInitials ? 'red' : undefined
+                            },
                             {
                                 text: showTimeStamp || internalTimeStamp ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
                                 color: internalTimeStamp ? 'red' : undefined

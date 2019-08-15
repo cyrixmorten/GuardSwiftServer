@@ -207,7 +207,7 @@ export class SendReports {
             replyTo: getReplyTo(),
             subject: getSubject(),
             text: getText(),
-            attachments: await this.getAttachments(report, true, reportSettings)
+            attachments: await this.getCustomerReportAttachments(report, reportSettings)
         };
 
         // mark as sent no matter what so we do not keep attempting to send it
@@ -317,7 +317,7 @@ export class SendReports {
             replyTo: getReplyTo(),
             subject: getSubject(),
             html: getHTML(),
-            attachments: await this.getAttachments(report, false, reportSettings)
+            attachments: await this.getOwnerReportAttachments(report, reportSettings)
         };
 
         if (!_.isEmpty(mailData.to)) {
@@ -336,18 +336,39 @@ export class SendReports {
         return report.save(null, {useMasterKey: true});
     }
 
-    private async getAttachments(report: Report, customerFacing: boolean, reportSettings?: ReportSettings): Promise<AttachmentData[]> {
-        const createdAtFormatted = moment(report.createdAt).format('DD-MM-YYYY'); //TODO hardcoded date format
+    private async getCustomerReportAttachments(report: Report, reportSettings: ReportSettings): Promise<AttachmentData[]> {
+        return [
+            await this.getPDFAttachment(report, reportSettings, true)
+        ];
+    }
 
-        let pdfBuffer = await ReportToPDF.buildPdf(report.id, customerFacing, reportSettings);
+    private async getOwnerReportAttachments(report: Report, reportSettings: ReportSettings): Promise<AttachmentData[]> {
+        const ownerReport = await this.getPDFAttachment(report, reportSettings, false);
+        ownerReport.filename = `INTERN_${this.reportFileName(report)}`;
+
+        const clientReport = await this.getPDFAttachment(report, reportSettings, true);
+        clientReport.filename = `EXTERN_${this.reportFileName(report)}`;
 
         return [
-            {
-                filename: `${report.client.name}_${createdAtFormatted}.pdf`,
+            ownerReport,
+            clientReport
+        ]
+    }
+
+    private reportFileName(report: Report) {
+        const createdAtFormatted = moment(report.createdAt).format('DD-MM-YYYY'); //TODO hardcoded date format
+
+        return `${report.client.name}_${createdAtFormatted}.pdf`;
+    }
+
+    private async getPDFAttachment(report: Report, reportSettings: ReportSettings, customerFacing: boolean): Promise<AttachmentData> {        
+        const pdfBuffer = await ReportToPDF.buildPdf(report.id, customerFacing, reportSettings);
+
+        return {
+                filename: this.reportFileName(report),
                 type: 'application/pdf',
                 disposition: 'attachment',
                 content: new Buffer(pdfBuffer).toString('base64')
-            },
-        ]
+        }
     };
 }
