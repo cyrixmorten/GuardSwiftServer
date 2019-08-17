@@ -28,12 +28,12 @@ export class PreferArrivalsWithinScheduleStrategy extends ExcludeStrategy {
     
             let pruneExtraArrivals = (events: EventLog[], ignoreSchedule: boolean) => {
                 return _.compact(_.forEach(events, (arriveEvent: EventLog) => {
-                    const withinSchedule = !arriveEvent.withinSchedule;
-    
+                    const withinSchedule = arriveEvent.withinSchedule;
+
                     if ((ignoreSchedule || !withinSchedule) && pruneCount !== extraArrivals) {
                         
                         if (withinSchedule) {
-                            arriveEvent.setExcludeReason(`Flere ankomster end planlagt for tilsyn: ${arrivalsCount}/${targetSupervisions}`);
+                            arriveEvent.setExcludeReason(`Flere ankomster end planlagt for tilsyn`);
                         } else {
                             arriveEvent.setExcludeReason(`Uden for planlagt tidsrum`);
                         }
