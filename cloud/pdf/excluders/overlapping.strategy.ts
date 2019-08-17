@@ -43,13 +43,6 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
                     // guard has driven to the client and then started walking
                     if (currentArrival.matchingTaskType(TaskType.RAID) && compareArrival.matchingTaskType(TaskType.REGULAR)) {
                         if (!currentArrival.withinSchedule || !compareArrival.withinSchedule) {
-                            // exclude if one is outside planned time
-                            if (!currentArrival.withinSchedule) {
-                                currentArrival.setExcludeReason(`Uden for planlagt tidsrum - fjernet til fordel for ankomst ${moment(compareArrivalTime).tz(this.timeZone).format('HH:mm')}`);
-                            } else {
-                                compareArrival.setExcludeReason(`Uden for planlagt tidsrum - fjernet til fordel for ankomst ${moment(currentArrivalTime).tz(this.timeZone).format('HH:mm')}`);
-                            }
-                        } else {
                             // asume intend drive -> walk equals intend to do regular supervision
                             if (currentArrival.matchingTaskType(TaskType.RAID)) {
                                 currentArrival.setExcludeReason(`Fjernet til fordel for gående ankomst ${moment(compareArrivalTime).tz(this.timeZone).format('HH:mm')}`);
