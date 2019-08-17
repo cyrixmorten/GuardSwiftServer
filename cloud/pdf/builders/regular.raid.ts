@@ -212,17 +212,27 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         const allTasks = this.report.tasks || [this.report.task];
-        const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
+        const allEventLogs = this.report.eventLogs;
 
-        const organizedTaskEventsAcrossGroups = this.organizeEvents(this.report.eventLogs, allTasks);
+        new ExcludeOverlappingArrivalsStrategy(this.timeZone).run(allEventLogs, allTasks);
+
+        const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
 
         // add event table for each task in report
         _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
 
-            const organizedTaskGroupEvents = this.organizeEvents(organizedTaskEventsAcrossGroups, tasks);
-
+            const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
+            const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
+            
             if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
-                content.push(taskTypeHeader(taskType));
+                content.push({
+                    text: [
+                        taskTypeHeader(taskType),
+                        {
+                            text: !this.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '', color: 'red'
+                        }
+                    ]
+                });
                 content.push(this.contentEventTable(organizedTaskGroupEvents, this.timeZone));
             }
         });
