@@ -16,6 +16,7 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
             return;
         }
 
+
         let excludedCount = 0;
 
         for (let i = 0; i<arrivalEvents.length; i++) {
@@ -33,7 +34,6 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
             
 
             for (let j = 0; j<ReportEventFilters.notExcludedEvents(arrivalEvents).length; j++) {
-                console.log('maxExcludeCount', maxExcludeCount);
 
                 if (i === j || excludedCount === maxExcludeCount) {
                     continue;
