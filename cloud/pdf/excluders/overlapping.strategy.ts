@@ -16,6 +16,8 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
             return;
         }
 
+        let excludedCount = 0;
+
         for (let i = 0; i<arrivalEvents.length; i++) {
 
             const currentArrival = arrivalEvents[i];
@@ -23,12 +25,17 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
             const task = _.find(tasks, (t) => t.id === currentArrival.task.id);
             const arrivalsMatchingTask = _.filter(arrivalEvents, (e) => e.task.id === task.id);
 
-            if (arrivalsMatchingTask.length <= task.supervisions) {
+            const maxExcludeCount = arrivalsMatchingTask.length - task.supervisions;
+
+            if (maxExcludeCount <= 0) {
                 continue;
             }
+            
 
             for (let j = 0; j<ReportEventFilters.notExcludedEvents(arrivalEvents).length; j++) {
-                if (i === j) {
+                console.log('maxExcludeCount', maxExcludeCount);
+
+                if (i === j || excludedCount === maxExcludeCount) {
                     continue;
                 }
 
@@ -53,6 +60,8 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
                     } else {
                         currentArrival.setExcludeReason(`Mindre end ${MIN_DIFF_MINUTES} minutter siden forrige ankomst (${diffMinutes} minutter)`);
                     }  
+
+                    excludedCount++;
                 }
 
             }

@@ -3,12 +3,18 @@
   "version": "5.1.9",
   "description": "GuardSwift server",
   "scripts": {
+    "test": "mocha",
     "start": "./node_modules/.bin/ts-node index.ts",
     "dev": "nodemon",
     "clean": "npm run clean:cloud && npm run clean:shared && npm run clean:api",
     "clean:cloud": "find ./cloud -name \\*.js\\* -type f -delete",
     "clean:shared": "find ./shared -name \\*.js\\* -type f -delete",
     "clean:api": "find ./api -name \\*.js\\* -type f -delete"
+  },
+  "mocha": {
+    "extension": ["ts"],
+    "spec": "cloud/**/*.spec.ts",
+    "require": "ts-node/register"
   },
   "dependencies": {
     "@parse/s3-files-adapter": "^1.2.1",
@@ -45,6 +51,10 @@
     "node": "^8.2.1"
   },
   "devDependencies": {
+    "@types/chai": "^4.2.0",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.0",
     "nodemon": "^1.18.10"
   }
 }
