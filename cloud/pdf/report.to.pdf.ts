@@ -5,13 +5,11 @@ import {TaskType} from "../../shared/subclass/Task";
 import {RegularRaidReportBuilder} from "./builders/regular.raid";
 import {IReportBuilder} from "./builders/base.builder";
 import {StaticReportBuilder} from "./builders/static";
-
 import * as _ from 'lodash';
-import { User } from '../../shared/subclass/User';
 
 export class ReportToPDF {
 
-    static async buildDoc(reportId: string, settings?: ReportSettings): Promise<Object> {
+    static async buildDoc(reportId: string, customerFacing: boolean, settings?: ReportSettings): Promise<Object> {
 
         if (!reportId) {
             throw new Error('buildDoc missing reportId');
@@ -38,7 +36,7 @@ export class ReportToPDF {
             let reportBuilder: IReportBuilder;
             if (report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
                 // TODO create dedicated alarm report
-                reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone);
+                reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone, customerFacing);
             }
             if (report.isMatchingTaskType(TaskType.STATIC)) {
                 reportBuilder = new StaticReportBuilder(report, settings, timeZone);
@@ -60,14 +58,14 @@ export class ReportToPDF {
 
     }
 
-    static async buildPdf(reportId, settings?: ReportSettings): Promise<Buffer> {
+    static async buildPdf(reportId: string, customerFacing: boolean, settings?: ReportSettings): Promise<Buffer> {
 
         if (!reportId) {
             throw new Error('buildPdf missing reportId');
         }
 
         try {
-            let reportDoc: Object = await ReportToPDF.buildDoc(reportId, settings);
+            let reportDoc: Object = await ReportToPDF.buildDoc(reportId, customerFacing, settings);
             let httpResponse: HttpResponse = await this.generatePDF(reportDoc);
 
             return httpResponse.buffer;

@@ -55,6 +55,7 @@ export class EventLog extends BaseClass {
 
     static readonly _report = 'report';
 
+    private excludeReason: string;
 
     constructor(className?: string) {
         super(className || EventLog.className);
@@ -276,6 +277,18 @@ export class EventLog extends BaseClass {
 
         // pick the first letter in each name element
         return _.join(_.map(nameElements, _.first), '');
+    }
+
+    isExcludedFromReport(): boolean {
+        return !!this.excludeReason;
+    }
+    
+    getExcludeReason(): string {
+        return this.excludeReason;
+    }
+
+    setExcludeReason(reason: string) {
+        this.excludeReason = reason;
     }
 }
 

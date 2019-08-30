@@ -5,12 +5,16 @@ import { EventLog, TaskEvent } from "../../../shared/subclass/EventLog";
 import { Report } from "../../../shared/subclass/Report";
 import { Task, TaskType } from "../../../shared/subclass/Task";
 import { BaseReportBuilder } from "./base.builder";
-import move from 'lodash-move'
+import { ReportEventFilters } from '../report.event.filters';
+import { ReportEventOrganizers } from '../report.event.organizers';
+import { OneAcceptStrategy } from '../excluders/one.accept.strategy';
+import { ExcludeOverlappingArrivalsStrategy } from '../excluders/overlapping.strategy';
+import { PreferArrivalsWithinScheduleStrategy } from '../excluders/within.schedule.strategy';
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
 
-    constructor(report: Report, settings: ReportSettings, timeZone: string) {
+    constructor(report: Report, settings: ReportSettings, timeZone: string, private customerFacing: boolean) {
         super(report, settings, timeZone);
     }
 
@@ -53,7 +57,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             columns: [
                 {
                     width: 'auto',
-                    text: ''
+                    text: !this.customerFacing ? 'Rød tekst medtages ikke i rapporter til kunden' : '',
+                    color: 'red', 
                 },
                 {
                     width: '*',
@@ -68,7 +73,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
     private contentEventTable(eventLogs: EventLog[], timeZone: string): Object {
 
-
         let tableHeader = (...headerText: string[]) => {
             return _.map(headerText, (header) => {
                 return {text: header, style: 'tableHeader'}
@@ -77,52 +81,109 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let tableContent = () => {
 
-            const rows = [];
+            const contentRows = _.flatMap(eventLogs, (eventLog) => {
+
+                const createEventRow = () => {
+                        const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalInitials = !showInitials && !this.customerFacing;
+
+                        const showTimeStamp = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalTimeStamp = !showTimeStamp && !this.customerFacing;
+
+                        return [
+                            {
+                                text: showInitials || internalInitials ? eventLog.guardInitials : '',
+                                color: internalInitials ? 'red' : undefined
+                            },
+                            {
+                                text: showTimeStamp || internalTimeStamp ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
+                                color: internalTimeStamp ? 'red' : undefined
+                            },
+                            {text: _.upperFirst(eventLog.event)},
+                            {text: eventLog.amount || '', alignment: 'center'},
+                        ]
+                }
+
+                const createPeopleRow = () => {
+                    return eventLog.people ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.people), colSpan: 2}] : undefined;
+                }
+
+                const createLocationRow = () => {
+                    return eventLog.clientLocation ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.clientLocation), colSpan: 2}] : undefined;
+                }
+
+                const createRemarksRow = () => {
+                    return eventLog.remarks ? [
+                        {text: ''}, 
+                        {text: ''}, 
+                        {text: _.upperFirst(eventLog.remarks), colSpan: 2, fillColor: '#f2f2f2'}
+                    ] : undefined;
+                }
+
+                const createExcludeReasonRow = () => {
+                    return eventLog.isExcludedFromReport() ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.getExcludeReason()), colSpan: 2}] : undefined;
+                }
+
+                const eventRow = createEventRow();
+                const peopleRow = createPeopleRow();
+                const locationRow = createLocationRow();
+                const remarksRow = createRemarksRow();
+                const excludeReasonRow = createExcludeReasonRow();
+
+                const allRows = _.compact(
+                    (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
+                );
+
+                // remove border from all rows
+                allRows.forEach((row) => {
+                    row.forEach((entry) => {
+                        _.assign(entry, {
+                            border: [false, false, false, false],
+                            color: eventLog.isExcludedFromReport() ? 'red' : entry.color,
+                        })                        
+                    });
+                });
+
+                // add border to last row for event
+                const bottomMostRow = excludeReasonRow || remarksRow || locationRow || peopleRow || eventRow;
+                for (let i = 2; i<bottomMostRow.length; i++) {
+                    const entry = bottomMostRow[i];
+                    _.assign(entry, {
+                        border: [false, false, false, true]
+                    })
+                }
+
+                return allRows;
+            });
 
             const writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
 
-            _.forEach(eventLogs, (eventLog: EventLog) => {
-
-                rows.push([
-                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? eventLog.guardInitials : '',
-                    eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
-                    eventLog.event,
-                    eventLog.amount || '',
-                    eventLog.people,
-                    eventLog.clientLocation
-                ]);
-
-                if (!_.isEmpty(eventLog.remarks)) {
-                    rows.push(['', '', {text: eventLog.remarks, colSpan: 4, fillColor: '#eeeeee'}]);
-                }
-            });
-
-            // Add default text if nothing is written
-
             if (_.isEmpty(writtenEvents)) {
                 // TODO translate
-                rows.push(['',
-                    '',
+                contentRows.push([
+                    {text: ''},
+                    {text: ''},
                     {
                         text: "Ingen uregelmæssigheder blev observeret under tilsynet",
-                        colSpan: 4,
-                        fillColor: '#eeeeee'
-                    }]);
+                        colSpan: 2,
+                        border: [false, false, false, true]
+                    } as any
+                ]);
             }
 
-            return rows;
+            return contentRows;
         };
 
         return {
             table: {
-                widths: [30, 50, 75, 30, '*', '*'],
+                widths: [30, 50, '*', 35],
                 headerRows: 1,
                 body: [
-                    tableHeader('Vagt', 'Tidspunkt', 'Hændelse', 'Antal', 'Personer', 'Placering'), // TODO translate
+                    tableHeader('Vagt', 'Tidspunkt', 'Hændelse', ''), // TODO translate
                     ...tableContent()
                 ]
             },
-            layout: 'headerLineOnly',
+            layout: 'lightHorizontalLines',
             // margin: [left, top, right, bottom]
             margin: [0, 0, 0, 10]
         }
@@ -136,6 +197,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             this.contentReportId(this.report.id)
         ];
 
+        // TODO: translate
         let taskTypeHeader = (taskType: TaskType) => {
             switch (taskType) {
                 case TaskType.STATIC:
@@ -150,17 +212,27 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         const allTasks = this.report.tasks || [this.report.task];
-        const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
+        const allEventLogs = this.report.eventLogs;
 
-        const organizedTaskEventsAcrossGroups = this.organizeEvents(this.report.eventLogs, allTasks);
+        new ExcludeOverlappingArrivalsStrategy(this.timeZone).run(allEventLogs, allTasks);
+
+        const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
 
         // add event table for each task in report
         _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
 
-            const organizedTaskGroupEvents = this.organizeEvents(organizedTaskEventsAcrossGroups, tasks);
-
-            if (!_.isEmpty(organizedTaskGroupEvents)) {
-                content.push(taskTypeHeader(taskType));
+            const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
+            const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
+            
+            if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
+                content.push({
+                    text: [
+                        taskTypeHeader(taskType),
+                        {
+                            text: !this.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '', color: 'red'
+                        }
+                    ]
+                });
                 content.push(this.contentEventTable(organizedTaskGroupEvents, this.timeZone));
             }
         });
@@ -172,146 +244,24 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         return this;
     }
 
+
+
     organizeEvents(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
-        let taskIds = _.map(tasks, (task: Task) => task.id);
-        let taskEventLogs = _.filter(eventLogs, (eventLog) => _.includes(taskIds, eventLog.task.id));
+        const taskEventLogs = ReportEventOrganizers.sortByTime(ReportEventFilters.reportEventsMatchingTasks(eventLogs, tasks))
 
-        let removeNonReportEvents = (eventLogs: EventLog[]): EventLog[] => {
-            return _.filter(eventLogs, (eventLog: EventLog) => {
-                if (_.sample(tasks).isType(TaskType.ALARM)) {
-                    return eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.ABORT, TaskEvent.FINISH, TaskEvent.OTHER)
-                }
-                else {
-                    return eventLog.matchingTaskEvent(TaskEvent.ARRIVE, TaskEvent.OTHER)
-                }
-            });
-        };
+        const excludeStrategies = [
+            new OneAcceptStrategy(this.timeZone),
+            new ExcludeOverlappingArrivalsStrategy(this.timeZone),
+            new PreferArrivalsWithinScheduleStrategy(this.timeZone)
+        ];
+        
+        excludeStrategies.forEach((excludeStrategy) => {
+            excludeStrategy.run(ReportEventFilters.notExcludedEvents(taskEventLogs), tasks);
+        });
 
-        let onlyWriteAcceptOnce = (eventLogs: EventLog[]): EventLog[] => {
-
-            if (!this.report.isMatchingTaskType(TaskType.ALARM)) {
-                return eventLogs;
-            }
-
-            let acceptEvents: EventLog[] = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ACCEPT);
-
-            if (acceptEvents.length > 1) {
-
-                let acceptEventByArrivedGuard = () => {
-
-                    let arrivalEvent: EventLog = _.find(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE);
-
-                    if (arrivalEvent) {
-                        return _.find(acceptEvents, (acceptEvent) => acceptEvent.guardName === arrivalEvent.guardName)
-                    }
-
-                };
-
-                // either select the guard arriving, or pick the first
-                let acceptEventToKeep = acceptEventByArrivedGuard() || _.first(acceptEvents);
-
-                // remove all accept events except acceptEventToKeep
-                return _.difference(eventLogs, _.pull(acceptEvents, acceptEventToKeep))
-            }
-            else {
-                return eventLogs;
-            }
-        };
-
-        let preferArrivalsWithinSchedule = (eventLogs: EventLog[]): EventLog[] => {
-            if (!this.report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID)) {
-                return eventLogs;
-            }
-
-            let targetSupervisions = _.sum(_.map(tasks, (task) => task.supervisions));
-            let arrivalEvents = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE);
-
-            // reverse to throw out latest arrivals
-            arrivalEvents = _.reverse(arrivalEvents);
-
-            let extraArrivals = arrivalEvents.length - targetSupervisions;
-
-            if (extraArrivals > 0) {
-                let pruneCount = 0;
-
-                let pruneExtraArrivals = (ignoreSchedule: boolean) => {
-                    _.forEach(arrivalEvents, (arriveEvent: EventLog) => {
-                        let isWithinSchedule = arriveEvent.withinSchedule;
-                        if ((ignoreSchedule || !isWithinSchedule) && pruneCount !== extraArrivals) {
-                            _.pull(eventLogs, arriveEvent);
-                            pruneCount++;
-                        }
-                    })
-                };
-
-                // first remove events outside schedule
-                pruneExtraArrivals(false);
-                // remove more within schedule if there still are too many arrival events
-                pruneExtraArrivals(true);
-            }
-
-            return eventLogs;
-        };
-
-        const moveFirstArrivalToTop = (eventLogs: EventLog[]): EventLog[] => {
-            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
-
-            if (!_.isEmpty(arrivalEvents)) {
-                const fromIndex = _.indexOf(taskEventLogs, _.head(arrivalEvents));
-                eventLogs = move(taskEventLogs, fromIndex, 0);
-            }
-
-            return eventLogs;
-        };
-
-        const excludeOverlappingArrivalEvents = (eventLogs: EventLog[]): EventLog[] => {
-            const arrivalEvents = _.filter(taskEventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
-
-            if (_.isEmpty(arrivalEvents)) {
-                return eventLogs;
-            }
-
-            let currentArrivalEvent = _.head(arrivalEvents);
-
-            const discardArrivalEvents = _.map(_.tail(arrivalEvents), (arrivalEvent) => {
-                const arrivalEventTime = moment(arrivalEvent.deviceTimestamp);
-                let currentArrivalTime = moment(currentArrivalEvent.deviceTimestamp);
-
-                const diffMinutes = currentArrivalTime.diff(arrivalEventTime, 'minutes');
-
-                if (Math.abs(diffMinutes) < 10) {
-                    // guard has driven to the client and then started walking
-                    if (currentArrivalEvent.taskType !== arrivalEvent.taskType && arrivalEvent.taskType === TaskType.REGULAR) {
-                        arrivalEvent = currentArrivalEvent;
-                    }   
-
-                    return arrivalEvent;
-                }
-
-                currentArrivalEvent = arrivalEvent;
-            });
-
-            return _.difference(eventLogs, discardArrivalEvents);
-        };
-
-        taskEventLogs = removeNonReportEvents(taskEventLogs);
-        // taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
-        taskEventLogs = onlyWriteAcceptOnce(taskEventLogs);
-
-        taskEventLogs = _.sortBy(taskEventLogs, (eventLog: EventLog) => eventLog.deviceTimestamp);
-        taskEventLogs = excludeOverlappingArrivalEvents(taskEventLogs);
-
-        taskEventLogs = preferArrivalsWithinSchedule(taskEventLogs);
-        taskEventLogs = moveFirstArrivalToTop(taskEventLogs);
-
-        return taskEventLogs;
+        return ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
     }
 
 
 }
-
-
-
-
-
