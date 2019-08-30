@@ -1,8 +1,4 @@
-import { ExcludeStrategy } from './exclude.stragegy';
-import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
-import { TaskType, Task } from '../../../shared/subclass/Task';
-import * as moment from 'moment-timezone';
-import { ReportEventFilters } from '../report.event.filters';
+/*
 import _ = require('lodash');
 import 'mocha';
 import * as chai from 'chai';
@@ -20,3 +16,4 @@ describe('Overlapping strategy', () => {
       });
 
 });
+*/
