@@ -22,7 +22,7 @@ export class ReportHelper {
             reportQuery.createdAfterObject(taskGroupStarted);
 
             if (taskGroupStarted.timeEnded) {
-                reportQuery.lessThan(TaskGroupStarted._timeEnded, taskGroupStarted.timeEnded);
+                reportQuery.lessThan(Report._createdAt, taskGroupStarted.timeEnded);
             }
         } else {
             // Simply write one report per task
