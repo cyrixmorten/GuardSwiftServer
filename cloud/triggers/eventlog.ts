@@ -11,13 +11,7 @@ Parse.Cloud.beforeSave(EventLog, async (request: parse.Cloud.BeforeSaveRequest) 
     const eventLog = request.object as EventLog;
 
     if (eventLog.client) {
-        const client: Client = await eventLog.client.fetch({useMasterKey: true});
-        eventLog.clientName = client.name;
-        eventLog.clientCity = client.cityName;
-        eventLog.clientZipcode = client.zipCode;
-        eventLog.clientAddress = client.addressName;
-        eventLog.clientAddressNumber = client.addressNumber;
-        eventLog.clientFullAddress = `${client.addressName} ${client.addressNumber} ${client.zipCode} ${client.cityName}`;
+        eventLog.client = await eventLog.client.fetch({useMasterKey: true});
     }
 
     if (!eventLog.automatic) {
