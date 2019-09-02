@@ -13,16 +13,20 @@ export class ReportHelper {
             .isSent(false)
             .matchingClient(client);
 
-        if (_.includes([TaskType.STATIC, TaskType.ALARM], taskType)) {
-            // Simply write one report per task
-            reportQuery.matchingTask(task);
-        } else {
+        if (task.taskGroupStarted) {
             // Append all task events to the same report
             const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
             const taskGroupStarted: TaskGroupStarted = await ReportHelper.getFirstTaskStarted(tasks);
 
             // Look for existing report created after the first possible task group started
             reportQuery.createdAfterObject(taskGroupStarted);
+
+            if (taskGroupStarted.timeEnded) {
+                reportQuery.lessThan(TaskGroupStarted._timeEnded, taskGroupStarted.timeEnded);
+            }
+        } else {
+            // Simply write one report per task
+            reportQuery.matchingTask(task);
         }
 
         return reportQuery.build().first({useMasterKey: true});
@@ -70,7 +74,6 @@ export class ReportHelper {
     };
 
     public static async writeEventToReport(eventLog: EventLog) {
-
         if (!eventLog.task || eventLog.report) {
             return;
         }
