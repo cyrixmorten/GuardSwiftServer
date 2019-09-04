@@ -5,6 +5,7 @@ import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { Client } from '../../shared/subclass/Client';
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
+import * as moment from 'moment';
 
 export class ReportHelper {
 
@@ -24,8 +25,12 @@ export class ReportHelper {
             // Look for existing report created after the first possible task group started
             reportQuery.createdAfterObject(firstTaskGroupStarted);
 
+            console.log('CREATED AFTER: ', moment(firstTaskGroupStarted.createdAt).format('DD-MM HH:mm'))
+
             if (lastTaskGroupStarted.timeEnded) {
                 reportQuery.lessThan(Report._createdAt, lastTaskGroupStarted.timeEnded);
+
+                console.log('CREATED BEFORE: ', moment(lastTaskGroupStarted.createdAt).format('DD-MM HH:mm'))
             }
         } else {
             // Simply write one report per task
@@ -84,6 +89,7 @@ export class ReportHelper {
         if (eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.OTHER)) {
             try {
                 const report = await ReportHelper.findActiveReport(eventLog.client, eventLog.task, eventLog.taskType);
+                console.log('REPORT: ', moment(report.createdAt).format('DD-MM'))
                 if (!report) {
                     await ReportHelper.createReport(eventLog);
                 } else {
