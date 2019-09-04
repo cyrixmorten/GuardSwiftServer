@@ -14,7 +14,6 @@ export class ReportHelper {
             .isSent(false)
             .matchingClient(client);
 
-        console.log('TASK TASKGROUPSTARTED', task.taskGroupStarted);
         if (_.includes([TaskType.REGULAR, TaskType.RAID], taskType)) {
             // Append all task events to the same report
             const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
@@ -26,12 +25,8 @@ export class ReportHelper {
             // Look for existing report created after the first possible task group started
             reportQuery.createdAfterObject(firstTaskGroupStarted);
 
-            console.log('CREATED AFTER: ', moment(firstTaskGroupStarted.createdAt).format('DD-MM HH:mm'))
-
             if (lastTaskGroupStarted.timeEnded) {
                 reportQuery.lessThan(Report._createdAt, lastTaskGroupStarted.timeEnded);
-
-                console.log('CREATED BEFORE: ', moment(lastTaskGroupStarted.createdAt).format('DD-MM HH:mm'))
             }
         } else {
             // Simply write one report per task
@@ -90,7 +85,6 @@ export class ReportHelper {
         if (eventLog.matchingTaskEvent(TaskEvent.ACCEPT, TaskEvent.ARRIVE, TaskEvent.OTHER)) {
             try {
                 const report = await ReportHelper.findActiveReport(eventLog.client, eventLog.task, eventLog.taskType);
-                console.log('REPORT: ', moment(report.createdAt).format('DD-MM'))
                 if (!report) {
                     await ReportHelper.createReport(eventLog);
                 } else {
