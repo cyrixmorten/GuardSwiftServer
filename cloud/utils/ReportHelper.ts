@@ -14,7 +14,8 @@ export class ReportHelper {
             .isSent(false)
             .matchingClient(client);
 
-        if (task.taskGroupStarted) {
+        console.log('TASK TASKGROUPSTARTED', task.taskGroupStarted);
+        if (_.includes([TaskType.REGULAR, TaskType.RAID], taskType)) {
             // Append all task events to the same report
             const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
             const taskGroupsStarted: TaskGroupStarted[] = await ReportHelper.getSortedTaskGroupsStarted(tasks);
