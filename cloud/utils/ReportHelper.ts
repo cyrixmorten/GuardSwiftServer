@@ -16,13 +16,16 @@ export class ReportHelper {
         if (task.taskGroupStarted) {
             // Append all task events to the same report
             const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
-            const taskGroupStarted: TaskGroupStarted = await ReportHelper.getFirstTaskStarted(tasks);
+            const taskGroupsStarted: TaskGroupStarted[] = await ReportHelper.getSortedTaskGroupsStarted(tasks);
+
+            const firstTaskGroupStarted = _.head(taskGroupsStarted);
+            const lastTaskGroupStarted = _.head(_.reverse(taskGroupsStarted));
 
             // Look for existing report created after the first possible task group started
-            reportQuery.createdAfterObject(taskGroupStarted);
+            reportQuery.createdAfterObject(firstTaskGroupStarted);
 
-            if (taskGroupStarted.timeEnded) {
-                reportQuery.lessThan(Report._createdAt, taskGroupStarted.timeEnded);
+            if (lastTaskGroupStarted.timeEnded) {
+                reportQuery.lessThan(Report._createdAt, lastTaskGroupStarted.timeEnded);
             }
         } else {
             // Simply write one report per task
@@ -92,7 +95,14 @@ export class ReportHelper {
         }
     };
 
-    public static async getFirstTaskStarted(tasks: Task[]): Promise<TaskGroupStarted> {
+    /**
+     * 
+     * Return all 
+     * 
+     * @param tasks
+     * @returns TaskGroupStarted[] 
+     */
+    public static async getSortedTaskGroupsStarted(tasks: Task[]): Promise<TaskGroupStarted[]> {
         // A unique list of all started task groups matching client tasks
         const taskGroupStartedPointers = _.compact(_.uniq(_.map(tasks, task => {
             return task.taskGroupStarted;
@@ -110,10 +120,7 @@ export class ReportHelper {
             return _.some(taskGroupsRunToday, taskGroup => taskGroup.id === taskGroupStarted.taskGroup.id);
         });
 
-        // Select the task group started that was created the earliest
-        return _.head(
-            _.sortBy<TaskGroupStarted>(taskGroupsStartedRunToday, (taskGroupStarted) => taskGroupStarted.timeStarted)
-        );
+        return _.sortBy<TaskGroupStarted>(taskGroupsStartedRunToday, (taskGroupStarted) => taskGroupStarted.timeStarted);
     }
 
     public static async closeReportIfLastTask(task: Task) {
