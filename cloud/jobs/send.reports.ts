@@ -96,8 +96,7 @@ export class SendReports {
         } else {
             reportQueryBuilder
                 .createdAfter(fromDate)
-                .createdBefore(toDate)
-                .isClosed(true);
+                .createdBefore(toDate);
         }
 
         if (!force) {

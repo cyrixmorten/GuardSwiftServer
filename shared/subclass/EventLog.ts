@@ -127,6 +127,15 @@ export class EventLog extends BaseClass {
 
     set client(client: Client) {
         this.set(EventLog._client, client);
+
+        const {name, cityName, zipCode, addressName, addressNumber} = client;
+        
+        this.clientName = name;
+        this.clientCity = cityName;
+        this.clientZipcode = zipCode;
+        this.clientAddress = addressName;
+        this.clientAddressNumber = addressNumber;
+        this.clientFullAddress = `${addressName} ${addressNumber} ${zipCode} ${cityName}`;
     }
 
     get clientName(): string {
