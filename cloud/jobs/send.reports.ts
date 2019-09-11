@@ -16,19 +16,23 @@ import { Dictionary } from 'lodash';
 
 export class SendReports {
 
-    constructor() {
+    // if called with message then this class has been constructed via a Cloud Code job
+    constructor(private message: (response: any) => void = _.noop) {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     }
 
     async sendToAllUsers(fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
         let query = new Parse.Query(Parse.User);
         query.equalTo(User._active, true);
-        return query.each((user) => {
+        return query.each((user: Parse.User) => {
+
+            this.message(`Sending reports for user: ${user.getUsername()}`);
 
             try {
                 return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
             } catch (e) {
-                console.error(`Error while sending to user ${user.getUsername()}`);
+                this.message(`Error while sending to user: ${user.getUsername()}\n\n${e.message}`);
+
                 console.error(e);
             }
 

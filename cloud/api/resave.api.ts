@@ -1,6 +1,6 @@
 export const API_FUNCTION_RESAVE = "re-save";
 
-Parse.Cloud.define(API_FUNCTION_RESAVE, async (request) => {
+Parse.Cloud.job(API_FUNCTION_RESAVE, async (request) => {
 
     let className = request.params.class;
 

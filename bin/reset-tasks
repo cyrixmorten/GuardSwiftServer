@@ -16,7 +16,7 @@ var task = (_.includes(process.argv, '-f')) ? 'forceResetTasks' : 'resetTasks';
 
 request({
     method: 'POST',
-    url: process.env.SERVER_URL + '/functions/' + task,
+    url: process.env.SERVER_URL + '/jobs/' + task,
     headers: {
         'X-Parse-Application-Id': process.env.APP_ID,
         'X-Parse-Master-Key': process.env.MASTER_KEY,

@@ -2,7 +2,7 @@ import {ResetTasks} from "../jobs/reset.tasks";
 
 export const API_FUNCTION_RESET_TASKS = "resetTasks";
 
-Parse.Cloud.define(API_FUNCTION_RESET_TASKS, async (request) => {
+Parse.Cloud.job(API_FUNCTION_RESET_TASKS, async (request) => {
 
     const {
         force,

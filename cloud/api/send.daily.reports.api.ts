@@ -6,20 +6,19 @@ import { SendReports } from '../jobs/send.reports';
 export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
 
 
-Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
+Parse.Cloud.job(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
+
+    const { params, message } = request;
 
     const {
         force,
         taskTypes,
-        timeBack
-    } = request.params;
+        timeBack,
+    } = params;
+
 
     if (!_.isArray(taskTypes)) {
         throw 'Missing taskTypes param (must be array)';
-    }
-
-    if (!_.isObject(timeBack)) {
-        throw 'Missing timeBack param';
     }
 
     if (timeBack) {
@@ -46,7 +45,7 @@ Parse.Cloud.define(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
 
     let toDate = () => moment().toDate();
 
-    await new SendReports().sendToAllUsers(fromDate(), toDate(), taskTypes, force);
+    await new SendReports(message).sendToAllUsers(fromDate(), toDate(), taskTypes, force);
 });
 
 
