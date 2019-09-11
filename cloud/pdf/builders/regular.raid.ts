@@ -211,7 +211,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             }
         };
 
-        const allTasks = this.report.tasks || [this.report.task];
+        const allTasks = this.report.tasks;
         const allEventLogs = this.report.eventLogs;
 
         new ExcludeOverlappingArrivalsStrategy(this.timeZone).run(allEventLogs, allTasks);

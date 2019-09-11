@@ -21,17 +21,12 @@ export class ReportToPDF {
         query.include(Report._tasks);
         query.include(Report._client); // used to determine if we should use alternative header
 
-        // TODO: backwards compatibility
-        // TODO: Create job that adds task to tasks array before removing this
-        query.include(Report._task);
-
-
         try {
             let report: Report = await query.first({useMasterKey: true});
 
             let timeZone = report.owner.timeZone || 'Europe/Copenhagen';
 
-            settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingTaskType(report.taskType).build().first({useMasterKey: true});
+            settings = settings ? settings : await new ReportSettingsQuery().matchingOwner(report.owner).matchingAllTaskTypes(report.taskTypes).build().first({useMasterKey: true});
 
             let reportBuilder: IReportBuilder;
             if (report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {

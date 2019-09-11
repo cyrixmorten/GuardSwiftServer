@@ -55,7 +55,7 @@ export class ResetTasks {
 
                         // close reports matching ended task groups that are still open
                         _.forEach(endedTaskGroups, async (taskGroupStarted) => {
-                            const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
+                            const reports = await new ReportQuery().matchingTaskGroup(taskGroupStarted.taskGroup).notClosed().build().find({useMasterKey: true});
 
                             await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
                         });

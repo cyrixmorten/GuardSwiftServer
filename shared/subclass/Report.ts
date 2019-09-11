@@ -1,10 +1,11 @@
 import { QueryBuilder } from "../QueryBuilder";
 import { EventLog } from "./EventLog";
-import { Task, TaskType } from "./Task";
+import { Task, TaskType } from './Task';
 import { Client } from "./Client";
 import { TaskGroupStarted } from './TaskGroupStarted';
 import { BaseClass } from './BaseClass';
 import * as _ from 'lodash';
+import { TaskGroup } from './TaskGroup';
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -14,10 +15,9 @@ export class Report extends BaseClass {
 
     static readonly className = 'Report';
 
-    static readonly _task = 'task'; // TODO backwards compatibility - replace with tasks array entry
     static readonly _tasks = 'tasks';
-    static readonly _taskType = 'taskType';
-    static readonly _tasksGroupStarted = 'taskGroupStarted';
+    static readonly _taskTypes = 'taskTypes';
+    static readonly _taskGroups = 'taskGroups';
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
@@ -51,7 +51,7 @@ export class Report extends BaseClass {
     }
 
     get tasks(): Task[] {
-        return this.get(Report._tasks);
+        return this.get(Report._tasks) || [this.get('task')];
     }
 
     get eventLogs(): EventLog[] {
@@ -144,32 +144,26 @@ export class Report extends BaseClass {
         this.increment(Report._eventCount);
     }
 
-    get taskType(): TaskType {
-        return this.get(EventLog._taskType);
+    get taskTypes(): TaskType[] {
+        return this.get(Report._taskTypes) || [this.get('taskType')];
     }
 
-    set taskType(taskType: TaskType) {
-        this.set(EventLog._taskType, taskType);
+    addTaskType(taskType: TaskType) {
+        this.addUnique(Report._taskTypes, taskType);
     }
 
-    isMatchingTaskType(...taskType: TaskType[]): boolean {
-        return _.includes(taskType, this.taskType);
+    isMatchingTaskType(...taskTypes: TaskType[]): boolean {
+        return _.some(taskTypes, (taskType) => {
+            return _.includes(taskTypes, taskType);
+        });
     }
 
-    get task(): Task {
-        return this.get(EventLog._task);
+    addTaskGroupStarted(taskGroup: TaskGroup) {
+        this.addUnique(Report._taskGroups, taskGroup);
     }
 
-    set task(task: Task) {
-        this.set(EventLog._task, task);
-    }
-
-    get taskGroupStarted(): TaskGroupStarted {
-        return this.get(EventLog._taskGroupStarted);
-    }
-
-    set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.set(EventLog._taskGroupStarted, taskGroupStarted);
+    get taskGroups(): TaskGroup[] {
+        return this.get(Report._taskGroups);
     }
 
 }
@@ -203,8 +197,14 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
 
-    matchingTaskType(taskType: TaskType): ReportQuery {
-        this.query.equalTo(Report._taskType, taskType);
+    matchingOneOfTaskTypes(taskTypes: TaskType[]): ReportQuery {
+        taskTypes.forEach((taskType) => {
+            this.query = Parse.Query.or(
+                this.query, 
+                this.query.equalTo(Report._taskTypes, taskType)
+            );
+        });
+        
         return this;
     }
 
@@ -213,8 +213,8 @@ export class ReportQuery extends QueryBuilder<Report> {
         return this;
     }
 
-    matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
+    matchingTaskGroup(taskGroup: TaskGroup) {
+        this.query.equalTo(Report._taskGroups, taskGroup);
         return this;
     }
 

@@ -33,7 +33,7 @@ Parse.Cloud.define(API_FUNCTION_REPORT_TO_ZIP,   async (request) => {
 
     const settings =  await new ReportSettingsQuery()
         .matchingOwner(firstReport.owner)
-        .matchingTaskType(TaskType.REGULAR)
+        .matchingAllTaskTypes([TaskType.REGULAR])
         .build().first({useMasterKey: true});
 
     await Promise.all(

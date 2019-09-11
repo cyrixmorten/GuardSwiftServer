@@ -36,60 +36,27 @@ export class SendReports {
         }, {useMasterKey: true})
     }
 
-    async send(report: Report, reportSettings?: ReportSettings): Promise<any> {
-
-        // TODO parse-server >= 2.0.2 use report.fetchWithInclude
-        if (!report.owner || !report.taskGroupStarted || !report.client) {
-            report = await new ReportQuery().matchingId(report.id)
-                .include(...this.getReportIncludes()).build()
-                .first({useMasterKey: true});
-        }
-
-        if (!reportSettings) {
-            reportSettings = await new ReportSettingsQuery().matchingOwner(report.owner)
-                .matchingTaskType(report.taskType).build().first({useMasterKey: true});
-        }
-
-        return Promise.all([
-            this.sendToClients(report, reportSettings),
-            this.sendToOwners(report, reportSettings),
-        ]);
-    }
-
     private async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
-        return Promise.all(_.map(taskTypes,  async (taskType: TaskType) => {
-            // wrap try-catch to ignore errors
-            // missing reportSettings for a user should not prevent remaining reports from being sent
-            try {
-                await this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
-            } catch (e) {
-                console.error(e);
-                throw new Error(`Failed to send ${taskType} reports for user ${user.getUsername()}`);
-            }
-        }));
-    }
 
-    private async sendAllMatchingTaskType(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType, force: boolean = false) {
-
-        console.log('Sending reports for user:', user.get('username'), 'taskType', taskType);
+        console.log('Sending reports for user:', user.get('username'), 'taskTypes', taskTypes);
 
         let reportSettings: ReportSettings = await new ReportSettingsQuery()
             .matchingOwner(user)
-            .matchingTaskType(taskType)
+            .matchingAllTaskTypes(taskTypes)
             .build().first({useMasterKey: true});
 
         if (!reportSettings) {
-            throw new Error(`Missing reportSettings for user: ${user.get('username')} and taskType: ${taskType}`)
+            throw new Error(`Missing reportSettings for user: ${user.get('username')} and taskType: ${taskTypes}`)
         }
 
         // regular/raid
         let reportQueryBuilder: ReportQuery = new ReportQuery()
             .hasClient()
             .matchingOwner(user)
-            .matchingTaskType(taskType);
+            .matchingOneOfTaskTypes(taskTypes);
 
 
-        if (taskType === TaskType.ALARM) {
+        if (_.includes(taskTypes, TaskType.ALARM)) {
             reportQueryBuilder
                 .lessThan('timeEnded', fromDate)
                 .lessThan('updatedAt', fromDate);
@@ -103,12 +70,18 @@ export class SendReports {
             reportQueryBuilder.isSent(false);
         }
 
+        // TODO parse-server >= 2.0.2 use report.fetchWithInclude
         reportQueryBuilder.include(...this.getReportIncludes());
 
         const reports = await reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
-        if (taskType === TaskType.ALARM) {
-            return Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
+        if (_.includes(taskTypes, TaskType.ALARM)) {
+            return Promise.all(_.flatMap(reports, (report) => {
+                return [
+                    this.sendToClients(report, reportSettings),
+                    this.sendToOwners(report, reportSettings)
+                ]
+            }));
         }
 
         const groupedByTaskGroup: Dictionary<Report[]> = _.groupBy(reports, (report: Report) => report.taskGroupStarted.name);

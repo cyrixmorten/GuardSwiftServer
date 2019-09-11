@@ -101,8 +101,8 @@ export class ReportSettingsQuery extends QueryBuilder<ReportSettings> {
         super(ReportSettings);
     }
 
-    matchingTaskType(taskType: TaskType): ReportSettingsQuery {
-        this.query.equalTo(ReportSettings._taskTypes, taskType);
+    matchingAllTaskTypes(taskTypes: TaskType[]): ReportSettingsQuery {
+        this.query.containsAll(ReportSettings._taskTypes, taskTypes);
 
         return this;
     }

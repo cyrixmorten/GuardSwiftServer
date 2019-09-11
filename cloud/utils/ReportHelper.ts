@@ -5,7 +5,6 @@ import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { Client } from '../../shared/subclass/Client';
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
-import * as moment from 'moment';
 
 export class ReportHelper {
 
@@ -98,7 +97,7 @@ export class ReportHelper {
 
     /**
      * 
-     * Return all 
+     * Return all Taskgroups started matching tasks
      * 
      * @param tasks
      * @returns TaskGroupStarted[] 
