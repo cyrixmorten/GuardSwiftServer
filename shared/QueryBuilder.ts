@@ -14,9 +14,17 @@ export abstract class QueryBuilder<T extends BaseClass> {
         }
     }
 
-    include(...includes: Array<keyof T>) {
-        _.forEach(includes, (include: string) => {
-            this.query.include(include)
+    distinct(...distinctKeys: Array<keyof T>) {
+        _.forEach(distinctKeys, (distinctKey: string) => {
+            this.query.distinct(distinctKey);
+        });
+
+        return this;
+    }
+
+    include(...includeKeys: Array<keyof T>) {
+        _.forEach(includeKeys, (includeKey: string) => {
+            this.query.include(includeKey);
         });
 
         return this;

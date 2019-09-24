@@ -14,7 +14,7 @@ import sgMail = require("@sendgrid/mail");
 import moment = require('moment');
 import { Dictionary } from 'lodash';
 import { TaskGroupStarted, TaskGroupStartedQuery } from '../../shared/subclass/TaskGroupStarted';
-import { TaskgroupStartedData as TaskGroupStartedData } from '../statistics/taskgroup.started.data';
+import { TaskgroupStartedStats as TaskGroupStartedData } from '../statistics/taskgroup.started.stats';
 
 export class SendTaskgroupStartedStatistics {
 

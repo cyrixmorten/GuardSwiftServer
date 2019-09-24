@@ -10,14 +10,14 @@ export interface ITaskEventlogs {
 }
 
 
-export class TaskgroupStartedData  {
+export class TaskgroupStartedStats  {
 
     taskGroup: TaskGroup;
     taskEventLogs: ITaskEventlogs[];
 
     constructor(public taskGroupStarted: string | TaskGroupStarted) {}
 
-    async fetch(): Promise<TaskgroupStartedData> {
+    async fetch(): Promise<TaskgroupStartedStats> {
         if (_.isString(this.taskGroupStarted)) {        
             this.taskGroupStarted = TaskGroupStarted.createWithoutData<TaskGroupStarted>(this.taskGroupStarted);
             await this.taskGroupStarted.fetch({useMasterKey: true});
