@@ -1,7 +1,7 @@
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 import * as _ from 'lodash';
 
-export interface IManualAutomaticArrivalStatistics {
+export interface IManualAutomaticArrivalObject {
     total: number;
     count: {
         manual: number;
@@ -13,13 +13,13 @@ export interface IManualAutomaticArrivalStatistics {
     }
 }
 
-export class ManualAutomaticArrivalStatistics {
+export class ManualAutomaticArrivalObject {
 
     constructor(
             private events: EventLog[],
         ) {}
 
-    private generate(): IManualAutomaticArrivalStatistics {
+    public create(): IManualAutomaticArrivalObject {
 
         const arrivalEvents = _.filter(this.events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE));
 
