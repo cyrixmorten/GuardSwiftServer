@@ -1,5 +1,6 @@
-import { ClientQuery, Client } from '../../shared/subclass/Client';
+import { Client } from '../../shared/subclass/Client';
 import { EventLogQuery, EventLog, TaskEvent } from '../../shared/subclass/EventLog';
+import { TotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
 
 export class ClientArrivalAutomationStatistics {
 
@@ -29,15 +30,17 @@ export class ClientArrivalAutomationStatistics {
 
         const clients: Client[] = await this.findClients();
 
-        return Promise.all(clients.map((client) => {
+        return Promise.all(clients.map(async (client) => {
             return {
                 client: {
                     id: client.clientId,
                     name: client.name,
                 },
-                statistics: {
-
-                }
+                taskTypesTotal: await new TotalArrivalAutomationStatistics(
+                    this.fromDate,
+                    this.toDate,
+                    client.id
+                ).generate()
             }
         }));
     }

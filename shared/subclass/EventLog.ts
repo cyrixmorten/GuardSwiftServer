@@ -313,8 +313,18 @@ export class EventLogQuery extends QueryBuilder<EventLog> {
         return this;
     }
 
-    matchingTask(task: Task) {
-        this.query.equalTo(EventLog._task, task);
+    matchingTask(task: Task | string | undefined) {
+        if (task) {
+            this.query.equalTo(EventLog._task, task);
+        }
+
+        return this;
+    }
+
+    matchingClient(client: Client | string | undefined) {
+        if (client) {
+           this.query.equalTo(EventLog._client, client);
+        }
 
         return this;
     }

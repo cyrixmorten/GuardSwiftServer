@@ -1,7 +1,8 @@
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 import * as _ from 'lodash';
+import { TaskType } from '../../shared/subclass/Task';
 
-export interface IManualAutomaticArrivalObject {
+export interface IManualAutomaticArrivalStatistics {
     total: number;
     count: {
         manual: number;
@@ -13,15 +14,17 @@ export interface IManualAutomaticArrivalObject {
     }
 }
 
-export class ManualAutomaticArrivalObject {
+export class ManualAutomaticArrivalStatistics {
 
     constructor(
             private events: EventLog[],
         ) {}
 
-    public create(): IManualAutomaticArrivalObject {
+    public create(taskType: TaskType): IManualAutomaticArrivalStatistics {
 
-        const arrivalEvents = _.filter(this.events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE));
+        const arrivalEvents = _.filter(this.events, (event) => {
+            return event.matchingTaskEvent(TaskEvent.ARRIVE) && event.matchingTaskType(taskType)
+        });
 
         const total = arrivalEvents.length;
         const manual = _.sumBy(arrivalEvents, (event) => !event.automatic ? 1 : 0);
