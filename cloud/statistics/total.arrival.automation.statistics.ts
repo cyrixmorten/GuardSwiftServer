@@ -4,8 +4,8 @@ import { ManualAutomaticArrivalStatistics, IManualAutomaticArrivalStatistics } f
 import * as _ from 'lodash';
 
 export interface ITotalArrivalAutomationStatistics {
-    taskType: TaskType,
-    statistics: IManualAutomaticArrivalStatistics
+    taskType: TaskType;
+    statistics: IManualAutomaticArrivalStatistics;
 }
 
 export class TotalArrivalAutomationStatistics {
@@ -27,6 +27,7 @@ export class TotalArrivalAutomationStatistics {
                         .createdAfter(this.fromDate)
                         .createdBefore(this.toDate)
                         .build()
+                        .limit(Number.MAX_SAFE_INTEGER)
                         .find({useMasterKey: true});
 
         const taskTypes = _.compact(_.map(arrivalEventLogs, (event) => event.taskType));

@@ -1,7 +1,16 @@
 import { Client } from '../../shared/subclass/Client';
 import { EventLogQuery, EventLog, TaskEvent } from '../../shared/subclass/EventLog';
-import { TotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
+import { TotalArrivalAutomationStatistics, ITotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
+import { DailyArrivalAutomationStatistics, IDailyArrivalAutomationStatistics } from './daily.arrival.automation.statistics';
 
+export interface IClientArrivalAutomationStatistics {
+    client: {
+        id: string;
+        name: string;
+    },
+    total: ITotalArrivalAutomationStatistics[];
+    daily: IDailyArrivalAutomationStatistics[];
+}
 export class ClientArrivalAutomationStatistics {
 
     constructor(
@@ -19,6 +28,7 @@ export class ClientArrivalAutomationStatistics {
                         .createdBefore(this.toDate)
                         .distinct(EventLog._client)
                         .build()
+                        .limit(Number.MAX_SAFE_INTEGER)
                         .find({useMasterKey: true});
 
         return Promise.all(arrivalEventLogsDistinctClient.map((event) => {
@@ -26,7 +36,7 @@ export class ClientArrivalAutomationStatistics {
         }));
     }
 
-    public async generate() {
+    public async generate(): Promise<IClientArrivalAutomationStatistics[]> {
 
         const clients: Client[] = await this.findClients();
 
@@ -36,10 +46,15 @@ export class ClientArrivalAutomationStatistics {
                     id: client.clientId,
                     name: client.name,
                 },
-                taskTypesTotal: await new TotalArrivalAutomationStatistics(
+                total: await new TotalArrivalAutomationStatistics(
                     this.fromDate,
                     this.toDate,
                     client.id
+                ).generate(),
+                daily: await new DailyArrivalAutomationStatistics(
+                    this.fromDate,
+                    this.toDate,
+                    client.id,
                 ).generate()
             }
         }));
