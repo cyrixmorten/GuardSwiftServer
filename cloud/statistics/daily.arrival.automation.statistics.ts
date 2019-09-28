@@ -4,9 +4,9 @@ import { ManualAutomaticArrivalStatistics, IManualAutomaticArrivalStatistics } f
 import * as _ from 'lodash';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import * as moment from 'moment';
+import { Client } from '../../shared/subclass/Client';
 
 export interface IDayArrivalAutomationStatistics {
-    date: Date;
     dayOfWeek: number;
     statistics: IManualAutomaticArrivalStatistics;
 }
@@ -30,7 +30,9 @@ export class DailyArrivalAutomationStatistics {
 
         const arrivalEventLogs = await new EventLogQuery()
                         .matchingTaskEvent(TaskEvent.ARRIVE)
-                        .matchingClient(this.clientId)
+                        .matchingClient(
+                            Client.createWithoutData(this.clientId)
+                        )
                         .matchingTask(this.taskId)
                         .createdAfter(this.fromDate)
                         .createdBefore(this.toDate)
@@ -38,38 +40,32 @@ export class DailyArrivalAutomationStatistics {
                         .limit(Number.MAX_SAFE_INTEGER)
                         .find({useMasterKey: true});
 
-        const taskTypes = _.compact(_.map(arrivalEventLogs, (event) => event.taskType));
+        const taskTypes = _.uniq(_.map(arrivalEventLogs, (event) => event.taskType));
+        const taskGroupsStartedIds = _.uniq(_.map(arrivalEventLogs, (event) => event.taskGroupStarted.id));
 
-        
+        const taskGroupsStarted = await Parse.Object.fetchAll(
+            _.map(taskGroupsStartedIds, (taskGroupStartedId: string) => {
+                return TaskGroupStarted.createWithoutData(taskGroupStartedId)
+            }),
+            {useMasterKey: true}
+        ); 
 
-        const arrivalsByTaskgroupStarted = _.groupBy(arrivalEventLogs, (event) => event.taskGroupStarted);
+        const arrivalsByTaskGroupStartedDayOfWeek = _.groupBy(arrivalEventLogs, (event) => {
+            const taskGroupStarted = _.find(taskGroupsStarted, (taskGroupStarted) => taskGroupStarted.id === event.taskGroupStarted.id);
+            return moment(taskGroupStarted.createdAt).isoWeekday()
+        });
 
-
-
-        return Promise.all(taskTypes.map(async (taskType) => {
-
-            const dailyStatistics: IDayArrivalAutomationStatistics[] = 
-                await Promise.all(_.map(arrivalsByTaskgroupStarted, async (events, taskGroupStartedPointer) => {
-
-                    const manualAutomaticStatistics = new ManualAutomaticArrivalStatistics(events);
-
-                    const taskGroupStarted = await Parse.Object.createWithoutData<TaskGroupStarted>(taskGroupStartedPointer)
-                                                .fetch({useMasterKey: true});
-
-                    const date = taskGroupStarted.createdAt;
-
-                    return {
-                        date,
-                        dayOfWeek: moment(date).isoWeekday(),
-                        statistics: manualAutomaticStatistics.create(taskType)
-                    }
-                }));
-
+        return taskTypes.map((taskType) => {
             return {
                 taskType,
-                days: dailyStatistics
+                days: _.map(arrivalsByTaskGroupStartedDayOfWeek, (events, dayOfWeekKey) => {
+                    return {
+                        dayOfWeek: _.toNumber(dayOfWeekKey),
+                        statistics: new ManualAutomaticArrivalStatistics(events).create(taskType)
+                    }
+                })
             }
-        }));
+        });
     }
 
 }

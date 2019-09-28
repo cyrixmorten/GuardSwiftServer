@@ -9,8 +9,8 @@ export interface IClientArrivalAutomationStatistics {
         id: string;
         name: string;
     },
-    total?: ITotalArrivalAutomationStatistics[];
-    daily?: IDailyArrivalAutomationStatistics[];
+    total: ITotalArrivalAutomationStatistics[];
+    daily: IDailyArrivalAutomationStatistics[];
 }
 export class ClientArrivalAutomationStatistics {
 
@@ -51,11 +51,11 @@ export class ClientArrivalAutomationStatistics {
                     this.toDate,
                     client.id
                 ).generate(),
- /*               daily: await new DailyArrivalAutomationStatistics(
+               daily: await new DailyArrivalAutomationStatistics(
                     this.fromDate,
                     this.toDate,
                     client.id,
-                ).generate() */
+                ).generate()
             }
         })); 
     }
