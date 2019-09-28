@@ -2,14 +2,15 @@ import { Client } from '../../shared/subclass/Client';
 import { EventLogQuery, EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 import { TotalArrivalAutomationStatistics, ITotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
 import { DailyArrivalAutomationStatistics, IDailyArrivalAutomationStatistics } from './daily.arrival.automation.statistics';
+import * as _ from 'lodash';
 
 export interface IClientArrivalAutomationStatistics {
     client: {
         id: string;
         name: string;
     },
-    total: ITotalArrivalAutomationStatistics[];
-    daily: IDailyArrivalAutomationStatistics[];
+    total?: ITotalArrivalAutomationStatistics[];
+    daily?: IDailyArrivalAutomationStatistics[];
 }
 export class ClientArrivalAutomationStatistics {
 
@@ -21,22 +22,21 @@ export class ClientArrivalAutomationStatistics {
 
     private async findClients(): Promise<Client[]> {
 
-        const arrivalEventLogsDistinctClient: EventLog[] = await new EventLogQuery()
+        const clientPointers: Client[] = await new EventLogQuery()
                         .matchingTaskEvent(TaskEvent.ARRIVE)
                         .matchingOwner(this.owner)
                         .createdAfter(this.fromDate)
                         .createdBefore(this.toDate)
-                        .distinct(EventLog._client)
                         .build()
                         .limit(Number.MAX_SAFE_INTEGER)
-                        .find({useMasterKey: true});
-
-        return Promise.all(arrivalEventLogsDistinctClient.map((event) => {
-            return Parse.Object.createWithoutData<Client>(event.client.id).fetch({useMasterKey: true});
-        }));
+                        .distinct(EventLog._client);
+                        
+        return Parse.Object.fetchAll<Client>(
+            _.map(clientPointers, (pointer: any) => Client.createWithoutData(pointer.objectId)), 
+        {useMasterKey: true});
     }
 
-    public async generate(): Promise<IClientArrivalAutomationStatistics[]> {
+    public async generate(): Promise<any[]> {
 
         const clients: Client[] = await this.findClients();
 
@@ -46,18 +46,18 @@ export class ClientArrivalAutomationStatistics {
                     id: client.clientId,
                     name: client.name,
                 },
-                total: await new TotalArrivalAutomationStatistics(
+                 total: await new TotalArrivalAutomationStatistics(
                     this.fromDate,
                     this.toDate,
                     client.id
                 ).generate(),
-                daily: await new DailyArrivalAutomationStatistics(
+ /*               daily: await new DailyArrivalAutomationStatistics(
                     this.fromDate,
                     this.toDate,
                     client.id,
-                ).generate()
+                ).generate() */
             }
-        }));
+        })); 
     }
 
 }

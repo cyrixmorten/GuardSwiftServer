@@ -2,6 +2,7 @@ import { EventLogQuery, TaskEvent } from '../../shared/subclass/EventLog';
 import { TaskType } from '../../shared/subclass/Task';
 import { ManualAutomaticArrivalStatistics, IManualAutomaticArrivalStatistics } from './manual.automatic.arrival.statistics';
 import * as _ from 'lodash';
+import { Client } from '../../shared/subclass/Client';
 
 export interface ITotalArrivalAutomationStatistics {
     taskType: TaskType;
@@ -22,7 +23,9 @@ export class TotalArrivalAutomationStatistics {
 
         const arrivalEventLogs = await new EventLogQuery()
                         .matchingTaskEvent(TaskEvent.ARRIVE)
-                        .matchingClient(this.clientId)
+                        .matchingClient(
+                            Client.createWithoutData(this.clientId)
+                        )
                         .matchingTask(this.taskId)
                         .createdAfter(this.fromDate)
                         .createdBefore(this.toDate)
@@ -30,7 +33,7 @@ export class TotalArrivalAutomationStatistics {
                         .limit(Number.MAX_SAFE_INTEGER)
                         .find({useMasterKey: true});
 
-        const taskTypes = _.compact(_.map(arrivalEventLogs, (event) => event.taskType));
+        const taskTypes = _.uniq(_.map(arrivalEventLogs, (event) => event.taskType));
 
         const manualAutomaticStatistics = new ManualAutomaticArrivalStatistics(arrivalEventLogs);
 

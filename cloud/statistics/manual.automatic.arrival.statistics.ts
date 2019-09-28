@@ -31,7 +31,7 @@ export class ManualAutomaticArrivalStatistics {
         const automatic = _.sumBy(arrivalEvents, (event) => event.automatic ? 1 : 0);
 
         const toPercentage = (val: number) => {
-            return total ? manual / total * 100 : 0;
+            return total ? _.round(val / total * 100, 2) : 0;
         } 
 
         return {
