@@ -1,13 +1,8 @@
 import { EventLogQuery, TaskEvent } from '../../shared/subclass/EventLog';
-import { TaskType } from '../../shared/subclass/Task';
-import { ManualAutomaticArrivalStatistics, IManualAutomaticArrivalStatistics } from './manual.automatic.arrival.statistics';
+import { ManualAutomaticArrivalStatistics } from './manual.automatic.arrival.statistics';
 import * as _ from 'lodash';
 import { Client } from '../../shared/subclass/Client';
-
-export interface ITotalArrivalAutomationStatistics {
-    taskType: TaskType;
-    statistics: IManualAutomaticArrivalStatistics;
-}
+import { ITotalArrivalAutomationStatistics } from '../../shared/statistics/arrival.statistics.types';
 
 export class TotalArrivalAutomationStatistics {
 

@@ -1,20 +1,10 @@
 import { EventLogQuery, TaskEvent } from '../../shared/subclass/EventLog';
-import { TaskType } from '../../shared/subclass/Task';
-import { ManualAutomaticArrivalStatistics, IManualAutomaticArrivalStatistics } from './manual.automatic.arrival.statistics';
+import { ManualAutomaticArrivalStatistics } from './manual.automatic.arrival.statistics';
 import * as _ from 'lodash';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import * as moment from 'moment';
 import { Client } from '../../shared/subclass/Client';
-
-export interface IDayArrivalAutomationStatistics {
-    dayOfWeek: number;
-    statistics: IManualAutomaticArrivalStatistics;
-}
-
-export interface IDailyArrivalAutomationStatistics {
-    taskType: TaskType;
-    days: IDayArrivalAutomationStatistics[]
-}
+import { IDailyArrivalAutomationStatistics } from '../../shared/statistics/arrival.statistics.types';
 
 export class DailyArrivalAutomationStatistics {
 

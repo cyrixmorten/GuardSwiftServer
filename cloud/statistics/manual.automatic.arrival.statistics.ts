@@ -1,18 +1,7 @@
 import { EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 import * as _ from 'lodash';
 import { TaskType } from '../../shared/subclass/Task';
-
-export interface IManualAutomaticArrivalStatistics {
-    total: number;
-    count: {
-        manual: number;
-        automatic: number;
-    },
-    percentage: {
-        manual: number;
-        automatic: number;
-    }
-}
+import { IManualAutomaticArrivalStatistics } from '../../shared/statistics/arrival.statistics.types';
 
 export class ManualAutomaticArrivalStatistics {
 
