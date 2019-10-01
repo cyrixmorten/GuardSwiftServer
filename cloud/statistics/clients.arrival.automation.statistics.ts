@@ -3,6 +3,7 @@ import { EventLogQuery, EventLog, TaskEvent } from '../../shared/subclass/EventL
 import { TotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
 import { DailyArrivalAutomationStatistics } from './daily.arrival.automation.statistics';
 import * as _ from 'lodash';
+import { IClientArrivalAutomationStatistics } from '../../shared/statistics/arrival.statistics.types';
 
 export class ClientArrivalAutomationStatistics {
 
@@ -28,7 +29,7 @@ export class ClientArrivalAutomationStatistics {
         {useMasterKey: true});
     }
 
-    public async generate(): Promise<any[]> {
+    public async generate(): Promise<IClientArrivalAutomationStatistics[]> {
 
         const clients: Client[] = await this.findClients();
 

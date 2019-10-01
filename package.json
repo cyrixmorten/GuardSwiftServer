@@ -30,6 +30,8 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.1.0",
     "express": "~4.17.x",
+    "highcharts": "^7.2.0",
+    "highcharts-export-server": "^2.0.24",
     "json2csv": "^4.5.3",
     "lodash": "^4.17.15",
     "lodash-move": "^1.1.1",
@@ -46,6 +48,7 @@
     "ts-node": "^8.3.0",
     "tslib": "^1.10.0",
     "typescript": "^3.6.3",
+    "uuid": "^3.3.3",
     "xlsx": "^0.15.1",
     "zlib": "^1.0.5"
   },
@@ -54,6 +57,7 @@
   },
   "devDependencies": {
     "@types/chai": "^4.2.2",
+    "@types/highcharts": "^5.0.44",
     "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",
     "mocha": "^6.2.0",

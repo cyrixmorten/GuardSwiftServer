@@ -1,10 +1,11 @@
 import { IManualAutomaticArrivalStatistics } from '../statistics/arrival.statistics.types';
+import * as highcharts from 'highcharts';
 
 export class ManualAutomaticArrivalPieChart {
 
     constructor(private data: IManualAutomaticArrivalStatistics) {}
 
-    public getHighchartsOptions() {
+    public getHighchartsOptions(): highcharts.Options {
         const {total, percentage} = this.data;
     
         return {
@@ -34,8 +35,8 @@ export class ManualAutomaticArrivalPieChart {
                 }
             },
             series: [{
+                type: 'pie',
                 name: 'Ankomster', // TODO: translate
-                colorByPoint: true,
                 data: [{
                     name: 'Manuelt', // TODO translate
                     y: percentage.manual,
