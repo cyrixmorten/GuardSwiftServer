@@ -84,21 +84,47 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             const contentRows = _.flatMap(eventLogs, (eventLog) => {
 
                 const createEventRow = () => {
-                        const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                        const internalInitials = !showInitials && !this.customerFacing;
 
-                        const showTimeStamp = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                        const internalTimeStamp = !showTimeStamp && !this.customerFacing;
+                        const createInitialsEntry = () => {
 
-                        return [
-                            {
+                            const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                            const internalInitials = !showInitials && !this.customerFacing;
+
+                            return {
                                 text: showInitials || internalInitials ? eventLog.guardInitials : '',
                                 color: internalInitials ? 'red' : undefined
-                            },
-                            {
-                                text: showTimeStamp || internalTimeStamp ? moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm') : '',
-                                color: internalTimeStamp ? 'red' : undefined
-                            },
+                            }
+                        }
+
+                        const createTimestampEntry = () => {
+
+                            const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                            const internalTimeStamp = !isArrivalEvent && !this.customerFacing;
+
+                            const showTimeStamp = isArrivalEvent || internalTimeStamp;
+                            const showManualAutomatic = isArrivalEvent && !this.customerFacing;
+
+                            const timeStamp = moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm');
+                            const manualAutomatic = eventLog.automatic ? 'A' : 'M';
+
+                            return {
+                                text: _.compact([
+                                    {
+                                        text:  showTimeStamp ? timeStamp : '',
+                                        color: internalTimeStamp ? 'red' : undefined
+                                    },
+                                    showManualAutomatic ? ' ' : '',
+                                    {
+                                        text: showManualAutomatic ? manualAutomatic : '',
+                                        color: 'red'
+                                    },
+                                ])
+                            }
+                        }
+
+                        return [
+                            createInitialsEntry(),
+                            createTimestampEntry(),
                             {text: _.upperFirst(eventLog.event)},
                             {text: eventLog.amount || '', alignment: 'center'},
                         ]
@@ -176,7 +202,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         return {
             table: {
-                widths: [30, 50, '*', 35],
+                widths: [30, 60, '*', 35],
                 headerRows: 1,
                 body: [
                     tableHeader('Vagt', 'Tidspunkt', 'Hændelse', ''), // TODO translate
