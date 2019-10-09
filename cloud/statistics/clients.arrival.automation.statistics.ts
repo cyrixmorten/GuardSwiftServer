@@ -2,8 +2,8 @@ import { Client } from '../../shared/subclass/Client';
 import { EventLogQuery, EventLog, TaskEvent } from '../../shared/subclass/EventLog';
 import { TotalArrivalAutomationStatistics } from './total.arrival.automation.statistics';
 import { DailyArrivalAutomationStatistics } from './daily.arrival.automation.statistics';
-import * as _ from 'lodash';
 import { IClientArrivalAutomationStatistics } from '../../shared/statistics/arrival.statistics.types';
+import * as _ from 'lodash';
 
 export class ClientArrivalAutomationStatistics {
 
@@ -36,8 +36,8 @@ export class ClientArrivalAutomationStatistics {
         return Promise.all(clients.map(async (client) => {
             return {
                 client: {
-                    id: client.clientId,
-                    name: client.name,
+                    id: client.id,
+                    name: client.idAndName,
                 },
                  total: await new TotalArrivalAutomationStatistics(
                     this.fromDate,
