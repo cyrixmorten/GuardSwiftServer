@@ -71,7 +71,7 @@ export class HighchartsExporter {
         return _.flatten(results);
     }
 
-    public async execute(highchartOptions: IHighchartOptionWithId): Promise<any> {
+    public async execute(highchartOptions: IHighchartOptionWithId): Promise<IExportResult> {
 
         const exportSettings = Object.assign(this.exportOptions, {
             options: highchartOptions,
