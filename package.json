@@ -3,6 +3,7 @@
   "version": "5.1.9",
   "description": "GuardSwift server",
   "scripts": {
+    "build": "tsc",
     "test": "mocha",
     "start": "./node_modules/.bin/ts-node index.ts",
     "dev": "nodemon",
@@ -28,6 +29,7 @@
     "@types/request": "^2.48.3",
     "@types/request-promise-native": "^1.0.16",
     "body-parser": "^1.19.0",
+    "debounce-promise": "^3.1.2",
     "dotenv": "^8.1.0",
     "express": "~4.17.x",
     "highcharts": "^7.2.0",

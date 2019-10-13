@@ -1,8 +1,9 @@
 import * as exporter from 'highcharts-export-server';
 import * as highcharts from 'highcharts';
-import * as fs from 'fs';
 import * as uuid from 'uuid/v4';
 import * as _ from 'lodash';
+import * as debounce from 'debounce-promise';
+import * as fs from 'fs';
 
 export type ExportType = 'png' | 'jpeg' | 'pdf' | 'svg';
 
@@ -17,6 +18,8 @@ export interface IExportOptions {
     globalOptions?: highcharts.GlobalOptions;
     // Passed to Highcharts.data(..)
     dataOptions?: Object;
+    // Specify the output filename
+    outfile?: string;
 }
 
 export interface IPoolConfig {
@@ -27,17 +30,15 @@ export interface IPoolConfig {
     timeoutThreshold?: number;   // (default 3500) - the maximum allowed time for each export job execution, in milliseconds. If a worker has been executing a job for longer than this period, it will be restarted
 }
 
-export interface IHighchartOptionWithId extends highcharts.Options {
-    id?: string; // id added to result
-}
-
 export interface IExportResult {
-    id?: string;
     data: string;
 }
 
 // https://www.npmjs.com/package/highcharts-export-server
 export class HighchartsExporter {
+
+    private que: DeferredExporter[] = [];
+    private flushDebounced = debounce(this.flushQue, 100);
 
     constructor(
         private exportOptions: IExportOptions, 
@@ -45,51 +46,87 @@ export class HighchartsExporter {
 
         // Set up a pool of PhantomJS workers
         exporter.initPool(this.poolConfig);
-
     }
 
-    public done() {
-        // Kill the pool when we're done with it
-        exporter.killPool();
-    }
 
-    public async executeBatch(highchartOptions: IHighchartOptionWithId[]): Promise<IExportResult[]> {
+    private async flushQue() {
 
-        const results = [];
-        const batches: IHighchartOptionWithId[][] = _.chunk(highchartOptions, this.poolConfig.maxWorkers);
+        const deferredExporters: DeferredExporter[] = _.take(this.que, this.poolConfig.maxWorkers);
 
-        for (let i = 0; i < batches.length; i++) {
-            const batch: IHighchartOptionWithId[] = batches[i];
+        _.pullAll(this.que, deferredExporters);
 
-            results.push(
-                await Promise.all(batch.map((highchartOption) => {
-                    return this.execute(highchartOption);
-                }))
-            )
+        for (var i = 0; i < deferredExporters.length; i++) {
+            await deferredExporters[i].execute();
         }
 
-        return _.flatten(results);
+
+        if (this.que.length > 0) {
+            await this.flushDebounced();
+        } else {
+            console.log('Kill')
+            exporter.killPool();
+        }
     }
 
-    public async execute(highchartOptions: IHighchartOptionWithId): Promise<IExportResult> {
+    public async execute(highchartOptions: highcharts.Options): Promise<IExportResult> {
 
-        const exportSettings = Object.assign(this.exportOptions, {
+        const tmpdir = 'tmp';
+
+        const deferred = new DeferredExporter(_.create(this.exportOptions, {
             options: highchartOptions,
-            tmpdir: 'tmp',
-            outfile: `tmp/${uuid()}.${this.exportOptions.type}`
+            tmpdir,
+            outfile: `${tmpdir}/highcharts/${uuid()}.${this.exportOptions.type}`
+        }));
+
+        this.que.push(deferred);
+
+        await this.flushDebounced();
+
+        return deferred.promise;
+    }
+
+}
+
+class DeferredExporter {
+
+    private _resolveSelf;
+    private _rejectSelf;
+
+    public readonly promise: Promise<IExportResult>
+
+    constructor(public exportSettings: IExportOptions) {
+      this.promise = new Promise( (resolve, reject) =>
+        {
+          this._resolveSelf = resolve
+          this._rejectSelf = reject
+        }
+      )
+    }
+
+    public execute(): Promise<IExportResult> {
+        exporter.export(this.exportSettings, async (err, res) => {
+            if (err) {
+                return this.reject(err);
+            }
+
+
+            if (res.filename && fs.existsSync(res.filename)) {
+                res.data = fs.readFileSync(res.filename, 'utf8');
+                fs.unlinkSync(res.filename);
+            }
+
+            this.resolve(res as IExportResult);
         });
 
-        return new Promise((resolve, reject) => {
-            exporter.export(exportSettings, (err, res) => {
-                if (err) return reject(err);
-
-                if (res.filename) {
-                    res.data = fs.readFileSync(res.filename, 'utf8');
-                    fs.unlinkSync(res.filename);
-                }
-
-                resolve(Object.assign(res, {id: highchartOptions.id}));
-            });
-        })
+        return this.promise;
     }
-}
+  
+    private resolve(val:IExportResult) { this._resolveSelf(val) }
+    private reject(reason:any) { 
+        console.error(reason);
+        this._rejectSelf(reason) 
+    }
+  
+    [Symbol.toStringTag]: 'Promise'
+
+} 

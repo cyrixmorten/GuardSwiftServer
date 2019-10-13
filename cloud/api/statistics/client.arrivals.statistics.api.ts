@@ -3,7 +3,6 @@ import * as _ from "lodash";
 import { ClientArrivalAutomationStatistics } from '../../statistics/clients.arrival.automation.statistics';
 import { HighchartsExporter } from '../../utils/highcharts.exporter';
 import { ManualAutomaticArrivalPieChart } from '../../../shared/highcharts/manual.automatic.piechart';
-import { IClientArrivalAutomationStatistics } from '../../../shared/statistics/arrival.statistics.types';
 
 export const API_JOB_CLIENT_ARRIVAL_STATISTICS = "clientArrivalStatistics";
 
@@ -25,21 +24,18 @@ Parse.Cloud.define(API_JOB_CLIENT_ARRIVAL_STATISTICS, async (request) => {
         moment(toDate).toDate(),
     ).generate();
     
-    const exporter = new HighchartsExporter({type: 'svg'});
+    // const exporter = new HighchartsExporter({type: 'svg'});
 
-    try {
-        const result = await exporter.executeBatch(
-                clientArrivalAutomationResults.map((result) => {
-                    return new ManualAutomaticArrivalPieChart(result.total[0].statistics).getHighchartsOptions();
-                })
-            )
-        
-        exporter.done();
+    // const results = await Promise.all(clientArrivalAutomationResults.map(async (result) => {
+    //     try {
+    //         const pieChart = new ManualAutomaticArrivalPieChart(result.total[0].statistics).getHighchartsOptions();
 
-        console.log('result', result.length);
-    } catch(e) {
-        console.error('e', e);
-    }
+    //         return exporter.execute(pieChart);
+    //     } catch(e) {
+    //         console.error('error exporting', e);
+    //     }
+    // }))
+
 
     return clientArrivalAutomationResults;
 
