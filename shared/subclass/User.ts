@@ -46,6 +46,13 @@ export class UserQuery {
     constructor() {
         this.query = new Parse.Query(User)
     }
+
+    matchingId(id: string) {
+        this.query.equalTo('objectId', id);
+
+        return this;
+    }
+
     isActive() {
         this.query.equalTo(User._active, true);
 

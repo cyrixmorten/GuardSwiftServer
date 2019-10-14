@@ -41,7 +41,7 @@ export class HighchartsExporter {
     private flushDebounced = debounce(this.flushQue, 100);
 
     constructor(
-        private exportOptions: IExportOptions, 
+        public readonly exportOptions: IExportOptions, 
         private poolConfig: Partial<IPoolConfig> = {maxWorkers: 25}) {
 
         // Set up a pool of PhantomJS workers
@@ -68,7 +68,7 @@ export class HighchartsExporter {
         }
     }
 
-    public async execute(highchartOptions: highcharts.Options): Promise<IExportResult> {
+    public async execute(highchartOptions: highcharts.Options): Promise<string> {
 
         const tmpdir = 'tmp';
 
@@ -92,7 +92,7 @@ class DeferredExporter {
     private _resolveSelf;
     private _rejectSelf;
 
-    public readonly promise: Promise<IExportResult>
+    public readonly promise: Promise<string>
 
     constructor(public exportSettings: IExportOptions) {
       this.promise = new Promise( (resolve, reject) =>
@@ -103,7 +103,7 @@ class DeferredExporter {
       )
     }
 
-    public execute(): Promise<IExportResult> {
+    public execute(): Promise<string> {
         exporter.export(this.exportSettings, async (err, res) => {
             if (err) {
                 return this.reject(err);
@@ -115,7 +115,7 @@ class DeferredExporter {
                 fs.unlinkSync(res.filename);
             }
 
-            this.resolve(res as IExportResult);
+            this.resolve(res.data);
         });
 
         return this.promise;

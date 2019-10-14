@@ -6,6 +6,7 @@ import {RegularRaidReportBuilder} from "./builders/regular.raid";
 import {IReportBuilder} from "./builders/base.builder";
 import {StaticReportBuilder} from "./builders/static";
 import * as _ from 'lodash';
+import { PdfmakeUtils } from './pdfmake.utils';
 
 export class ReportToPDF {
 
@@ -66,25 +67,12 @@ export class ReportToPDF {
 
         try {
             let reportDoc: Object = await ReportToPDF.buildDoc(reportId, customerFacing, settings);
-            let httpResponse: HttpResponse = await this.generatePDF(reportDoc);
-
-            return httpResponse.buffer;
+            return PdfmakeUtils.toPDFBuffer(reportDoc);
         } catch(e) {
             throw new Error('Error during PDF creation' + JSON.stringify(e))
         }
     }
 
-    static async generatePDF(docDefinition): Promise<HttpResponse> {
-
-        return Parse.Cloud.httpRequest({
-            method: 'POST',
-            url: process.env.APP_URL + '/api/pdfmake',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            },
-            body: docDefinition
-        })
-    };
 }
 
 

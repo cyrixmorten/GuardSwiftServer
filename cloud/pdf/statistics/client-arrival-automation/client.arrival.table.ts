@@ -1,16 +1,16 @@
-import { IClientArrivalAutomationStatistics, ITotalArrivalAutomationStatistics } from '../../../shared/statistics/arrival.statistics.types';
-import { HighchartsExporter } from '../../utils/highcharts.exporter';
-import { TaskType } from '../../../shared/subclass/Task';
-import { ManualAutomaticArrivalPieChart } from '../../../shared/highcharts/manual.automatic.piechart';
+import { IClientArrivalAutomationStatistics, ITotalArrivalAutomationStatistics } from '../../../../shared/statistics/arrival.statistics.types';
+import { HighchartsExporter } from '../../../utils/highcharts.exporter';
+import { TaskType } from '../../../../shared/subclass/Task';
+import { ManualAutomaticArrivalPieChart } from '../../../../shared/highcharts/manual.automatic.piechart';
 import * as _ from 'lodash';
 
-export class ClientArrivalReportEntry {
+export class ClientArrivalReportTable {
 
     constructor(
         private clientArrivalStatistics: IClientArrivalAutomationStatistics, 
         private exporter: HighchartsExporter) {}
 
-    public async getEntry() {
+    public async getTable() {
 
         const taskTypes = _.map(this.clientArrivalStatistics.total, (stats) => stats.taskType);
 
@@ -55,12 +55,12 @@ export class ClientArrivalReportEntry {
         });
 
         const pieChartOptions = new ManualAutomaticArrivalPieChart(totalStatistics.statistics).getHighchartsOptions();
-        const pieChartSvg = await this.exporter.execute(pieChartOptions);
 
         const taskTypeName = taskType === TaskType.REGULAR ? 'Gående' : 'Kørende'; // TODO: translate
 
         return [taskTypeName, '', {
-            svg: pieChartSvg
+            width: 150,
+            image: `data:image/${this.exporter.exportOptions.type};base64,` + await this.exporter.execute(pieChartOptions)
         }];
     }
 

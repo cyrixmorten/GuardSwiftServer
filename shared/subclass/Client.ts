@@ -49,7 +49,7 @@ export class Client extends BaseClass {
     }
 
     get idAndName(): string {
-        return `${this.clientId} ${this.name}`.replace(' ', '');
+        return `${this.clientId} ${this.name}`.trim();
     }
 
     get cityName(): string {

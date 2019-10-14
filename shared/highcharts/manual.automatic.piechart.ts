@@ -40,11 +40,13 @@ export class ManualAutomaticArrivalPieChart {
                 data: [{
                     name: 'Manuelt', // TODO translate
                     y: percentage.manual,
+                    color: 'red',
                 }, {
                     name: 'Automatisk', // TODO translate
                     y: percentage.automatic,
                     sliced: true,
-                    selected: true
+                    selected: true,
+                    color: 'green',
                 }]
             }]
         }

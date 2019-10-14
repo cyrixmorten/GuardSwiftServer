@@ -1,4 +1,4 @@
-import {ReportToPDF} from "../../cloud/pdf/report.to.pdf";
+import { ReportToPDF } from "../../cloud/pdf/report.to.pdf";
 
 export let toPdf =  (req, res) => {
 
