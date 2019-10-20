@@ -1,6 +1,5 @@
 import {ReportSettings, ReportSettingsQuery} from "../../shared/subclass/ReportSettings";
 import {Report, ReportQuery} from "../../shared/subclass/Report";
-import HttpResponse = Parse.Cloud.HttpResponse;
 import {TaskType} from "../../shared/subclass/Task";
 import {RegularRaidReportBuilder} from "./builders/regular.raid";
 import {IReportBuilder} from "./builders/base.builder";
@@ -74,8 +73,3 @@ export class ReportToPDF {
     }
 
 }
-
-
-
-
-

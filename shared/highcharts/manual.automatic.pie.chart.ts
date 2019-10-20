@@ -16,10 +16,10 @@ export class ManualAutomaticArrivalPieChart {
                 type: 'pie'
             },
             title: {
-                text: null
+                text: 'Total: ' + total // TODO: translate
             },
             subtitle: {
-                text: 'Total: ' + total // TODO: translate
+                text: null
             },
             tooltip: {
                 pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'

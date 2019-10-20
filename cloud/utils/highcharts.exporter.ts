@@ -63,7 +63,6 @@ export class HighchartsExporter {
         if (this.que.length > 0) {
             await this.flushDebounced();
         } else {
-            console.log('Kill')
             exporter.killPool();
         }
     }

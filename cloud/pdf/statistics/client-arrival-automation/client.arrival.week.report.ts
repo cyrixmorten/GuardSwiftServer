@@ -25,15 +25,15 @@ export class ClientArrivalWeekReport {
 
         const exporter = new HighchartsExporter({type: 'png'});
 
-        const sortedStatistics = _.take(_.sortBy(statistics, (stat) => stat.client.name), 5);
+        const sortedStatistics = _.take(_.sortBy(statistics, (stat) => stat.client.name), 55);
 
 
         return {
             header: {
                 "margin": [10, 10],
                 columns: [
-                `Automatisk ankomst uge ${toDate.isoWeek()}`, // TODO translate
-                { text: `${fromDate.format('DD-MM-YYYY')} - ${toDate.format('DD-MM-YYYY')}`, alignment: 'right' }
+                `Automatisk ankomst uge ${fromDate.isoWeek()}`, // TODO translate
+                { text: `${fromDate.format('DD-MM-YYYY HH:mm')} - ${toDate.format('DD-MM-YYYY HH:mm')}`, alignment: 'right' }
                 ]
             },
             content: await Promise.all(_.map(sortedStatistics, (stat) => {

@@ -2,7 +2,7 @@ import * as moment from "moment-timezone"
 import * as _ from "lodash";
 import { ClientArrivalAutomationStatistics } from '../../statistics/clients.arrival.automation.statistics';
 import { HighchartsExporter } from '../../utils/highcharts.exporter';
-import { ManualAutomaticArrivalPieChart } from '../../../shared/highcharts/manual.automatic.piechart';
+import { ManualAutomaticArrivalPieChart } from '../../../shared/highcharts/manual.automatic.pie.chart';
 
 export const API_JOB_CLIENT_ARRIVAL_STATISTICS = "clientArrivalStatistics";
 
