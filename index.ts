@@ -79,11 +79,13 @@ app.get('/test', function(req, res) {
 let apiRouter = express.Router();
 let bodyParser = require('body-parser');
 
+// Tell the bodyparser middleware to accept more data
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 apiRouter.get('/report/:id', require('./api/pdf/pdfreport').toPdf);
 apiRouter.post('/pdfmake', require('./api/pdf/pdfmake').pdfMake);
+apiRouter.post('/weekreport', require('./api/pdf/weekReport').weekReportApi);
 
 apiRouter.get('/cpsms',
     require('./api/cpsms').receive
