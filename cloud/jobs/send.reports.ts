@@ -217,16 +217,26 @@ export class SendReports {
         report.isSent = true;
 
         if (!_.isEmpty(mailData.to)) {
-            const [httpResponse] = await sgMail.send(mailData);
+            try {
+                const [httpResponse] = await sgMail.send(mailData);
 
-            const {statusCode, statusMessage} = httpResponse;
-
-            report.mailStatus = {
-                to: mailData.to,
-                date: new Date(),
-                statusCode,
-                statusMessage
+                const {statusCode, statusMessage} = httpResponse;
+    
+                report.mailStatus = {
+                    statusCode,
+                    statusMessage
+                }
+            } catch(e) {
+                report.mailStatus = {
+                    statusCode: 500,
+                    statusMessage: JSON.stringify(e)
+                }
             }
+
+            report.mailStatus = Object.assign(report.mailStatus, {
+                to: mailData.to,
+                date: new Date()
+            });
         }
 
         // Alarm and static reports are closed when sent
@@ -324,16 +334,26 @@ export class SendReports {
         };
 
         if (!_.isEmpty(mailData.to)) {
-            const [httpResponse] = await sgMail.send(mailData);
+            try {
+                const [httpResponse] = await sgMail.send(mailData);
 
-            const {statusCode, statusMessage} = httpResponse;
-
-            report.mailStatus = {
-                to: mailData.to,
-                date: new Date(),
-                statusCode,
-                statusMessage
+                const {statusCode, statusMessage} = httpResponse;
+    
+                report.mailStatus = {
+                    statusCode,
+                    statusMessage
+                }
+            } catch(e) {
+                report.mailStatus = {
+                    statusCode: 500,
+                    statusMessage: JSON.stringify(e)
+                }
             }
+
+            report.mailStatus = Object.assign(report.mailStatus, {
+                to: mailData.to,
+                date: new Date()
+            });
         }
 
         return report.save(null, {useMasterKey: true});
