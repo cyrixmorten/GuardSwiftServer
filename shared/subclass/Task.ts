@@ -54,6 +54,7 @@ export class Task extends BaseClass {
     static readonly _startDate = 'startDate';
     static readonly _endDate = 'endDate';
     static readonly _expireDate = 'expireDate';
+    static readonly _isPaused = 'isPaused';
 
     static readonly _isRunToday = 'isRunToday';
     static readonly _geofenceRadius = 'geofenceRadius';
@@ -280,6 +281,14 @@ export class Task extends BaseClass {
         this.set(Task._expireDate, expireDate);
     }
 
+    get isPaused(): Boolean {
+        return this.get(Task._isPaused);
+    }
+
+    set isPaused(paused: Boolean) {
+        this.set(Task._isPaused, paused);
+    }
+
     daysUntilExpire(): number {
         const expireDate = this.expireDate;
         if (!expireDate) {
@@ -316,7 +325,7 @@ export class Task extends BaseClass {
 
 
     isTaskRunToday(taskGroup?: TaskGroup, countryCode?: string) {
-        return taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
+        return !this.isPaused && taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
     }
 
     reset(): Task {
