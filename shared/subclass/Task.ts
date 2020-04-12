@@ -8,6 +8,7 @@ import { QueryBuilder } from '../QueryBuilder';
 import { Planning } from '../Planning';
 import * as moment from "moment-timezone"
 import { User } from './User';
+import { Holidays } from '../moment-holiday/holidays';
 
 export enum TaskStatus {
     PENDING = 'pending',
@@ -323,9 +324,24 @@ export class Task extends BaseClass {
         return _.includes(taskType, this.taskType);
     }
 
+    isRunOnHolidays() {
+        return _.includes(this.days, 0);
+    }
 
-    isTaskRunToday(taskGroup?: TaskGroup, countryCode?: string) {
-        return !this.isPaused && taskGroup.isRunToday() && Planning.isRunToday(this.days, countryCode);
+    isTaskRunToday(taskGroup: TaskGroup, countryCode: string, ...tasksInTaskGroups: Task[]) {
+
+        const isTodayHoliday = new Holidays(countryCode).isHoliday();
+        const tasksMatchingClientAndRunOnHolidays = tasksInTaskGroups.filter((task) => {
+            return task.client && this.client && task.client.id === this.client.id && task.isRunOnHolidays();
+        });
+    
+        // a holiday task has kicked in for the same client
+        const blockedByHolidayPlan = isTodayHoliday && !this.isRunOnHolidays && tasksMatchingClientAndRunOnHolidays.length !== 0;
+        
+        const taskGroupRunToday = taskGroup.isRunToday;
+        const taskPlannedToRunToday = !this.isPaused && Planning.isRunToday(this.days, countryCode)
+
+        return taskGroupRunToday && taskPlannedToRunToday && !blockedByHolidayPlan;
     }
 
     reset(): Task {
@@ -337,10 +353,10 @@ export class Task extends BaseClass {
         return this;
     }
 
-    dailyReset(owner: User, taskGroup: TaskGroup, taskGroupStarted?: TaskGroupStarted): Task {
+    dailyReset(owner: User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted, ...tasksInTaskGroups: Task[]): Task {
 
         this.reset();
-        this.isRunToday = this.isTaskRunToday(taskGroup);
+        this.isRunToday = this.isTaskRunToday(taskGroup, owner.countryCode, ...tasksInTaskGroups);
         this.taskGroupStarted = taskGroupStarted;
 
         if (this.daysUntilExpire() < 0) {

@@ -37,6 +37,10 @@ export class User extends Parse.User {
         this.set(User._timeZone, timeZone);
     }
 
+    get countryCode() {
+        return 'dk'; // TODO: hardcoded
+    }
+
 }
 
 export class UserQuery {
