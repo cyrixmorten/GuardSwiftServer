@@ -33,10 +33,10 @@ export class ResetTasks {
                     const performReset = this.force || (!alreadyReset && taskGroup.resetNow(timeZone));
 
                     console.log('Resetting TaskGroup: ', taskGroup.name,
-                        'Is run today: ', taskGroup.isRunToday(),
-                        'Already reset today:', alreadyReset,
-                        'Hours until reset: ', taskGroup.hoursUntilReset(timeZone),
-                        'Perform reset: ', performReset);
+                        '\nIs run today: ', taskGroup.isRunToday(),
+                        '\nAlready reset today:', alreadyReset,
+                        '\nHours until reset: ', taskGroup.hoursUntilReset(timeZone),
+                        '\nPerform reset: ', performReset);
 
                     if (performReset) {
 
@@ -113,7 +113,7 @@ export class ResetTasks {
         const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
-            (task: Task) => task.dailyReset(owner, taskGroup, taskGroupStarted)), {useMasterKey: true});
+            (task: Task) => task.dailyReset(owner, taskGroup, taskGroupStarted, ...tasks)), {useMasterKey: true});
     }
 
 }
