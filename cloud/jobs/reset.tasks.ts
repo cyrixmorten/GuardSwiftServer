@@ -33,10 +33,10 @@ export class ResetTasks {
                     const performReset = this.force || (!alreadyReset && taskGroup.resetNow(timeZone));
 
                     console.log('Resetting TaskGroup: ', taskGroup.name,
-                        '\nIs run today: ', taskGroup.isRunToday(),
-                        '\nAlready reset today:', alreadyReset,
-                        '\nHours until reset: ', taskGroup.hoursUntilReset(timeZone),
-                        '\nPerform reset: ', performReset);
+                        'Is run today: ', taskGroup.isRunToday(),
+                        'Already reset today:', alreadyReset,
+                        'Hours until reset: ', taskGroup.hoursUntilReset(timeZone),
+                        'Perform reset: ', performReset);
 
                     if (performReset) {
 
