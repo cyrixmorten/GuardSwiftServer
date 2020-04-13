@@ -336,10 +336,10 @@ export class Task extends BaseClass {
         });
     
         // a holiday task has kicked in for the same client
-        const blockedByHolidayPlan = isTodayHoliday && !this.isRunOnHolidays && tasksMatchingClientAndRunOnHolidays.length !== 0;
+        const blockedByHolidayPlan = isTodayHoliday && !this.isRunOnHolidays() && tasksMatchingClientAndRunOnHolidays.length !== 0;
         
         const taskGroupRunToday = taskGroup.isRunToday;
-        const taskPlannedToRunToday = !this.isPaused && Planning.isRunToday(this.days, countryCode)
+        const taskPlannedToRunToday = !this.isPaused && Planning.isRunToday(this.days, countryCode);
 
         return taskGroupRunToday && taskPlannedToRunToday && !blockedByHolidayPlan;
     }
