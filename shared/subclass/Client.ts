@@ -24,6 +24,7 @@ export class Client extends BaseClass {
     static readonly _contacts = 'contacts';
 
     static readonly _useAltHeaderLogo = 'useAltHeaderLogo';
+    static readonly _useCustomPosition = 'useCustomPosition';
 
     static readonly _taskRadius = 'taskRadius';
 
@@ -116,6 +117,14 @@ export class Client extends BaseClass {
         this.set(Client._useAltHeaderLogo, useAltHeaderLogo);
     }
 
+    get useCustomPosition(): boolean {
+        return this.get(Client._useCustomPosition);
+    }
+
+    set useCustomPosition(useCustomPosition: boolean) {
+        this.set(Client._useCustomPosition, useCustomPosition);
+    }
+    
     get taskRadius(): TaskRadiusMap {
         return this.get(Client._taskRadius);
     }

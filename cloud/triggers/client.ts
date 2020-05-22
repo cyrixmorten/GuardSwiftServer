@@ -18,7 +18,7 @@ Parse.Cloud.beforeSave(Client, async (request: parse.Cloud.BeforeSaveRequest) =>
     const shouldUpdatePosition = [Client._cityName, Client._zipcode, Client._addressName, Client._addressNumber]
         .some(clientKey => _.includes(client.dirtyKeys(), clientKey));
 
-    if (shouldUpdatePosition) {
+    if (!client.useCustomPosition && shouldUpdatePosition) {
         client.position = await addAddressToClient(client);
     }
 });
