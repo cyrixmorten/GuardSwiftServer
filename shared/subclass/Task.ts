@@ -356,6 +356,7 @@ export class Task extends BaseClass {
     reset(date: Date): Task {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
+        
         if (!this.isWeekly || (this.isWeekly && date.getDay() === 1)) {
             this.timesArrived = 0;
         }

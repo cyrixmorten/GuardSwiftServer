@@ -12,6 +12,7 @@ export class TaskGroupStarted extends BaseClass {
     static readonly _taskGroup = 'taskGroup';
     static readonly _timeStarted = 'timeStarted';
     static readonly _timeEnded = 'timeEnded';
+    static readonly _resetDate = 'resetDate';
 
     constructor() {
         super(TaskGroupStarted.className);
@@ -57,6 +58,14 @@ export class TaskGroupStarted extends BaseClass {
         }
 
         this.set(TaskGroupStarted._timeEnded, date);
+    }
+
+    get resetDate(): Date {
+        return this.get(TaskGroupStarted._resetDate);
+    }
+
+    set resetDate(date: Date) {
+        this.set(TaskGroupStarted._resetDate, date);
     }
 
 

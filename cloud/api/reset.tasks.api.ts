@@ -13,11 +13,14 @@ Parse.Cloud.job(API_FUNCTION_RESET_TASKS, async (request) => {
 
 
 
-    await new ResetTasks({
-        force, 
-        taskGroupId,
-        fakeDate: moment(fakeDate, 'YYYY-MM-DD').toDate()
-    }).run();
-
+    try {
+        await new ResetTasks({
+            force, 
+            taskGroupId,
+            fakeDate: fakeDate ? moment(fakeDate, 'YYYY-MM-DD').toDate() : undefined
+        }).run();
+    } catch(e) {
+        console.error("Error while resetting tasks", e);
+    }
 });
 
