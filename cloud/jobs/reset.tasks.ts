@@ -60,23 +60,17 @@ export class ResetTasks {
 
         if (performReset) {
 
-            console.log("1")
             // set reset date on task group
             await this.resetTaskGroup(taskGroup);
 
-            console.log("2")
             // end task group started objects matching taskgroup
             const endedTaskGroups: TaskGroupStarted[] = await this.endTaskGroupsStarted(taskGroup);
 
-            console.log("3")
             // create new task group started if run today
             const newTaskGroupStarted = taskGroup.isRunToday() ? await this.createNewTaskGroupStarted(taskGroup) : undefined;
 
-            console.log("4")
             // reset all tasks matching task group
             await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
-
-            console.log("5")
 
             // close reports matching ended task groups that are still open
             _.forEach(endedTaskGroups, async (taskGroupStarted) => {
