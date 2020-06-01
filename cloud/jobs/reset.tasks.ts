@@ -8,15 +8,21 @@ import { ReportQuery } from '../../shared/subclass/Report';
 import moment = require('moment');
 import { ReportHelper } from '../utils/ReportHelper';
 
+export interface IResetOptions {
+    force: boolean;
+    fakeDate: Date;
+    taskGroupId: string;
+}
+
 /**
  * This task is run daily to create new TaskGroupStarted entries and reset the tasks within
  */
 export class ResetTasks {
 
-    private now_day: number;
+    private date: Date;
 
-    constructor(private force?: boolean, private taskGroupId?: string) {
-        this.now_day = new Date().getDay();
+    constructor(private options: Partial<IResetOptions>) {
+        this.date = this.options.fakeDate ?? new Date();
     }
 
 
@@ -25,12 +31,12 @@ export class ResetTasks {
 
             const timeZone = user.get(User._timeZone);
 
-            await new TaskGroupQuery().matchingOwner(user).matchingId(this.taskGroupId).build()
+            await new TaskGroupQuery().matchingOwner(user).matchingId(this.options.taskGroupId).build()
                 .each(async (taskGroup: TaskGroup) => {
 
-                    const alreadyReset = taskGroup.getResetDay() === this.now_day;
+                    const alreadyReset = taskGroup.getResetDay() === this.date.getDay();
 
-                    const performReset = this.force || (!alreadyReset && taskGroup.resetNow(timeZone));
+                    const performReset = this.options.force || (!alreadyReset && taskGroup.resetNow(timeZone));
 
                     console.log('Resetting TaskGroup: ', taskGroup.name,
                         'Is run today: ', taskGroup.isRunToday(),
@@ -89,7 +95,7 @@ export class ResetTasks {
 
     private async resetTaskGroup(taskGroup: TaskGroup) {
         taskGroup.resetDate = moment().hour(taskGroup.timeResetDate.getHours()).minutes(taskGroup.timeResetDate.getMinutes()).toDate();
-        taskGroup.createdDay = this.now_day;
+        taskGroup.createdDay = this.date.getDay();
         // Save day of creation to taskGroup
         await taskGroup.save(null, {useMasterKey: true});
     }
@@ -113,7 +119,7 @@ export class ResetTasks {
         const tasks = await new TaskQuery().matchingTaskGroup(taskGroup).build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
 
         return Parse.Object.saveAll(_.map<Task, Task>(tasks,
-            (task: Task) => task.dailyReset(owner, taskGroup, taskGroupStarted, ...tasks)), {useMasterKey: true});
+            (task: Task) => task.dailyReset(this.date, owner, taskGroup, taskGroupStarted, ...tasks)), {useMasterKey: true});
     }
 
 }

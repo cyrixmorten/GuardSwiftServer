@@ -35,7 +35,7 @@ Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
     }
 
     if (!task.existed()) {
-        task.reset();
+        task.reset(new Date());
 
         const client = await task.client.fetch({useMasterKey: true});
 
@@ -51,7 +51,7 @@ Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
         const taskGroup = await new TaskGroupQuery().include(TaskGroup._owner).build().first({useMasterKey: true});
         const taskGroupStarted = await new TaskGroupStartedQuery().activeMatchingTaskGroup(task.taskGroup).build().first({useMasterKey: true});
 
-        task.dailyReset(taskGroup.owner, taskGroup, taskGroupStarted);
+        task.dailyReset(new Date(), taskGroup.owner, taskGroup, taskGroupStarted);
     }
 
     // task is either newly created or pointed to another client

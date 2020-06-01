@@ -56,6 +56,7 @@ export class Task extends BaseClass {
     static readonly _endDate = 'endDate';
     static readonly _expireDate = 'expireDate';
     static readonly _isPaused = 'isPaused';
+    static readonly _isWeekly = 'isWeekly';
 
     static readonly _isRunToday = 'isRunToday';
     static readonly _geofenceRadius = 'geofenceRadius';
@@ -290,6 +291,14 @@ export class Task extends BaseClass {
         this.set(Task._isPaused, paused);
     }
 
+    get isWeekly(): Boolean {
+        return this.get(Task._isWeekly);
+    }
+
+    set isWeekly(weekly: Boolean) {
+        this.set(Task._isWeekly, weekly);
+    }
+
     daysUntilExpire(): number {
         const expireDate = this.expireDate;
         if (!expireDate) {
@@ -344,18 +353,20 @@ export class Task extends BaseClass {
         return taskGroupRunToday && taskPlannedToRunToday && !blockedByHolidayPlan;
     }
 
-    reset(): Task {
+    reset(date: Date): Task {
         this.status = TaskStatus.PENDING;
         this.guard = undefined;
-        this.timesArrived = 0;
+        if (!this.isWeekly || (this.isWeekly && date.getDay() === 1)) {
+            this.timesArrived = 0;
+        }
         this.knownStatus = [];
 
         return this;
     }
 
-    dailyReset(owner: User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted, ...tasksInTaskGroups: Task[]): Task {
+    dailyReset(date: Date, owner: User, taskGroup: TaskGroup, taskGroupStarted: TaskGroupStarted, ...tasksInTaskGroups: Task[]): Task {
 
-        this.reset();
+        this.reset(date);
         this.isRunToday = this.isTaskRunToday(taskGroup, owner.countryCode, ...tasksInTaskGroups);
         this.taskGroupStarted = taskGroupStarted;
 
