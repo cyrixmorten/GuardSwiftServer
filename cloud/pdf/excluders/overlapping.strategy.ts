@@ -1,4 +1,4 @@
-import { ExcludeStrategy } from './exclude.stragegy';
+import { ExcludeStrategy } from './exclude.strategy';
 import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
 import { TaskType, Task } from '../../../shared/subclass/Task';
 import * as moment from 'moment-timezone';
@@ -7,7 +7,8 @@ import _ = require('lodash');
 
 export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
 
-    run(eventLogs: EventLog[], tasks: Task[]): void {
+    run(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
+    
         const MIN_DIFF_MINUTES = 10;
 
         const arrivalEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.ARRIVE));
@@ -66,5 +67,7 @@ export class ExcludeOverlappingArrivalsStrategy extends ExcludeStrategy {
 
             }
         }
+
+        return eventLogs;
     }
 }

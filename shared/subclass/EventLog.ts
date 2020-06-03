@@ -5,6 +5,7 @@ import {Client} from "./Client";
 import * as _ from "lodash";
 import {TaskGroupStarted} from "./TaskGroupStarted";
 import { Report } from './Report';
+import { Guard } from './Guard';
 
 
 export enum TaskEvent {
@@ -32,6 +33,7 @@ export class EventLog extends BaseClass {
 
     static readonly _deviceTimestamp = 'deviceTimestamp';
 
+    static readonly _guard = 'guard';
     static readonly _guardName = 'guardName';
 
     static readonly _client = 'client';
@@ -55,6 +57,7 @@ export class EventLog extends BaseClass {
 
     static readonly _report = 'report';
 
+    private includeReason: string;
     private excludeReason: string;
 
     constructor(className?: string) {
@@ -112,6 +115,15 @@ export class EventLog extends BaseClass {
     set guardName(guardName: string) {
         this.set(EventLog._guardName, guardName);
     }
+
+    get guard(): Guard {
+        return this.get(EventLog._guard);
+    }
+
+    set guard(guard: Guard) {
+        this.set(EventLog._guard, guard);
+    }
+
 
     get activityName(): string {
         return this.get(EventLog._activityName);
@@ -299,7 +311,14 @@ export class EventLog extends BaseClass {
     setExcludeReason(reason: string) {
         this.excludeReason = reason;
     }
-}
+
+    getIncludeReason(): string {
+        return this.includeReason;
+    }
+
+    setIncludeReason(reason: string) {
+        this.includeReason = reason;
+    }}
 
 export class EventLogQuery extends QueryBuilder<EventLog> {
 

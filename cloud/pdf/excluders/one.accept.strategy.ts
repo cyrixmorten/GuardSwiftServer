@@ -1,11 +1,11 @@
-import { ExcludeStrategy } from './exclude.stragegy';
+import { ExcludeStrategy } from './exclude.strategy';
 import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
 import { Task } from '../../../shared/subclass/Task';
 import _ = require('lodash');
 
 export class OneAcceptStrategy extends ExcludeStrategy {
 
-    run(eventLogs: EventLog[], tasks: Task[]): void {
+    run(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
         let acceptEvents: EventLog[] = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ACCEPT);
 
@@ -28,7 +28,8 @@ export class OneAcceptStrategy extends ExcludeStrategy {
             _.difference(eventLogs, _.pull(acceptEvents, acceptEventToKeep)).forEach((event) => {
                 event.setExcludeReason(`Vis kun én accept per rapport`)
             })
-       
         }
+        
+        return eventLogs;
     }
 }

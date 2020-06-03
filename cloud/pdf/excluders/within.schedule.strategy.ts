@@ -1,11 +1,11 @@
-import { ExcludeStrategy } from './exclude.stragegy';
+import { ExcludeStrategy } from './exclude.strategy';
 import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
 import { TaskType, Task } from '../../../shared/subclass/Task';
 import _ = require('lodash');
 
 export class PreferArrivalsWithinScheduleStrategy extends ExcludeStrategy {
 
-    run(eventLogs: EventLog[], tasks: Task[]): void {
+    run(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
         const regularOrRaidTasks = tasks.filter((task) => {
             return task.matchingTaskType(TaskType.REGULAR, TaskType.RAID);
@@ -50,5 +50,7 @@ export class PreferArrivalsWithinScheduleStrategy extends ExcludeStrategy {
             // remove more within schedule if there still are too many arrival events
             pruneExtraArrivals(arrievedWithinSchedule, true);
         }
+
+        return eventLogs;
     }
 }

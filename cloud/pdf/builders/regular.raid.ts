@@ -275,18 +275,36 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
     organizeEvents(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
         const taskEventLogs = ReportEventOrganizers.sortByTime(ReportEventFilters.reportEventsMatchingTasks(eventLogs, tasks))
-
+        
         const excludeStrategies = [
             new OneAcceptStrategy(this.timeZone),
             new ExcludeOverlappingArrivalsStrategy(this.timeZone),
             new PreferArrivalsWithinScheduleStrategy(this.timeZone)
         ];
-        
-        excludeStrategies.forEach((excludeStrategy) => {
-            excludeStrategy.run(ReportEventFilters.notExcludedEvents(taskEventLogs), tasks);
+
+
+        const groupEventByGuard = _.groupBy(taskEventLogs, (event) => event.guard.id);
+
+        // Do per-guard exclusion of arrivals
+        const excludeEventsByGuard = _.mapValues(groupEventByGuard, (events) => {
+            excludeStrategies.forEach((excludeStrategy) => {
+                excludeStrategy.run(ReportEventFilters.notExcludedEvents(events), tasks);
+            });
+
+            const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE) && !event.getExcludeReason());
+
+            firstIncludedArrival.setIncludeReason("Første ankomst for denne vægter");
+
+            return events;
         });
 
-        return ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
+        // Final sweep across all events
+        const values = new PreferArrivalsWithinScheduleStrategy(this.timeZone).run(
+            _.filter(_.flatten(_.values(excludeEventsByGuard)), (event) => !event.matchingTaskEvent(TaskEvent.ARRIVE) || !!event.getIncludeReason()),
+            tasks
+        )
+
+        return ReportEventOrganizers.moveFirstArrivalToTop(values);
     }
 
 
