@@ -312,13 +312,18 @@ export class EventLog extends BaseClass {
         this.excludeReason = reason;
     }
 
+    isMarkedToBeIncludedInReport(): boolean {
+        return !!this.includeReason;
+    }
+
     getIncludeReason(): string {
         return this.includeReason;
     }
 
     setIncludeReason(reason: string) {
         this.includeReason = reason;
-    }}
+    }
+}
 
 export class EventLogQuery extends QueryBuilder<EventLog> {
 

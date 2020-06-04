@@ -300,7 +300,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         // Final sweep across all events
         const values = new PreferArrivalsWithinScheduleStrategy(this.timeZone).run(
-            _.filter(_.flatten(_.values(excludeEventsByGuard)), (event) => !event.matchingTaskEvent(TaskEvent.ARRIVE) || !!event.getIncludeReason()),
+            _.flatten(_.values(excludeEventsByGuard)),
             tasks
         )
 

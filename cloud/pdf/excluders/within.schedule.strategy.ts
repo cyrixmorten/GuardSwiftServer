@@ -16,6 +16,7 @@ export class PreferArrivalsWithinScheduleStrategy extends ExcludeStrategy {
         }
     
         let targetSupervisions = _.sum(_.map(tasks, (task) => task.supervisions));
+
         // reverse to throw out latest arrivals
         let arrivalEvents = _.reverse(_.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ARRIVE));
         
@@ -30,7 +31,10 @@ export class PreferArrivalsWithinScheduleStrategy extends ExcludeStrategy {
                 return _.compact(_.forEach(events, (arriveEvent: EventLog) => {
                     const withinSchedule = arriveEvent.withinSchedule;
 
-                    if ((ignoreSchedule || !withinSchedule) && pruneCount !== extraArrivals) {
+
+                    const prune = (ignoreSchedule || !withinSchedule) && pruneCount !== extraArrivals;
+
+                    if (prune && !arriveEvent.isMarkedToBeIncludedInReport()) {
                         
                         if (withinSchedule) {
                             arriveEvent.setExcludeReason(`Flere ankomster end planlagt for tilsyn`);
