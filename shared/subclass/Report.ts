@@ -5,6 +5,7 @@ import { Client } from "./Client";
 import { TaskGroupStarted } from './TaskGroupStarted';
 import { BaseClass } from './BaseClass';
 import * as _ from 'lodash';
+import { TaskGroup } from './TaskGroup';
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -17,7 +18,8 @@ export class Report extends BaseClass {
     static readonly _task = 'task'; // TODO backwards compatibility - replace with tasks array entry
     static readonly _tasks = 'tasks';
     static readonly _taskType = 'taskType';
-    static readonly _tasksGroupStarted = 'taskGroupStarted';
+    static readonly _taskGroup = 'taskGroup';
+    static readonly _taskGroupStarted = 'taskGroupStarted';
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
@@ -169,7 +171,8 @@ export class Report extends BaseClass {
     }
 
     set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.set(EventLog._taskGroupStarted, taskGroupStarted);
+        this.set(Report._taskGroupStarted, taskGroupStarted);
+        this.set(Report._taskGroup, taskGroupStarted.taskGroup);
     }
 
 }
@@ -213,8 +216,13 @@ export class ReportQuery extends QueryBuilder<Report> {
         return this;
     }
 
+    matchingTaskGroup(taskGroup: TaskGroup) {
+        this.query.equalTo(Report._taskGroup, taskGroup);
+        return this;
+    }
+
     matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
+        this.query.equalTo(Report._taskGroupStarted, taskGroupStarted);
         return this;
     }
 
