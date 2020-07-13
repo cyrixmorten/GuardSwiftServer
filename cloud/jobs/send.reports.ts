@@ -46,14 +46,34 @@ export class SendReports {
             this.messageCallback(`Sending task group reports for user: ${user.getUsername()} and group ${taskGroupStarted.name}`);
 
             try {
+
                 const reportSettings = await this.getReportSettings(user, TaskType.REGULAR);
                 const reports = await this.findTaskGroupStartedReports(user, taskGroupStarted, force)
+
+                const uniqClients = _.uniq(reports.map(report => report.client));
+                _.forEach(uniqClients, async (client) => {
+                    await this.closeReportsIfLastActiveTaskGroup(client, taskGroupStarted);
+                })
 
                 return this.sendReports(reports, reportSettings);
             } catch (e) {
                 console.error(`Failed to send alarm reports for user ${user.getUsername()}`, e);
             }
         });
+    }
+
+    private async closeReportsIfLastActiveTaskGroup(client: Client, taskGroupStarted: TaskGroupStarted) {
+        const firstAndLastTaskGroupStarted = await ReportHelper.getFirstAndLastTaskGroupStarted(client);
+        
+        const matchingLastTaskGroupStarted = firstAndLastTaskGroupStarted.last.id === taskGroupStarted.id;
+
+        console.log("matchingLastTaskGroupStarted", taskGroupStarted.name, matchingLastTaskGroupStarted);
+
+        if (matchingLastTaskGroupStarted) {
+            // close reports matching ended task groups that are still open
+            const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
+            await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
+        }
     }
 
     private runForEachActiveUser(callback: (user: Parse.User) => Promise<any>) {

@@ -9,6 +9,15 @@ import * as moment from 'moment';
 
 export class ReportHelper {
 
+    public static async getFirstAndLastTaskGroupStarted(client) {
+        const taskGroupsStarted: TaskGroupStarted[] = await ReportHelper.getSortedTaskGroupsStarted(client);
+
+        return {
+            first: _.head(taskGroupsStarted),
+            last: _.head(_.reverse(taskGroupsStarted))
+        }
+    }
+
     public static async findActiveReport(client: Client, task: Task, taskType: TaskType): Promise<Report> {
         let reportQuery = new ReportQuery()
             .isSent(false)
@@ -16,17 +25,13 @@ export class ReportHelper {
 
         if (_.includes([TaskType.REGULAR, TaskType.RAID], taskType)) {
             // Append all task events to the same report
-            const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
-            const taskGroupsStarted: TaskGroupStarted[] = await ReportHelper.getSortedTaskGroupsStarted(tasks);
-
-            const firstTaskGroupStarted = _.head(taskGroupsStarted);
-            const lastTaskGroupStarted = _.head(_.reverse(taskGroupsStarted));
+            const activeTaskGroupsStarted = await ReportHelper.getFirstAndLastTaskGroupStarted(client);
 
             // Look for existing report created after the first possible task group started
-            reportQuery.createdAfterObject(firstTaskGroupStarted);
+            reportQuery.createdAfterObject(activeTaskGroupsStarted.first);
 
-            if (lastTaskGroupStarted.timeEnded) {
-                reportQuery.lessThan(Report._createdAt, lastTaskGroupStarted.timeEnded);
+            if (activeTaskGroupsStarted.last.timeEnded) {
+                reportQuery.lessThan(Report._createdAt, activeTaskGroupsStarted.last.timeEnded);
             }
         } else {
             // Simply write one report per task
@@ -103,7 +108,10 @@ export class ReportHelper {
      * @param tasks
      * @returns TaskGroupStarted[] 
      */
-    public static async getSortedTaskGroupsStarted(tasks: Task[]): Promise<TaskGroupStarted[]> {
+    private static async getSortedTaskGroupsStarted(client: Client): Promise<TaskGroupStarted[]> {
+
+        const tasks: Task[] = await TaskQueries.getAllRunTodayMatchingClient(client);
+
         // A unique list of all started task groups matching client tasks
         const taskGroupStartedPointers = _.compact(_.uniq(_.map(tasks, task => {
             return task.taskGroupStarted;

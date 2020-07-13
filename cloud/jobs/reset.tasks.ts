@@ -73,12 +73,8 @@ export class ResetTasks {
             // reset all tasks matching task group
             await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
 
-            
-            _.forEach(endedTaskGroups, async (taskGroupStarted) => {
-                // close reports matching ended task groups that are still open
-                const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
-                await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
 
+            _.forEach(endedTaskGroups, async (taskGroupStarted) => {
                 // send out reports for closed task group
                 await new SendReports().sendTaskGroupStartedReports(taskGroupStarted);
             });
