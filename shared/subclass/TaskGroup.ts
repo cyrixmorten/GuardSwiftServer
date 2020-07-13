@@ -81,9 +81,6 @@ export class TaskGroup extends BaseClass {
         return this.getResetHour(timeZone) - new Date().getHours();
     }
 
-    /**
-     * Is the current hour in time equal to or less than resetTime
-     */
     resetNow(timeZone: string): boolean {
         return this.hoursUntilReset(timeZone) <= 0;
     }

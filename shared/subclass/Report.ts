@@ -19,7 +19,9 @@ export class Report extends BaseClass {
     static readonly _tasks = 'tasks';
     static readonly _taskType = 'taskType';
     static readonly _taskGroup = 'taskGroup';
+    static readonly _taskGroups = 'taskGroups';
     static readonly _taskGroupStarted = 'taskGroupStarted';
+    static readonly _taskGroupsStarted = 'taskGroupsStarted';
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
@@ -181,6 +183,23 @@ export class Report extends BaseClass {
     set taskGroup(taskGroup: TaskGroup) {
         this.set(Report._taskGroup, taskGroup);
     }
+
+    get taskGroups(): TaskGroup[] {
+        return this.get(Report._taskGroups);
+    }
+
+    addTaskGroup(taskGroup: TaskGroup) {
+        this.addUnique(Report._taskGroups, taskGroup)
+    }
+
+    get taskGroupsStarted(): TaskGroupStarted[] {
+        return this.get(Report._taskGroupsStarted);
+    }
+
+    addTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        this.addUnique(Report._taskGroupsStarted, taskGroupStarted)
+    }
+
 }
 
 export class ReportQuery extends QueryBuilder<Report> {
@@ -223,12 +242,12 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     matchingTaskGroup(taskGroup: TaskGroup) {
-        this.query.equalTo(Report._taskGroup, taskGroup);
+        this.query.equalTo(Report._taskGroups, taskGroup);
         return this;
     }
 
     matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.query.equalTo(Report._taskGroupStarted, taskGroupStarted);
+        this.query.equalTo(Report._taskGroupsStarted, taskGroupStarted);
         return this;
     }
 

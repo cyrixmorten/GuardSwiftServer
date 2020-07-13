@@ -3,23 +3,17 @@ import * as _ from 'lodash';
 import { SendReports } from '../jobs/send.reports';
 
 
-export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
+export const API_FUNCTION_SEND_ALARM_REPORTS = "sendAlarmReports";
 
 
-Parse.Cloud.job(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
+Parse.Cloud.job(API_FUNCTION_SEND_ALARM_REPORTS,  async (request) => {
 
     const { params, message: msgCallback } = request;
 
     const {
-        force,
-        taskTypes,
         timeBack,
     } = params;
 
-
-    if (!_.isArray(taskTypes)) {
-        throw 'Missing taskTypes param (must be array)';
-    }
 
     if (timeBack) {
         if (!timeBack.amount || !timeBack.unit) {
@@ -42,10 +36,8 @@ Parse.Cloud.job(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
 
         return moment().subtract(amount, unit).toDate();
     };
-
-    let toDate = () => moment().toDate();
-
-    await new SendReports(msgCallback).sendToAllUsers(fromDate(), toDate(), taskTypes, force);
+    
+    await new SendReports(msgCallback).sendAlarmReports(fromDate())
 });
 
 
