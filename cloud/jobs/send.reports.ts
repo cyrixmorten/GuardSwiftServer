@@ -72,8 +72,10 @@ export class SendReports {
         }
 
         if (!reportSettings) {
-            reportSettings = await new ReportSettingsQuery().matchingOwner(report.owner)
-                .matchingTaskType(report.taskType).build().first({useMasterKey: true});
+            reportSettings = await new ReportSettingsQuery()
+                .matchingOwner(report.owner)
+                .matchingTaskType(report.taskType).build()
+                .first({useMasterKey: true});
         }
 
         return Promise.all([
@@ -114,6 +116,7 @@ export class SendReports {
 
         const reportQueryBuilder: ReportQuery = new ReportQuery()
             .hasClient()
+            .isClosed(true)
             .matchingOwner(user)
             .matchingTaskGroupStarted(taskGroupStarted)
             .include(...this.getReportIncludes());
