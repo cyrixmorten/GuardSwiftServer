@@ -167,14 +167,20 @@ export class Report extends BaseClass {
     }
 
     get taskGroupStarted(): TaskGroupStarted {
-        return this.get(EventLog._taskGroupStarted);
+        return this.get(Report._taskGroupStarted);
     }
 
     set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
         this.set(Report._taskGroupStarted, taskGroupStarted);
-        this.set(Report._taskGroup, taskGroupStarted.taskGroup);
     }
 
+    get taskGroup(): TaskGroup {
+        return this.get(Report._taskGroup);
+    }
+
+    set taskGroup(taskGroup: TaskGroup) {
+        this.set(Report._taskGroup, taskGroup);
+    }
 }
 
 export class ReportQuery extends QueryBuilder<Report> {

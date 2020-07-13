@@ -17,7 +17,7 @@ import { Dictionary } from 'lodash';
 export class SendReports {
 
     // if called with message then this class has been constructed via a Cloud Code job
-    constructor(private message: (response: any) => void = _.noop) {
+    constructor(private messageCallback: (response: any) => void = _.noop) {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     }
 
@@ -26,12 +26,12 @@ export class SendReports {
         query.equalTo(User._active, true);
         return query.each((user: Parse.User) => {
 
-            this.message(`Sending reports for user: ${user.getUsername()}`);
+            this.messageCallback(`Sending reports for user: ${user.getUsername()}`);
 
             try {
                 return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
             } catch (e) {
-                this.message(`Error while sending to user: ${user.getUsername()}\n\n${e.message}`);
+                this.messageCallback(`Error while sending to user: ${user.getUsername()}\n\n${e.message}`);
 
                 console.error(e);
             }
@@ -139,7 +139,7 @@ export class SendReports {
 
 
     private getReportIncludes(): Array<keyof Report> {
-        return [Report._owner, Report._tasksGroupStarted, Report._client, `${Report._client}.${Client._contacts}` as any]
+        return [Report._owner, Report._taskGroupStarted, Report._client, `${Report._client}.${Client._contacts}` as any]
     }
 
     private async sendToClients(report: Report, reportSettings: ReportSettings): Promise<any> {

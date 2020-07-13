@@ -8,7 +8,7 @@ export const API_FUNCTION_SEND_REPORTS_TO_CLIENTS = "sendReportsToClients";
 
 Parse.Cloud.job(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
 
-    const { params, message } = request;
+    const { params, message: msgCallback } = request;
 
     const {
         force,
@@ -45,7 +45,7 @@ Parse.Cloud.job(API_FUNCTION_SEND_REPORTS_TO_CLIENTS,  async (request) => {
 
     let toDate = () => moment().toDate();
 
-    await new SendReports(message).sendToAllUsers(fromDate(), toDate(), taskTypes, force);
+    await new SendReports(msgCallback).sendToAllUsers(fromDate(), toDate(), taskTypes, force);
 });
 
 
