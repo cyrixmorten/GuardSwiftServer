@@ -293,7 +293,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
             const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE) && !event.getExcludeReason());
 
-            firstIncludedArrival.setIncludeReason("Første ankomst for denne vægter");
+            if (firstIncludedArrival) {
+                firstIncludedArrival.setIncludeReason("Første ankomst for denne vægter");
+            }
 
             return events;
         });
