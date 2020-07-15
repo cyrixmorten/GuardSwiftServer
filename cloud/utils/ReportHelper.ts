@@ -156,7 +156,7 @@ export class ReportHelper {
         return report
     }
 
-    public static async tasksMatchingReport(report: Report, includes: Array<keyof Task> = []): Promise<Task[]> {
+    public static async tasksMatchingReport(report: Report, ...includes: Array<keyof Task>): Promise<Task[]> {
         const client: Client = await report.client.fetch({useMasterKey: true});
 
         const taskTypes = report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID) ? [TaskType.REGULAR, TaskType.RAID] : [];

@@ -50,11 +50,6 @@ export class SendReports {
                 const reportSettings = await this.getReportSettings(user, TaskType.REGULAR);
                 const reports = await this.findTaskGroupStartedReports(user, taskGroupStarted, force)
 
-                const uniqClients = _.uniq(reports.map(report => report.client));
-                _.forEach(uniqClients, async (client) => {
-                    await this.closeReportsIfLastActiveTaskGroup(client, taskGroupStarted);
-                })
-
                 return this.sendReports(reports, reportSettings);
             } catch (e) {
                 console.error(`Failed to send alarm reports for user ${user.getUsername()}`, e);
@@ -62,19 +57,6 @@ export class SendReports {
         });
     }
 
-    private async closeReportsIfLastActiveTaskGroup(client: Client, taskGroupStarted: TaskGroupStarted) {
-        const firstAndLastTaskGroupStarted = await ReportHelper.getFirstAndLastTaskGroupStarted(client);
-        
-        const matchingLastTaskGroupStarted = firstAndLastTaskGroupStarted.last.id === taskGroupStarted.id;
-
-        console.log("matchingLastTaskGroupStarted", taskGroupStarted.name, matchingLastTaskGroupStarted);
-
-        if (matchingLastTaskGroupStarted) {
-            // close reports matching ended task groups that are still open
-            const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
-            await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
-        }
-    }
 
     private runForEachActiveUser(callback: (user: Parse.User) => Promise<any>) {
         const query = new Parse.Query(Parse.User);
@@ -137,13 +119,11 @@ export class SendReports {
         const reportQueryBuilder: ReportQuery = new ReportQuery()
             .hasClient()
             .isClosed(true)
+            .isSent(force ? undefined : false)
             .matchingOwner(user)
             .matchingTaskGroupStarted(taskGroupStarted)
             .include(...this.getReportIncludes());
 
-        if (!force) {
-            reportQueryBuilder.isSent(false);
-        }
 
         return reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
     }

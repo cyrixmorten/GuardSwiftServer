@@ -6,6 +6,7 @@ import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 import * as _ from "lodash";
 import { ReportHelper } from '../utils/ReportHelper';
+import { Task } from '../../shared/subclass/Task';
 
 Parse.Cloud.beforeSave(Report, async (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
@@ -43,7 +44,7 @@ const addTaskGroup = async (report: Report) => {
 
 const addTaskGroups = async (report: Report) => {
     if (!report.has(Report._taskGroups)) {
-        const tasks = await ReportHelper.tasksMatchingReport(report);
+        const tasks = await ReportHelper.tasksMatchingReport(report, Task._taskGroup, Task._taskGroupStarted);
 
         console.log("tasks", tasks);
 
