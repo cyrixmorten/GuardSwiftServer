@@ -155,4 +155,23 @@ export class ReportHelper {
         
         return report
     }
+
+    public static async tasksMatchingReport(report: Report, includes: Array<keyof Task> = []): Promise<Task[]> {
+        const client: Client = await report.client.fetch({useMasterKey: true});
+
+        const taskTypes = report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID) ? [TaskType.REGULAR, TaskType.RAID] : [];
+
+        const taskQueries = taskTypes.map(taskType => {
+            return new TaskQuery()
+                .matchingClient(client)
+                .include(...includes)
+                .matchingTaskType(taskType)
+                .build();
+        });
+
+        const allTasksMatchingClient = await Promise.all(taskQueries.map(taskQuery => taskQuery.find({useMasterKey: true})));
+        
+
+        return _.flatten(allTasksMatchingClient);
+    }
 }

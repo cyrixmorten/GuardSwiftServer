@@ -4,8 +4,8 @@ import { BeforeSave } from './BeforeSave';
 import * as parse from "parse";
 import { TaskGroup } from '../../shared/subclass/TaskGroup';
 import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
-import { TaskQuery, Task, TaskType } from '../../shared/subclass/Task';
 import * as _ from "lodash";
+import { ReportHelper } from '../utils/ReportHelper';
 
 Parse.Cloud.beforeSave(Report, async (request: parse.Cloud.BeforeSaveRequest) => {
     BeforeSave.setArchiveFalse(request);
@@ -43,22 +43,13 @@ const addTaskGroup = async (report: Report) => {
 
 const addTaskGroups = async (report: Report) => {
     if (!report.has(Report._taskGroups)) {
-        const client: Client = await report.client.fetch({useMasterKey: true});
+        const tasks = await ReportHelper.tasksMatchingReport(report);
 
-        const taskTypes = report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID) ? [TaskType.REGULAR, TaskType.RAID] : [];
+        console.log("tasks", tasks);
 
-        const taskQueries = taskTypes.map(taskType => {
-            return new TaskQuery()
-                .matchingClient(client)
-                .matchingTaskType(taskType)
-                .build();
-        });
-
-        const allTasksMatchingClient = await Promise.all(taskQueries.map(taskQuery => taskQuery.find({useMasterKey: true})));
-        
-        _.flatten(allTasksMatchingClient).forEach(task => {
+        _.forEach(tasks, async (task) => {
             report.addTaskGroup(TaskGroup.createWithoutData(task.taskGroup.id));
             report.addTaskGroupStarted(TaskGroupStarted.createWithoutData(task.taskGroupStarted.id));
-        })
+        }); 
     }
 }
