@@ -237,10 +237,7 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     isSent(val: boolean): ReportQuery {
-        if (_.isBoolean(val)) {
-            this.query.equalTo(Report._isSent, val);
-        }
-        
+        this.query.equalTo(Report._isSent, val);
         return this;
     }
 
