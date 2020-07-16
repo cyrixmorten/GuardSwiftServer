@@ -5,6 +5,7 @@ import { Client } from "./Client";
 import { TaskGroupStarted } from './TaskGroupStarted';
 import { BaseClass } from './BaseClass';
 import * as _ from 'lodash';
+import { TaskGroup } from './TaskGroup';
 
 /**
  * When a new report is created it copies attributes from the eventlog that created the report, hence extending
@@ -17,7 +18,10 @@ export class Report extends BaseClass {
     static readonly _task = 'task'; // TODO backwards compatibility - replace with tasks array entry
     static readonly _tasks = 'tasks';
     static readonly _taskType = 'taskType';
-    static readonly _tasksGroupStarted = 'taskGroupStarted';
+    static readonly _taskGroup = 'taskGroup';
+    static readonly _taskGroups = 'taskGroups';
+    static readonly _taskGroupStarted = 'taskGroupStarted';
+    static readonly _taskGroupsStarted = 'taskGroupsStarted';
     static readonly _eventLogs = 'eventLogs';
     static readonly _eventCount = 'eventCount';
 
@@ -165,11 +169,35 @@ export class Report extends BaseClass {
     }
 
     get taskGroupStarted(): TaskGroupStarted {
-        return this.get(EventLog._taskGroupStarted);
+        return this.get(Report._taskGroupStarted);
     }
 
     set taskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.set(EventLog._taskGroupStarted, taskGroupStarted);
+        this.set(Report._taskGroupStarted, taskGroupStarted);
+    }
+
+    get taskGroup(): TaskGroup {
+        return this.get(Report._taskGroup);
+    }
+
+    set taskGroup(taskGroup: TaskGroup) {
+        this.set(Report._taskGroup, taskGroup);
+    }
+
+    get taskGroups(): TaskGroup[] {
+        return this.get(Report._taskGroups);
+    }
+
+    addTaskGroup(taskGroup: TaskGroup) {
+        this.addUnique(Report._taskGroups, taskGroup)
+    }
+
+    get taskGroupsStarted(): TaskGroupStarted[] {
+        return this.get(Report._taskGroupsStarted);
+    }
+
+    addTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
+        this.addUnique(Report._taskGroupsStarted, taskGroupStarted)
     }
 
 }
@@ -209,12 +237,19 @@ export class ReportQuery extends QueryBuilder<Report> {
     }
 
     isSent(val: boolean): ReportQuery {
-        this.query.equalTo(Report._isSent, val);
+        if (_.isBoolean(val)) {
+            this.query.equalTo(Report._isSent, val);
+        }
+        return this;
+    }
+
+    matchingTaskGroup(taskGroup: TaskGroup) {
+        this.query.equalTo(Report._taskGroups, taskGroup);
         return this;
     }
 
     matchingTaskGroupStarted(taskGroupStarted: TaskGroupStarted) {
-        this.query.equalTo(Report._tasksGroupStarted, taskGroupStarted);
+        this.query.equalTo(Report._taskGroupsStarted, taskGroupStarted);
         return this;
     }
 

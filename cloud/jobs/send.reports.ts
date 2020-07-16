@@ -12,46 +12,72 @@ import { User } from '../../shared/subclass/User';
 import { ReportHelper } from '../utils/ReportHelper';
 import sgMail = require("@sendgrid/mail");
 import moment = require('moment');
-import { Dictionary } from 'lodash';
+import { TaskGroupStarted } from '../../shared/subclass/TaskGroupStarted';
 
 export class SendReports {
 
     // if called with message then this class has been constructed via a Cloud Code job
-    constructor(private message: (response: any) => void = _.noop) {
+    constructor(private messageCallback: (response: any) => void = _.noop) {
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     }
 
-    async sendToAllUsers(fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
-        let query = new Parse.Query(Parse.User);
-        query.equalTo(User._active, true);
-        return query.each((user: Parse.User) => {
+    async sendAlarmReports(fromDate: Date) {
+        return this.runForEachActiveUser(async (user: Parse.User) => {
 
-            this.message(`Sending reports for user: ${user.getUsername()}`);
+            this.messageCallback(`Sending alarms for user: ${user.getUsername()}`);
 
             try {
-                return this.sendAllMatchingTaskTypes(user, fromDate, toDate, taskTypes, force);
+                const reportSettings = await this.getReportSettings(user, TaskType.ALARM);
+                const reports = await this.findAlarmReports(user, fromDate);
+
+                return Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
             } catch (e) {
-                this.message(`Error while sending to user: ${user.getUsername()}\n\n${e.message}`);
-
-                console.error(e);
+                console.error(`Failed to send alarm reports for user ${user.getUsername()}`, e);
             }
+        });
+    }
+
+    async sendTaskGroupStartedReports(taskGroupStarted: TaskGroupStarted, force: boolean = false) {
+
+        taskGroupStarted = await taskGroupStarted.fetch({useMasterKey: true});
+
+        return this.runForEachActiveUser(async (user: Parse.User) => {
+
+            this.messageCallback(`Sending task group reports for user: ${user.getUsername()} and group ${taskGroupStarted.name}`);
+
+            try {
+
+                const reportSettings = await this.getReportSettings(user, TaskType.REGULAR);
+                const reports = await this.findTaskGroupStartedReports(user, taskGroupStarted, force)
+
+                return this.sendReports(reports, reportSettings);
+            } catch (e) {
+                console.error(`Failed to send alarm reports for user ${user.getUsername()}`, e);
+            }
+        });
+    }
 
 
-        }, {useMasterKey: true})
+    private runForEachActiveUser(callback: (user: Parse.User) => Promise<any>) {
+        const query = new Parse.Query(Parse.User);
+        query.equalTo(User._active, true);
+        return query.each(callback, {useMasterKey: true});
     }
 
     async send(report: Report, reportSettings?: ReportSettings): Promise<any> {
 
-        // TODO parse-server >= 2.0.2 use report.fetchWithInclude
         if (!report.owner || !report.taskGroupStarted || !report.client) {
-            report = await new ReportQuery().matchingId(report.id)
-                .include(...this.getReportIncludes()).build()
-                .first({useMasterKey: true});
+            report = await report.fetchWithInclude(
+                this.getReportIncludes(),
+                {useMasterKey: true}
+            )
         }
 
         if (!reportSettings) {
-            reportSettings = await new ReportSettingsQuery().matchingOwner(report.owner)
-                .matchingTaskType(report.taskType).build().first({useMasterKey: true});
+            reportSettings = await new ReportSettingsQuery()
+                .matchingOwner(report.owner)
+                .matchingTaskType(report.taskType).build()
+                .first({useMasterKey: true});
         }
 
         return Promise.all([
@@ -60,24 +86,8 @@ export class SendReports {
         ]);
     }
 
-    private async sendAllMatchingTaskTypes(user: Parse.User, fromDate: Date, toDate: Date, taskTypes: TaskType[], force: boolean = false) {
-        return Promise.all(_.map(taskTypes,  async (taskType: TaskType) => {
-            // wrap try-catch to ignore errors
-            // missing reportSettings for a user should not prevent remaining reports from being sent
-            try {
-                await this.sendAllMatchingTaskType(user, fromDate, toDate, taskType, force);
-            } catch (e) {
-                console.error(e);
-                throw new Error(`Failed to send ${taskType} reports for user ${user.getUsername()}`);
-            }
-        }));
-    }
-
-    private async sendAllMatchingTaskType(user: Parse.User, fromDate: Date, toDate: Date, taskType: TaskType, force: boolean = false) {
-
-        console.log('Sending reports for user:', user.get('username'), 'taskType', taskType);
-
-        let reportSettings: ReportSettings = await new ReportSettingsQuery()
+    private async getReportSettings(user: Parse.User, taskType: TaskType) {
+        const reportSettings: ReportSettings = await new ReportSettingsQuery()
             .matchingOwner(user)
             .matchingTaskType(taskType)
             .build().first({useMasterKey: true});
@@ -86,60 +96,48 @@ export class SendReports {
             throw new Error(`Missing reportSettings for user: ${user.get('username')} and taskType: ${taskType}`)
         }
 
-        // regular/raid
-        let reportQueryBuilder: ReportQuery = new ReportQuery()
-            .hasClient()
-            .matchingOwner(user)
-            .matchingTaskType(taskType);
-
-
-        if (taskType === TaskType.ALARM) {
-            reportQueryBuilder
-                .lessThan('timeEnded', fromDate)
-                .lessThan('updatedAt', fromDate);
-        } else {
-            reportQueryBuilder
-                .createdAfter(fromDate)
-                .createdBefore(toDate);
-        }
-
-        if (!force) {
-            reportQueryBuilder.isSent(false);
-        }
-
-        reportQueryBuilder.include(...this.getReportIncludes());
-
-        const reports = await reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
-
-        if (taskType === TaskType.ALARM) {
-            return Promise.all(_.map(reports, (report) => this.send(report, reportSettings)))
-        }
-
-        const groupedByTaskGroup: Dictionary<Report[]> = _.groupBy(reports, (report: Report) => report.taskGroupStarted.name);
-
-        await this.sendReportsForTaskGroup(groupedByTaskGroup, reportSettings);
+        return reportSettings;
     }
 
-    private async sendReportsForTaskGroup(groupedByTaskGroup: Dictionary<Report[]>, reportSettings?: ReportSettings) {
-        const sortedGroupNames = _.keys(groupedByTaskGroup).sort().reverse();
+    private async findAlarmReports(user: Parse.User, fromDate: Date) {
+        const reportQueryBuilder: ReportQuery = new ReportQuery()
+            .hasClient()
+            .matchingOwner(user)
+            .matchingTaskType(TaskType.ALARM)
+            .include(...this.getReportIncludes())
+            .lessThan('timeEnded', fromDate)
+            .lessThan('updatedAt', fromDate);
 
-        for (const groupName of sortedGroupNames) {
-            await this.sendReports(groupedByTaskGroup[groupName], reportSettings);
+        return reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
+    }
+
+    private async findTaskGroupStartedReports(user: Parse.User, taskGroupStarted: TaskGroupStarted, force: boolean = false) {
+        if (!taskGroupStarted.timeEnded) {
+            throw new Error("Cannot send reports for task group that is still active")
         }
+
+        const reportQueryBuilder: ReportQuery = new ReportQuery()
+            .hasClient()
+            .isClosed(true)
+            .isSent(force ? undefined : false)
+            .matchingOwner(user)
+            .matchingTaskGroupStarted(taskGroupStarted)
+            .include(...this.getReportIncludes());
+
+
+        return reportQueryBuilder.build().limit(Number.MAX_SAFE_INTEGER).find({useMasterKey: true});
     }
 
     private async sendReports(reports: Report[], reportSettings?: ReportSettings) {
         const sortedReports = _.sortBy(reports, (report: Report) => report.client.idAndName).reverse();
 
         for (const report of sortedReports) {
-            console.log(report.client.idAndName);
             await this.send(report, reportSettings);
         }
     }
 
-
     private getReportIncludes(): Array<keyof Report> {
-        return [Report._owner, Report._tasksGroupStarted, Report._client, `${Report._client}.${Client._contacts}` as any]
+        return [Report._owner, Report._taskGroupStarted, Report._client, `${Report._client}.${Client._contacts}` as any]
     }
 
     private async sendToClients(report: Report, reportSettings: ReportSettings): Promise<any> {

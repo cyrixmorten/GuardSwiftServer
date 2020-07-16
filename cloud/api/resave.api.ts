@@ -1,8 +1,11 @@
+import * as moment from 'moment-timezone';
 export const API_FUNCTION_RESAVE = "re-save";
 
 Parse.Cloud.job(API_FUNCTION_RESAVE, async (request) => {
 
-    let className = request.params.class;
+    const { params, message: msgCallback } = request;
+
+    const className = params.class;
 
     if (!className) {
         throw "Missing class param";
@@ -11,18 +14,19 @@ Parse.Cloud.job(API_FUNCTION_RESAVE, async (request) => {
     console.log(`Re-saving ${className}`);
 
     let query = new Parse.Query(className);
-
+    query.greaterThan('createdAt', moment().subtract(90, 'days').toDate());
+    
     let totalCount = await query.count({useMasterKey: true});
     let saveCount = 0;
 
-    console.log(`Saving ${totalCount} objects from class ${className}`);
-    //query.greaterThan('createdAt', moment().subtract(30, 'days').toDate());
+    msgCallback(`Saving ${totalCount} objects from class ${className}`);
+
 
     return query.each((object) => {
         saveCount++;
 
-        if (saveCount % 10 === 0) {
-            console.log(`-- Re-saved ${saveCount}/${totalCount} objects from class ${className} --`)
+        if (saveCount % 100 === 0) {
+            msgCallback(`Re-saved ${saveCount}/${totalCount} objects from class ${className}`)
         }
 
         return object.save(null, {useMasterKey: true});

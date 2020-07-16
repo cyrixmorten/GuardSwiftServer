@@ -7,6 +7,7 @@ import { User, UserQuery } from "../../shared/subclass/User";
 import { ReportQuery } from '../../shared/subclass/Report';
 import moment = require('moment');
 import { ReportHelper } from '../utils/ReportHelper';
+import { SendReports } from './send.reports';
 
 export interface IResetOptions {
     force: boolean;
@@ -72,14 +73,18 @@ export class ResetTasks {
             // reset all tasks matching task group
             await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
 
-            // close reports matching ended task groups that are still open
-            _.forEach(endedTaskGroups, async (taskGroupStarted) => {
-                const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
 
+            _.forEach(endedTaskGroups, async (taskGroupStarted) => {
+                // close reports matching ended task group
+                const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
                 await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
+
+                // send out reports for closed task group
+                await new SendReports().sendTaskGroupStartedReports(taskGroupStarted);
             });
         }
     }
+
 
     private async endTaskGroupsStarted(taskGroup: TaskGroup): Promise<TaskGroupStarted[]> {
 
