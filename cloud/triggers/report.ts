@@ -46,8 +46,6 @@ const addTaskGroups = async (report: Report) => {
     if (!report.has(Report._taskGroups)) {
         const tasks = await ReportHelper.tasksMatchingReport(report, Task._taskGroup, Task._taskGroupStarted);
 
-        console.log("tasks", tasks);
-
         _.forEach(tasks, async (task) => {
             report.addTaskGroup(TaskGroup.createWithoutData(task.taskGroup.id));
             report.addTaskGroupStarted(TaskGroupStarted.createWithoutData(task.taskGroupStarted.id));
