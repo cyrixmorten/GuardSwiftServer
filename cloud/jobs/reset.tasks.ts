@@ -1,5 +1,5 @@
 import { TaskGroup, TaskGroupQuery } from "../../shared/subclass/TaskGroup";
-import { TaskGroupStarted, TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
+import { TaskGroupStarted, TaskGroupStartedQuery } from '../../shared/subclass/TaskGroupStarted';
 import { Task, TaskQuery } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as util from "util";
@@ -36,7 +36,7 @@ export class ResetTasks {
                 .each(async (taskGroup: TaskGroup) => {
 
                     try {
-                        this.runForTaskGroup(user, taskGroup, timeZone);
+                        return this.runForTaskGroup(user, taskGroup, timeZone);
                     } catch(e) {
                         console.error("Error restting taskgroup", e);
                     }
@@ -74,14 +74,14 @@ export class ResetTasks {
             await this.resetTasksMatchingGroup(user, taskGroup, newTaskGroupStarted);
 
 
-            _.forEach(endedTaskGroups, async (taskGroupStarted) => {
+            for (const taskGroupStarted of endedTaskGroups) {
                 // close reports matching ended task group
                 const reports = await new ReportQuery().matchingTaskGroupStarted(taskGroupStarted).notClosed().build().find({useMasterKey: true});
                 await Parse.Object.saveAll(_.map(reports, ReportHelper.closeReport), {useMasterKey: true});
 
                 // send out reports for closed task group
                 await new SendReports().sendTaskGroupStartedReports(taskGroupStarted);
-            });
+            }
         }
     }
 
