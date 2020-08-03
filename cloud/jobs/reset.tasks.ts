@@ -81,10 +81,13 @@ export class ResetTasks {
 
                 // send out reports for closed task group
                 await new SendReports().sendTaskGroupStartedReports(taskGroupStarted);
+
+                // wait a bit for mails to be sent
+                // attempt to avoid emails getting sent double
+                await new Promise(resolve => setTimeout(resolve, 5000));
             });
         }
     }
-
 
     private async endTaskGroupsStarted(taskGroup: TaskGroup): Promise<TaskGroupStarted[]> {
 
