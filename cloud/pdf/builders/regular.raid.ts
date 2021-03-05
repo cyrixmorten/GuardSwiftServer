@@ -1,15 +1,15 @@
 import * as moment from 'moment-timezone';
 import * as _ from 'lodash';
-import { ReportSettings } from "../../../shared/subclass/ReportSettings";
-import { EventLog, TaskEvent } from "../../../shared/subclass/EventLog";
-import { Report } from "../../../shared/subclass/Report";
-import { Task, TaskType } from "../../../shared/subclass/Task";
-import { BaseReportBuilder } from "./base.builder";
-import { ReportEventFilters } from '../report.event.filters';
-import { ReportEventOrganizers } from '../report.event.organizers';
-import { OneAcceptStrategy } from '../excluders/one.accept.strategy';
-import { ExcludeOverlappingArrivalsStrategy } from '../excluders/overlapping.strategy';
-import { PreferArrivalsWithinScheduleStrategy } from '../excluders/within.schedule.strategy';
+import {ReportSettings} from "../../../shared/subclass/ReportSettings";
+import {EventLog, TaskEvent} from "../../../shared/subclass/EventLog";
+import {Report} from "../../../shared/subclass/Report";
+import {Task, TaskType} from "../../../shared/subclass/Task";
+import {BaseReportBuilder} from "./base.builder";
+import {ReportEventFilters} from '../report.event.filters';
+import {ReportEventOrganizers} from '../report.event.organizers';
+import {OneAcceptStrategy} from '../excluders/one.accept.strategy';
+import {ExcludeOverlappingArrivalsStrategy} from '../excluders/overlapping.strategy';
+import {PreferArrivalsWithinScheduleStrategy} from '../excluders/within.schedule.strategy';
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
@@ -58,7 +58,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 {
                     width: 'auto',
                     text: !this.customerFacing ? 'Rød tekst medtages ikke i rapporter til kunden' : '',
-                    color: 'red', 
+                    color: 'red',
                 },
                 {
                     width: '*',
@@ -75,79 +75,88 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let tableHeader = (...headerText: string[]) => {
             return _.map(headerText, (header) => {
-                return {text: header, style: 'tableHeader'}
+                return {text: header, style: 'tableHeader', margin: [0, 5], border: [false, false, false, false]}
             })
         };
 
         let tableContent = () => {
 
-            const contentRows = _.flatMap(eventLogs, (eventLog) => {
+            const contentRows = _.flatMap(eventLogs, (eventLog, index) => {
 
                 const createEventRow = () => {
 
-                        const createInitialsEntry = () => {
+                    const createInitialsEntry = () => {
 
-                            const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                            const internalInitials = !showInitials && !this.customerFacing;
+                        const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalInitials = !showInitials && !this.customerFacing;
 
-                            return {
-                                text: showInitials || internalInitials ? eventLog.guardInitials : '',
-                                color: internalInitials ? 'red' : undefined
-                            }
+                        return {
+                            text: showInitials || internalInitials ? eventLog.guardInitials : '',
+                            color: internalInitials ? 'red' : undefined
                         }
+                    }
 
-                        const createTimestampEntry = () => {
+                    const createTimestampEntry = () => {
 
-                            const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                            const internalTimeStamp = !isArrivalEvent && !this.customerFacing;
+                        const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalTimeStamp = !isArrivalEvent && !this.customerFacing;
 
-                            const showTimeStamp = isArrivalEvent || internalTimeStamp;
-                            const showManualAutomatic = isArrivalEvent && !this.customerFacing;
+                        const showTimeStamp = isArrivalEvent || internalTimeStamp;
+                        const showManualAutomatic = isArrivalEvent && !this.customerFacing;
 
-                            const timeStamp = moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm');
-                            const manualAutomatic = eventLog.automatic ? 'A' : 'M';
+                        const timeStamp = moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm');
+                        const manualAutomatic = eventLog.automatic ? 'A' : 'M';
 
-                            return {
-                                text: _.compact([
-                                    {
-                                        text:  showTimeStamp ? timeStamp : '',
-                                        color: internalTimeStamp ? 'red' : undefined
-                                    },
-                                    showManualAutomatic ? ' ' : '',
-                                    {
-                                        text: showManualAutomatic ? manualAutomatic : '',
-                                        color: 'red'
-                                    },
-                                ])
-                            }
+                        return {
+                            text: _.compact([
+                                {
+                                    text: showTimeStamp ? timeStamp : '',
+                                    color: internalTimeStamp ? 'red' : undefined
+                                },
+                                showManualAutomatic ? ' ' : '',
+                                {
+                                    text: showManualAutomatic ? manualAutomatic : '',
+                                    color: 'red'
+                                },
+                            ])
                         }
+                    }
 
-                        return [
-                            createInitialsEntry(),
-                            createTimestampEntry(),
-                            {text: _.upperFirst(eventLog.event)},
-                            {text: eventLog.amount || '', alignment: 'center'},
-                        ]
+                    return eventLog.event !== "Andet" ? [
+                        createInitialsEntry(),
+                        createTimestampEntry(),
+                        {text: _.upperFirst(eventLog.event)},
+                        {text: eventLog.amount || '', alignment: 'center'},
+                    ] : undefined
                 }
 
                 const createPeopleRow = () => {
-                    return eventLog.people ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.people), colSpan: 2}] : undefined;
+                    return eventLog.people ? [{text: ''}, {text: ''}, {
+                        text: _.upperFirst(eventLog.people),
+                        colSpan: 2
+                    }] : undefined;
                 }
 
                 const createLocationRow = () => {
-                    return eventLog.clientLocation ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.clientLocation), colSpan: 2}] : undefined;
+                    return eventLog.clientLocation ? [{text: ''}, {text: ''}, {
+                        text: _.upperFirst(eventLog.clientLocation),
+                        colSpan: 2
+                    }] : undefined;
                 }
 
                 const createRemarksRow = () => {
                     return eventLog.remarks ? [
-                        {text: ''}, 
-                        {text: ''}, 
+                        {text: ''},
+                        {text: ''},
                         {text: _.upperFirst(eventLog.remarks), colSpan: 2, fillColor: '#f2f2f2'}
                     ] : undefined;
                 }
 
                 const createExcludeReasonRow = () => {
-                    return eventLog.isExcludedFromReport() ? [{text: ''}, {text: ''}, {text: _.upperFirst(eventLog.getExcludeReason()), colSpan: 2}] : undefined;
+                    return eventLog.isExcludedFromReport() ? [{text: ''}, {text: ''}, {
+                        text: _.upperFirst(eventLog.getExcludeReason()),
+                        colSpan: 2
+                    }] : undefined;
                 }
 
                 const eventRow = createEventRow();
@@ -160,24 +169,18 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
                 );
 
+                const isArriveEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+
                 // remove border from all rows
                 allRows.forEach((row) => {
                     row.forEach((entry) => {
                         _.assign(entry, {
-                            border: [false, false, false, false],
+                            margin: [0, isArriveEvent ? 5 : 0, 0, 0],
+                            border: [false, isArriveEvent, false, false],
                             color: eventLog.isExcludedFromReport() ? 'red' : entry.color,
-                        })                        
+                        })
                     });
                 });
-
-                // add border to last row for event
-                const bottomMostRow = excludeReasonRow || remarksRow || locationRow || peopleRow || eventRow;
-                for (let i = 2; i<bottomMostRow.length; i++) {
-                    const entry = bottomMostRow[i];
-                    _.assign(entry, {
-                        border: [false, false, false, true]
-                    })
-                }
 
                 return allRows;
             });
@@ -187,12 +190,18 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             if (_.isEmpty(writtenEvents)) {
                 // TODO translate
                 contentRows.push([
-                    {text: ''},
-                    {text: ''},
+                    {
+                        text: '',
+                        border: [false, false, false, false]
+                    },
+                    {
+                        text: '',
+                        border: [false, false, false, false]
+                    },
                     {
                         text: "Ingen uregelmæssigheder blev observeret under tilsynet",
                         colSpan: 2,
-                        border: [false, false, false, true]
+                        border: [false, false, false, false]
                     } as any
                 ]);
             }
@@ -209,7 +218,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     ...tableContent()
                 ]
             },
-            layout: 'lightHorizontalLines',
+            layout: 'regularRaid',
             // margin: [left, top, right, bottom]
             margin: [0, 0, 0, 10]
         }
@@ -249,13 +258,14 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
             const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
             const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
-            
+
             if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
                 content.push({
                     text: [
                         taskTypeHeader(taskType),
                         {
-                            text: !this.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '', color: 'red'
+                            text: !this.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '',
+                            color: 'red'
                         }
                     ]
                 });
@@ -271,11 +281,10 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
     }
 
 
-
     organizeEvents(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
 
         const taskEventLogs = ReportEventOrganizers.sortByTime(ReportEventFilters.reportEventsMatchingTasks(eventLogs, tasks))
-        
+
         const excludeStrategies = [
             new OneAcceptStrategy(this.timeZone),
             new ExcludeOverlappingArrivalsStrategy(this.timeZone),
