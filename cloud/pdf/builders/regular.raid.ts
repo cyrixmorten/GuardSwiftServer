@@ -169,14 +169,14 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
                 );
 
-                const isArriveEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                const addSeparatorLine = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && eventLog.isExcludedFromReport();
 
                 // remove border from all rows
                 allRows.forEach((row) => {
                     row.forEach((entry) => {
                         _.assign(entry, {
-                            margin: [0, isArriveEvent ? 5 : 0, 0, 0],
-                            border: [false, isArriveEvent, false, false],
+                            margin: [0, addSeparatorLine ? 5 : 0, 0, 0],
+                            border: [false, addSeparatorLine, false, false],
                             color: eventLog.isExcludedFromReport() ? 'red' : entry.color,
                         })
                     });
@@ -257,6 +257,12 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
 
             const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
+            console.log('organizedTaskGroupEvents', organizedTaskGroupEvents.map(e => {
+                return {
+                    time: e.deviceTimestamp,
+                    exclude: e.getExcludeReason()
+                }
+            }))
             const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
 
             if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
@@ -294,11 +300,20 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         const groupEventByGuard = _.groupBy(taskEventLogs, (event) => event.guard.id);
 
+        console.log('PER GUARD');
         // Do per-guard exclusion of arrivals
-        const excludeEventsByGuard = _.mapValues(groupEventByGuard, (events) => {
+        const excludeEventsByGuard = _.map(groupEventByGuard, (events) => {
             excludeStrategies.forEach((excludeStrategy) => {
                 excludeStrategy.run(ReportEventFilters.notExcludedEvents(events), tasks);
             });
+
+            console.log('events', events.map(e => {
+                return {
+                    time: e.deviceTimestamp,
+                    exclude: e.getExcludeReason()
+                }
+            }))
+
 
             const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE) && !event.getExcludeReason());
 
@@ -309,11 +324,21 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             return events;
         });
 
+        console.log('excludeEventsByGuard', _.flatten(excludeEventsByGuard).map(e => {
+            return {
+                time: e.deviceTimestamp,
+                exclude: e.getExcludeReason()
+            }
+        }))
+
+        console.log('FINAL SWEEP');
         // Final sweep across all events
+
         const values = new PreferArrivalsWithinScheduleStrategy(this.timeZone).run(
             _.flatten(_.values(excludeEventsByGuard)),
             tasks
         )
+
 
         return ReportEventOrganizers.moveFirstArrivalToTop(values);
     }
