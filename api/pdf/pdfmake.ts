@@ -21,7 +21,33 @@ export let pdfMake = (req, res) => {
     res.status(200);
     res.set('Content-Type: application/octet-stream');
 
-    let pdfDoc = printer.createPdfKitDocument(req.body);
+    var options = {
+        tableLayouts: {
+            regularRaid: {
+                hLineWidth(i, node) {
+                    if (i === 0 || i === node.table.body.length) {
+                        return 0;
+                    }
+                    return (i === node.table.headerRows) ? 2 : 2;
+                },
+                vLineWidth(i) {
+                    return 0;
+                },
+                hLineColor(i) {
+                    return 'black'
+                },
+                paddingLeft(i) {
+                    return i === 0 ? 0 : 8;
+                },
+                paddingRight(i, node) {
+                    return (i === node.table.widths.length - 1) ? 0 : 8;
+                }
+            }
+        }
+    }
+
+    let pdfDoc = printer.createPdfKitDocument(req.body, options);
+
     pdfDoc.pipe(res);
     pdfDoc.end();
 };
