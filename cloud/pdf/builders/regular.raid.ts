@@ -169,7 +169,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
                 );
 
-                const addSeparatorLine = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && eventLog.isExcludedFromReport();
+                const addSeparatorLine = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
 
                 // remove border from all rows
                 allRows.forEach((row) => {
