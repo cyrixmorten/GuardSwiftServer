@@ -1,11 +1,10 @@
 import { ExcludeStrategy } from './exclude.strategy';
 import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
-import { Task } from '../../../shared/subclass/Task';
 import _ = require('lodash');
 
 export class OneAcceptStrategy extends ExcludeStrategy {
 
-    run(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
+    run({eventLogs}): EventLog[] {
 
         let acceptEvents: EventLog[] = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.ACCEPT);
 
