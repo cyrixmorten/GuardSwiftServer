@@ -10,6 +10,7 @@ import {ReportEventOrganizers} from '../report.event.organizers';
 import {OneAcceptStrategy} from '../excluders/one.accept.strategy';
 import {ExcludeOverlappingArrivalsStrategy} from '../excluders/overlapping.strategy';
 import {PreferArrivalsWithinScheduleStrategy} from '../excluders/within.schedule.strategy';
+import {EXCLUDE_MODE} from "../excluders/exclude.strategy";
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
@@ -122,10 +123,29 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                         }
                     }
 
+                    const createEventEntry = () => {
+                        const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+
+                        if (isArrivalEvent) {
+                            const nextEvent = eventLogs[index + 1];
+                            const noWrittenEntries = !nextEvent?.matchingTaskEvent(TaskEvent.OTHER);
+
+                            if (noWrittenEntries) {
+                                return {
+                                    text: "Ingen uregelmæssigheder blev observeret under tilsynet"
+                                }
+                            }
+                        }
+
+                        return {
+                            text: _.upperFirst(eventLog.event)
+                        }
+                    }
+
                     return eventLog.event !== "Andet" ? [
                         createInitialsEntry(),
                         createTimestampEntry(),
-                        {text: _.upperFirst(eventLog.event)},
+                        createEventEntry(),
                         {text: eventLog.amount || '', alignment: 'center'},
                     ] : undefined
                 }
@@ -177,7 +197,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                         _.assign(entry, {
                             margin: [0, addSeparatorLine ? 5 : 0, 0, 0],
                             border: [false, addSeparatorLine, false, false],
-                            color: eventLog.isExcludedFromReport() ? 'red' : entry.color,
+                            color: eventLog.isExcludedFromReport() ? 'red' : undefined,
                         })
                     });
                 });
@@ -185,26 +205,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 return allRows;
             });
 
-            const writtenEvents = _.filter(eventLogs, (eventLog) => eventLog.matchingTaskEvent(TaskEvent.OTHER));
-
-            if (_.isEmpty(writtenEvents)) {
-                // TODO translate
-                contentRows.push([
-                    {
-                        text: '',
-                        border: [false, false, false, false]
-                    },
-                    {
-                        text: '',
-                        border: [false, false, false, false]
-                    },
-                    {
-                        text: "Ingen uregelmæssigheder blev observeret under tilsynet",
-                        colSpan: 2,
-                        border: [false, false, false, false]
-                    } as any
-                ]);
-            }
 
             return contentRows;
         };
@@ -248,8 +248,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         const allTasks = this.report.tasks || [this.report.task];
         const allEventLogs = this.report.eventLogs;
-
-        new ExcludeOverlappingArrivalsStrategy(this.timeZone).run(allEventLogs, allTasks);
 
         const groupTasksByType = _.groupBy(allTasks, (task) => task.taskType);
 
@@ -300,11 +298,14 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         const groupEventByGuard = _.groupBy(taskEventLogs, (event) => event.guard.id);
 
-        console.log('PER GUARD');
         // Do per-guard exclusion of arrivals
-        const excludeEventsByGuard = _.map(groupEventByGuard, (events) => {
+        _.forEach(groupEventByGuard, (events) => {
             excludeStrategies.forEach((excludeStrategy) => {
-                excludeStrategy.run(ReportEventFilters.notExcludedEvents(events), tasks);
+                excludeStrategy.run({
+                    eventLogs: ReportEventFilters.notExcludedEvents(events),
+                    tasks,
+                    mode: EXCLUDE_MODE.GUARD
+                });
             });
 
             console.log('events', events.map(e => {
@@ -320,27 +321,21 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             if (firstIncludedArrival) {
                 firstIncludedArrival.setIncludeReason("Første ankomst for denne vægter");
             }
-
-            return events;
         });
 
-        console.log('excludeEventsByGuard', _.flatten(excludeEventsByGuard).map(e => {
-            return {
-                time: e.deviceTimestamp,
-                exclude: e.getExcludeReason()
-            }
-        }))
 
-        console.log('FINAL SWEEP');
+
         // Final sweep across all events
+        excludeStrategies.forEach((strategy) => {
+            strategy.run(         {
+                eventLogs: ReportEventFilters.notExcludedEvents(taskEventLogs),
+                tasks,
+                mode: EXCLUDE_MODE.ALL
+            })
+        })
 
-        const values = new PreferArrivalsWithinScheduleStrategy(this.timeZone).run(
-            _.flatten(_.values(excludeEventsByGuard)),
-            tasks
-        )
 
-
-        return ReportEventOrganizers.moveFirstArrivalToTop(values);
+        return ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
     }
 
 
