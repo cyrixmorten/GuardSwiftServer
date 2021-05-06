@@ -11,6 +11,7 @@ import {OneAcceptStrategy} from '../excluders/one.accept.strategy';
 import {ExcludeOverlappingArrivalsStrategy} from '../excluders/overlapping.strategy';
 import {PreferArrivalsWithinScheduleStrategy} from '../excluders/within.schedule.strategy';
 import {EXCLUDE_MODE} from "../excluders/exclude.strategy";
+import {ExcludeIdenticalStrategy} from "../excluders/exclude.identical.strategy";
 
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
@@ -255,12 +256,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
 
             const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
-            console.log('organizedTaskGroupEvents', organizedTaskGroupEvents.map(e => {
-                return {
-                    time: e.deviceTimestamp,
-                    exclude: e.getExcludeReason()
-                }
-            }))
             const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
 
             if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
@@ -291,8 +286,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         const excludeStrategies = [
             new OneAcceptStrategy(this.timeZone),
+            new ExcludeIdenticalStrategy(this.timeZone),
             new ExcludeOverlappingArrivalsStrategy(this.timeZone),
-            new PreferArrivalsWithinScheduleStrategy(this.timeZone)
+            new PreferArrivalsWithinScheduleStrategy(this.timeZone),
         ];
 
 
@@ -307,13 +303,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     mode: EXCLUDE_MODE.GUARD
                 });
             });
-
-            console.log('events', events.map(e => {
-                return {
-                    time: e.deviceTimestamp,
-                    exclude: e.getExcludeReason()
-                }
-            }))
 
 
             const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE) && !event.getExcludeReason());
