@@ -15,13 +15,13 @@ export class ExcludeIdenticalStrategy extends ExcludeStrategy {
             const next = writtenEvents[i + 1];
 
             const sameGuard = current.guard.id === next.guard.id;
-            const diffSeconds = moment(current.deviceTimestamp).diff(moment(next.deviceTimestamp), "seconds");
-            const sameTime =  Math.abs(diffSeconds) <= 10;
+            //const diffSeconds = moment(current.deviceTimestamp).diff(moment(next.deviceTimestamp), "seconds");
+            //const sameTime =  Math.abs(diffSeconds) <= 10;
             const sameEvent = current.event === next.event;
             const sameText = current.remarks === next.remarks;
-            
 
-            const markIdentical = sameGuard && sameTime && sameEvent && sameText;
+
+            const markIdentical = sameGuard && /*sameTime &&*/ sameEvent && sameText;
 
             if (markIdentical) {
                 next.setExcludeReason('Gentagelse')
