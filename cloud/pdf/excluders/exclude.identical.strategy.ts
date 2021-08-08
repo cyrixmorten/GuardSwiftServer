@@ -1,30 +1,34 @@
-import { ExcludeStrategy } from './exclude.strategy';
+import { EXCLUDE_MODE, ExcludeStrategy } from './exclude.strategy';
 import { EventLog, TaskEvent } from '../../../shared/subclass/EventLog';
 import _ = require('lodash');
-import moment = require('moment-timezone');
 
 export class ExcludeIdenticalStrategy extends ExcludeStrategy {
 
-    run({eventLogs}): EventLog[] {
+    run({eventLogs, tasks, mode}): EventLog[] {
 
-        let writtenEvents: EventLog[] = _.filter(eventLogs, (eventLog: EventLog) => eventLog.taskEvent === TaskEvent.OTHER);
+        if (mode !== EXCLUDE_MODE.GUARD) {
+            return eventLogs;
+        }
 
+        let cmpArr = [];
 
-        for (let i = 0; i < writtenEvents.length - 1; i++) {
-            const current = writtenEvents[i];
-            const next = writtenEvents[i + 1];
+        for (let i = 0; i < eventLogs.length - 1; i++) {
 
-            const sameGuard = current.guard.id === next.guard.id;
-            //const diffSeconds = moment(current.deviceTimestamp).diff(moment(next.deviceTimestamp), "seconds");
-            //const sameTime =  Math.abs(diffSeconds) <= 10;
-            const sameEvent = current.event === next.event;
-            const sameText = current.remarks === next.remarks;
+            const current = eventLogs[i];
+            const next = eventLogs[i + 1];
 
+            if (current.taskEvent === TaskEvent.ARRIVE) {
+                cmpArr = [];
+            }
 
-            const markIdentical = sameGuard && /*sameTime &&*/ sameEvent && sameText;
+            if (next.taskEvent === TaskEvent.OTHER) {
+                const {event, remarks, guard} = next;
 
-            if (markIdentical) {
-                next.setExcludeReason('Gentagelse')
+                const cmpString = `${guard}-${event}-${remarks}`
+
+                if (_.includes(cmpArr, cmpString)) {
+                    next.setExcludeReason('Gentagelse')
+                }
             }
         }
         

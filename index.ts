@@ -13,7 +13,8 @@ requireEnv([
   'SENDGRID_API_KEY',
   'CPSMS_API_KEY',
   'GOOGLE_PROJECT_ID',
-  'GOOGLE_SERVER_API_KEY'
+  'GOOGLE_SERVER_API_KEY',
+  'S3_BUCKET'
 ]);
 
 // Example express application adding the parse-server module to expose Parse
