@@ -1,4 +1,4 @@
-import { Task, TaskStatus, TaskType } from "../../shared/subclass/Task";
+import { Task, TaskQuery, TaskStatus, TaskType } from "../../shared/subclass/Task";
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Guard, GuardQuery } from "../../shared/subclass/Guard";
@@ -18,20 +18,15 @@ Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {
 
     let task = request.object as Task;
 
-    if (!task.client) {
+    if (!task.isNew() && !task.client) {
         // In some edge cases the daily reset of tasks will throw away the client pointer
         // Have not been able to figure out why so made this bit to resurrect the pointer if it is missing
-        if (task.clientId) {
-            try {
-                task.client = await new ClientQuery()
-                    .matchingOwner(task.owner)
-                    .matchingClientId(task.clientId).build().first({useMasterKey: true});
-            } catch (e) {
-                console.warn('Was unable to restore client pointer for task', task.id)
-            }
-        } else {
-            console.error('Task must point to a client!', task.id);
-        }
+        // UPDATE: Looks like it is when updating task via AngularJS Web app
+        const thisTaskBefore = await new TaskQuery().matchingId(task.id).build().first({useMasterKey: true});
+
+        console.warn("restore client for task", task.id, thisTaskBefore.client);
+
+        task.client = thisTaskBefore.client;
     }
 
     if (!task.existed()) {
