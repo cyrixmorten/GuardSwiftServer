@@ -77,7 +77,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         let tableHeader = (...headerText: string[]) => {
             return _.map(headerText, (header) => {
-                return {text: header, style: 'tableHeader', margin: [0, 5], border: [false, false, false, false]}
+                return {text: header, style: 'tableHeader', margin: [0, 1], border: [false, false, false, false]}
             })
         };
 
@@ -186,24 +186,29 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 const remarksRow = createRemarksRow();
                 const excludeReasonRow = createExcludeReasonRow();
 
-                const allRows = _.compact(
+                const allRowsForThisEvent = _.compact(
                     (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
                 );
 
-                const addSeparatorLine = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
+                const eventRowSpan = allRowsForThisEvent.length;
+                
 
                 // remove border from all rows
-                allRows.forEach((row) => {
+                allRowsForThisEvent.forEach((row, index) => {
+                    
+                    const addSeperatorLineTop = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
+                    const addSeparatorLineBottom = index === eventRowSpan - 1; 
+
                     row.forEach((entry) => {
                         _.assign(entry, {
-                            margin: [0, addSeparatorLine ? 5 : 0, 0, 0],
-                            border: [false, addSeparatorLine, false, false],
+                            margin: [0, addSeperatorLineTop ? 5 : 0, 0, 0],
+                            border: [false, addSeperatorLineTop, false, addSeparatorLineBottom],
                             color: eventLog.isExcludedFromReport() ? 'red' : undefined,
                         })
                     });
                 });
 
-                return allRows;
+                return allRowsForThisEvent;
             });
 
 
