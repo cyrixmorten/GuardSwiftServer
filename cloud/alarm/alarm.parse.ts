@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { centralAlarmHandlers } from "../centrals/all";
-import { ICentralAlarmHandler } from '../centrals/central.interface';
+import {Central} from "../../shared/subclass/Central";
 
 
 export interface IParsedAlarm {
@@ -17,15 +17,15 @@ export interface IParsedAlarm {
     }
 }
 
-export let parseAlarm = async (central, alarmMsg): Promise<any> => {
+export const parseAlarm = async (central: Central, alarm: string): Promise<any> => {
 
-    _.forEach(centralAlarmHandlers,  (handler: ICentralAlarmHandler) => {
-        if (handler.matchesCentral(central)) {
-            return handler.parse(central, alarmMsg) || {};
-        }
-    });
+    const handlerMatchingCentral = _.find(centralAlarmHandlers, (handler) => handler.matchesCentral(central));
 
-    throw 'Unable to parse alarm, unknown sender';
+    if (!handlerMatchingCentral) {
+        throw 'Unable to parse alarm, unknown central';
+    }
+
+    return handlerMatchingCentral.parse(central, alarm);
 
 };
 

@@ -1,24 +1,19 @@
-import * as _ from 'lodash';
 import { parseAlarm } from "./alarm.parse";
 import { createAlarm } from "./alarm.create";
 import { AlarmUtils } from "./utils";
-import { User } from "../../shared/subclass/User";
-import { Central } from "../../shared/subclass/Central";
+
+export const handleSMSAlarmRequest = async (request) => {
+
+    const {sender, receiver, alarm} = request.params;
 
 
-export const handleAlarmRequest = async (request) => {
-
-    let sender = request.params.sender;
-    let receiver = request.params.receiver;
-    let alarmMsg = request.params.alarm;
-
-    console.log('-------');
+    console.log('---handleSMSAlarmRequest---');
     console.log('sender: ' + sender);
     console.log('receiver: ' + receiver);
-    console.log('alarm: ' + alarmMsg);
+    console.log('alarm: ' + alarm);
     console.log('-------');
 
-    if (!sender || !receiver || !alarmMsg) {
+    if (!sender || !receiver || !alarm) {
         let error = '';
 
         if (!sender) {
@@ -27,7 +22,7 @@ export const handleAlarmRequest = async (request) => {
         if (!receiver) {
             error += 'Missing receiver ';
         }
-        if (!alarmMsg) {
+        if (!alarm) {
             error += 'Missing alarm ';
         }
 
@@ -35,8 +30,8 @@ export const handleAlarmRequest = async (request) => {
     }
 
 
-    const central: Central = await AlarmUtils.findCentral(sender) as Central;
-    const user: User = await AlarmUtils.findUser(receiver) as User;
+    const central = await AlarmUtils.findCentralByPhoneNumber(sender);
+    const user = await AlarmUtils.findUserByPhoneNumber(receiver);
 
     if (!central) {
         throw 'Unable to find central with sendFrom value: ' + sender;
@@ -46,7 +41,7 @@ export const handleAlarmRequest = async (request) => {
         throw 'Unable to find user with sendTo value: ' + receiver;
     }
 
-    const parsed = await parseAlarm(central, alarmMsg);
+    const parsed = await parseAlarm(central, alarm);
 
     if (parsed.action === 'create') {
 
@@ -63,20 +58,56 @@ export const handleAlarmRequest = async (request) => {
     if (parsed.action === 'abort') {
         console.log('Abort alarm');
 
-        const alarm = await AlarmUtils.findAlarm({
+        const alarmObj = await AlarmUtils.findAlarm({
             central: central,
             user: user,
             parsed: parsed
         });
 
-        alarm.set('status', 'aborted');
+        alarmObj.set('status', 'aborted');
 
-        return alarm.save(null, {useMasterKey: true});
+        return alarmObj.save(null, {useMasterKey: true});
 
     }
 
 };
+export const handleRESTAlarmRequest = async (request) => {
 
+    const {key, alarm} = request.params;
+
+    console.log('---handleRESTAlarmRequest---');
+    console.log('key: ' + key);
+    console.log('alarm: ' + alarm);
+    console.log('-------');
+
+
+    const central = await AlarmUtils.findCentralByAPIKey(key);
+    const user = await AlarmUtils.findUserByName("JVH"); // TODO Hardcoded name
+
+    if (!central) {
+        throw 'Unable to find central with apiKey: ' + key;
+    }
+
+    if (!user) {
+        throw 'Unable to find user with username: JVH';
+    }
+
+    const parsed = await parseAlarm(central, alarm);
+
+    console.log({parsed});
+
+    if (parsed.action === 'create') {
+
+        console.log('Create alarm');
+
+        return createAlarm({
+            central: central,
+            user: user,
+            parsedAlarm: parsed
+        });
+    }
+
+};
 
 
 

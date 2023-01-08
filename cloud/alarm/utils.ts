@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import {lookupPlaceObject} from "../utils/geocode";
 import {Task} from '../../shared/subclass/Task';
+import {Central} from "../../shared/subclass/Central";
+import {User} from "../../shared/subclass/User";
 
 export class AlarmUtils {
 
@@ -16,23 +18,33 @@ export class AlarmUtils {
         return query.first({useMasterKey: true});
     };
 
-    static async findCentral(sender) {
-        console.log('findCentral');
-
-        let Central = Parse.Object.extend('Central');
-        let query = new Parse.Query(Central);
+    static async findCentralByPhoneNumber(sender: string): Promise<Central | undefined> {
+        let query = new Parse.Query<Central>(Parse.Object.extend('Central'));
         query.equalTo('sendFrom', sender);
 
         return query.first({useMasterKey: true});
     };
 
-    static async findUser(receiver) {
-        console.log('findUser');
+    static async findCentralByAPIKey(key: string): Promise<Central | undefined> {
+        let query = new Parse.Query<Central>(Parse.Object.extend('Central'));
+        query.equalTo('apiKey', key);
 
+        return query.first({useMasterKey: true});
+    };
+
+
+    static async findUserByPhoneNumber(receiver: string): Promise<User | undefined> {
         let query = new Parse.Query(Parse.User);
         query.equalTo('sendTo', receiver);
 
-        return query.first({useMasterKey: true});
+        return await query.first({useMasterKey: true}) as User
+    };
+
+    static async findUserByName(name: string): Promise<User | undefined> {
+        let query = new Parse.Query(Parse.User);
+        query.equalTo('username', name);
+
+        return await query.first({useMasterKey: true}) as User
     };
 
     static async findClient(user, queryMap) {

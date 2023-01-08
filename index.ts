@@ -85,9 +85,10 @@ app.use(bodyParser.json());
 
 apiRouter.get('/report/:id', require('./api/pdf/pdfreport').toPdf);
 apiRouter.post('/pdfmake', require('./api/pdf/pdfmake').pdfMake);
+apiRouter.post('/alarm/rest', require('./api/alarm/rest').receive);
 
-apiRouter.get('/cpsms',
-    require('./api/cpsms').receive
+apiRouter.get('/alarm/sms',
+    require('./api/alarm/sms').receive
 );
 app.use('/api', apiRouter);
 

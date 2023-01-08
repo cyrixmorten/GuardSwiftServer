@@ -2,14 +2,13 @@ import { Task, TaskQuery, TaskStatus, TaskType } from "../../shared/subclass/Tas
 import * as _ from "lodash";
 import * as moment from "moment";
 import { Guard, GuardQuery } from "../../shared/subclass/Guard";
-import * as cpsms from '../../api/cpsms';
+import * as cpsms from '../../api/alarm/sms';
 import { centralAlarmHandlers } from "../centrals/all";
 import { TaskGroupStartedQuery } from "../../shared/subclass/TaskGroupStarted";
 import { ReportHelper } from '../utils/ReportHelper';
 import { TaskGroup, TaskGroupQuery } from '../../shared/subclass/TaskGroup';
 import { BeforeSave } from './BeforeSave';
 import * as parse from "parse";
-import { ClientQuery } from '../../shared/subclass/Client';
 
 
 Parse.Cloud.beforeSave(Task, async (request: parse.Cloud.BeforeSaveRequest) => {

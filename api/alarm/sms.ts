@@ -1,7 +1,6 @@
-import {AlarmDispatcher} from "./dispatcher";
-
 import * as rp from 'request-promise-native';
 import * as _ from 'lodash'
+import {API_FUNCTION_NEW_ALARM_SMS} from "../../cloud/api/receive.alarm.api";
 
 let saveSMSLog =  (to, from, message, limit, error?) => {
     let SMSLog = Parse.Object.extend('SMSLog');
@@ -17,7 +16,7 @@ let saveSMSLog =  (to, from, message, limit, error?) => {
     });
 };
 
-export let receive =  (req, res) => {
+export let receive =  async (req, res) => {
     let from = req.query.from;
     let to = req.query.number;
     let body = req.query.message;
@@ -29,7 +28,16 @@ export let receive =  (req, res) => {
     console.log('number: ', to);
     console.log('message: ', body);
 
-    AlarmDispatcher.handle(from, to, body, res);
+    return Parse.Cloud.run(API_FUNCTION_NEW_ALARM_SMS, {
+        sender: from,
+        receiver: to,
+        alarm: body
+    })
+        .then( (response) => {
+            res.send(response);
+        },  (error) => {
+            res.status(400).send(error);
+        });
 
 };
 
@@ -58,7 +66,7 @@ export let send =  (params) => {
 
     console.log('Sending SMS: ', options.body);
 
-    return rp(options).promise().then( (parsedBody) => {
+    return rp(options).promise().then( () => {
         console.log('SMS sent', options.body);
         saveSMSLog(to, from, message, limit);
     }).catch( (err) => {

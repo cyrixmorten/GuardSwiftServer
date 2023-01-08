@@ -6,8 +6,8 @@ import {IParsedAlarm} from "./alarm.parse";
 import {User} from "../../shared/subclass/User";
 
 export interface IAlarmOptions {
-    sender: string,
-    receiver: string,
+    sender?: string,
+    receiver?: string,
     central: Central,
     user: User,
     parsedAlarm: IParsedAlarm
@@ -18,8 +18,8 @@ export const createAlarm = async (options: IAlarmOptions) => {
     let Alarm = Parse.Object.extend("Task");
     let alarm = new Alarm();
     alarm.set('taskType', 'Alarm');
-    alarm.set('sentFrom', options.sender);
-    alarm.set('sentTo', options.receiver);
+    alarm.set('sentFrom', options.sender || "");
+    alarm.set('sentTo', options.receiver || "");
 
     alarm.set('central', options.central);
     alarm.set('centralName', options.central.get('name'));

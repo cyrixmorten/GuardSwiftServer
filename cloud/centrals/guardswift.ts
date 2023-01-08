@@ -1,9 +1,7 @@
 /*
  * GUARDSWIFT CENTRAL
  */
-import * as _ from 'lodash';
 import {ICentralAlarmHandler} from "./central.interface";
-let cpsms = require('../../api/cpsms');
 
 
 export class GuardswiftCentral implements ICentralAlarmHandler{

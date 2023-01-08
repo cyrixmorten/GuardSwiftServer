@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 import { ICentralAlarmHandler } from "./central.interface";
 
-let cpsms = require('../../api/cpsms');
+let cpsms = require('../../api/alarm/sms');
 
 export class G4SCentral implements ICentralAlarmHandler {
 
