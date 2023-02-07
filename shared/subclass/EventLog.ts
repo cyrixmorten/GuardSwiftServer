@@ -59,9 +59,18 @@ export class EventLog extends BaseClass {
 
     private includeReason: string;
     private excludeReason: string;
+    private merged: boolean;
 
     constructor(className?: string) {
         super(className || EventLog.className);
+    }
+
+    set isMerged(isMerged: boolean) {
+        this.merged = isMerged;
+    }
+
+    get isMerged() {
+        return this.merged;
     }
 
     get name(): string {
