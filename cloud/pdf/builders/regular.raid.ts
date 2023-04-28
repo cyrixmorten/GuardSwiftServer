@@ -167,7 +167,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 }
 
                 const createRemarksRow = () => {
-                    return eventLog.remarks && !eventLog.matchingTaskEvent(TaskEvent.ARRIVE) ? [
+                    return eventLog.remarks ? [
                         {text: ''},
                         {text: ''},
                         {text: _.upperFirst(eventLog.remarks), colSpan: 2, fillColor: '#f2f2f2'}
@@ -331,9 +331,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
         const organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
         const mergedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
-
-        console.log({organizedEvents});
-        console.log({mergedEvents});
 
         return mergedEvents;
     }
