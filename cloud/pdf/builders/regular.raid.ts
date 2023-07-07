@@ -329,7 +329,8 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         })
 
-        const organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
+        const allIncludedEventLogs = ReportEventFilters.notExcludedEvents(taskEventLogs);
+        const organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(allIncludedEventLogs);
         const mergedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
 
         return mergedEvents;
