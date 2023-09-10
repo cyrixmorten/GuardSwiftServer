@@ -24,6 +24,7 @@ export class ReportEventOrganizers {
 
             if (event.matchingTaskEvent(TaskEvent.ARRIVE) && nextEventIsOther) {
                 event.event = nextEvent.event;
+                event.clientLocation = nextEvent.clientLocation;
                 event.amount = nextEvent.amount;
                 event.remarks = nextEvent.remarks;
                 event.isMerged = true;
