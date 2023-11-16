@@ -126,8 +126,9 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                     const createEventEntry = () => {
                         const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const isMerged = eventLog.isMerged;
 
-                        if (isArrivalEvent) {
+                        if (isArrivalEvent && !isMerged) {
                             const nextEvent = eventLogs[index + 1];
                             const noWrittenEntries = !nextEvent?.matchingTaskEvent(TaskEvent.OTHER);
 
@@ -139,7 +140,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                         }
 
                         return {
-                            text: _.upperFirst(eventLog.event)
+                            text: !isArrivalEvent || isMerged ? _.upperFirst(eventLog.event) : ""
                         }
                     }
 
@@ -196,13 +197,13 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 // remove border from all rows
                 allRowsForThisEvent.forEach((row, index) => {
                     
-                    const addSeperatorLineTop = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
+                    const addSeparatorLineTop = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
                     const addSeparatorLineBottom = index === eventRowSpan - 1; 
 
                     row.forEach((entry) => {
                         _.assign(entry, {
-                            margin: [0, addSeperatorLineTop ? 5 : 0, 0, 0],
-                            border: [false, addSeperatorLineTop, false, addSeparatorLineBottom],
+                            margin: [0, addSeparatorLineTop ? 5 : 0, 0, 0],
+                            border: [false, addSeparatorLineTop, false, addSeparatorLineBottom],
                             color: eventLog.isExcludedFromReport() ? 'red' : undefined,
                         })
                     });
@@ -220,7 +221,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 widths: [30, 60, '*', 35],
                 headerRows: 1,
                 body: [
-                    tableHeader('Vagt', 'Tidspunkt', 'Hændelse', ''), // TODO translate
+                    tableHeader('Vagt', 'Ankommet', 'Hændelse', ''), // TODO translate
                     ...tableContent()
                 ]
             },
@@ -328,8 +329,11 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         })
 
+        const allIncludedEventLogs = ReportEventFilters.notExcludedEvents(taskEventLogs);
+        const organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(allIncludedEventLogs);
+        const mergedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
 
-        return ReportEventOrganizers.moveFirstArrivalToTop(taskEventLogs);
+        return mergedEvents;
     }
 
 
