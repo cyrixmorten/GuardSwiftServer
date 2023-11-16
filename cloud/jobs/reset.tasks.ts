@@ -38,7 +38,7 @@ export class ResetTasks {
                     try {
                         return this.runForTaskGroup(user, taskGroup, timeZone);
                     } catch(e) {
-                        console.error("Error restting taskgroup", e);
+                        console.error("Error resetting taskgroup", e);
                     }
 
                 }, {useMasterKey: true});
@@ -57,6 +57,7 @@ export class ResetTasks {
             'Is run today: ', taskGroup.isRunToday(),
             'Already reset today:', alreadyReset,
             'Hours until reset: ', taskGroup.hoursUntilReset(timeZone),
+            'Minutes until reset: ', taskGroup.minutesUntilReset(timeZone),
             'Perform reset: ', performReset);
 
         if (performReset) {

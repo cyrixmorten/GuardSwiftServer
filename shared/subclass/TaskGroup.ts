@@ -68,6 +68,10 @@ export class TaskGroup extends BaseClass {
         return moment(this.timeResetDate).tz(timeZone).hours();
     }
 
+    getResetMinutes(timeZone: string): number {
+        return moment(this.timeResetDate).tz(timeZone).minutes();
+    }
+
     /**
      * Returns true if group is planned for today
      *
@@ -81,8 +85,13 @@ export class TaskGroup extends BaseClass {
         return this.getResetHour(timeZone) - new Date().getHours();
     }
 
+    minutesUntilReset(timeZone: string): number {
+        return this.getResetMinutes(timeZone) - new Date().getMinutes();
+    }
+
     resetNow(timeZone: string): boolean {
-        return this.hoursUntilReset(timeZone) <= 0;
+        return this.hoursUntilReset(timeZone) <= 0 &&
+            this.minutesUntilReset(timeZone) <= 0;
     }
 }
 
