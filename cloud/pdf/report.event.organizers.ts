@@ -26,6 +26,7 @@ export class ReportEventOrganizers {
                 event.event = nextEvent.event;
                 event.clientLocation = nextEvent.clientLocation;
                 event.amount = nextEvent.amount;
+                event.people = nextEvent.people;
                 event.remarks = nextEvent.remarks;
                 event.isMerged = true;
             }
