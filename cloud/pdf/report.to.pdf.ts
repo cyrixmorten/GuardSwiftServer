@@ -5,7 +5,6 @@ import {TaskType} from "../../shared/subclass/Task";
 import {RegularRaidReportBuilder} from "./builders/regular.raid";
 import {IReportBuilder} from "./builders/base.builder";
 import {StaticReportBuilder} from "./builders/static";
-import * as _ from 'lodash';
 
 export class ReportToPDF {
 
@@ -36,16 +35,15 @@ export class ReportToPDF {
             let reportBuilder: IReportBuilder;
             if (report.isMatchingTaskType(TaskType.REGULAR, TaskType.RAID, TaskType.ALARM)) {
                 // TODO create dedicated alarm report
-                reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone, customerFacing);
+                reportBuilder = new RegularRaidReportBuilder(report, settings, timeZone, {
+                    customerFacing,
+                    showAllTimestamps: report.client.showAllTimestampsInReport
+                });
             }
             if (report.isMatchingTaskType(TaskType.STATIC)) {
                 reportBuilder = new StaticReportBuilder(report, settings, timeZone);
             }
 
-
-            if (_.isUndefined(reportBuilder)) {
-                throw new Error("Missing builder for report")
-            }
 
             return reportBuilder.generate();
         } catch (e) {

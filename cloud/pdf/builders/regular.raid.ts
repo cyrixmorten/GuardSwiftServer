@@ -16,7 +16,7 @@ import {ExcludeIdenticalStrategy} from "../excluders/exclude.identical.strategy"
 export class RegularRaidReportBuilder extends BaseReportBuilder {
 
 
-    constructor(report: Report, settings: ReportSettings, timeZone: string, private customerFacing: boolean) {
+    constructor(report: Report, settings: ReportSettings, timeZone: string, private options: {customerFacing: boolean, showAllTimestamps: boolean}) {
         super(report, settings, timeZone);
     }
 
@@ -59,7 +59,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             columns: [
                 {
                     width: 'auto',
-                    text: !this.customerFacing ? 'Rød tekst medtages ikke i rapporter til kunden' : '',
+                    text: !this.options.customerFacing ? 'Rød tekst medtages ikke i rapporter til kunden' : '',
                     color: 'red',
                 },
                 {
@@ -82,15 +82,14 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         };
 
         let tableContent = () => {
-
-            const contentRows = _.flatMap(eventLogs, (eventLog, index) => {
+            return _.flatMap(eventLogs, (eventLog, index) => {
 
                 const createEventRow = () => {
 
                     const createInitialsEntry = () => {
 
-                        const showInitials = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                        const internalInitials = !showInitials && !this.customerFacing;
+                        const showInitials = this.options.showAllTimestamps || eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
+                        const internalInitials = !showInitials && !this.options.customerFacing;
 
                         return {
                             text: showInitials || internalInitials ? eventLog.guardInitials : '',
@@ -101,10 +100,10 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     const createTimestampEntry = () => {
 
                         const isArrivalEvent = eventLog.matchingTaskEvent(TaskEvent.ARRIVE);
-                        const internalTimeStamp = !isArrivalEvent && !this.customerFacing;
+                        const internalTimeStamp = !isArrivalEvent && !this.options.customerFacing;
 
-                        const showTimeStamp = isArrivalEvent || internalTimeStamp;
-                        const showManualAutomatic = isArrivalEvent && !this.customerFacing;
+                        const showTimeStamp = this.options.showAllTimestamps || isArrivalEvent || internalTimeStamp;
+                        const showManualAutomatic = isArrivalEvent && !this.options.customerFacing;
 
                         const timeStamp = moment(eventLog.deviceTimestamp).tz(timeZone).format('HH:mm');
                         const manualAutomatic = eventLog.automatic ? 'A' : 'M';
@@ -132,7 +131,11 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                             const nextEvent = eventLogs[index + 1];
                             const noWrittenEntries = !nextEvent?.matchingTaskEvent(TaskEvent.OTHER);
 
-                            if (noWrittenEntries) {
+                            if (this.options.showAllTimestamps) {
+                                return {
+                                    text: "Ankommet"
+                                }
+                            } else if (noWrittenEntries) {
                                 return {
                                     text: "Ingen uregelmæssigheder blev observeret under tilsynet"
                                 }
@@ -188,17 +191,17 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 const excludeReasonRow = createExcludeReasonRow();
 
                 const allRowsForThisEvent = _.compact(
-                    (eventLog.isExcludedFromReport() && this.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
+                    (eventLog.isExcludedFromReport() && this.options.customerFacing) ? [] : [eventRow, peopleRow, locationRow, remarksRow, excludeReasonRow]
                 );
 
                 const eventRowSpan = allRowsForThisEvent.length;
-                
+
 
                 // remove border from all rows
                 allRowsForThisEvent.forEach((row, index) => {
-                    
+
                     const addSeparatorLineTop = eventLog.matchingTaskEvent(TaskEvent.ARRIVE) && !eventLog.isExcludedFromReport();
-                    const addSeparatorLineBottom = index === eventRowSpan - 1; 
+                    const addSeparatorLineBottom = index === eventRowSpan - 1;
 
                     row.forEach((entry) => {
                         _.assign(entry, {
@@ -211,9 +214,6 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
 
                 return allRowsForThisEvent;
             });
-
-
-            return contentRows;
         };
 
         return {
@@ -221,7 +221,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                 widths: [30, 60, '*', 35],
                 headerRows: 1,
                 body: [
-                    tableHeader('Vagt', 'Ankommet', 'Hændelse', ''), // TODO translate
+                    tableHeader('Vagt', this.options.showAllTimestamps ? 'Tidspunkt' : 'Ankommet', 'Hændelse', ''),
                     ...tableContent()
                 ]
             },
@@ -261,7 +261,10 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
         // add event table for each task in report
         _.forOwn(groupTasksByType, (tasks: Task[], taskType: TaskType) => {
 
-            const organizedTaskGroupEvents = this.organizeEvents(allEventLogs, tasks);
+            const organizedTaskGroupEvents =  this.organizeEvents(allEventLogs, tasks, {
+                mergeArrivalWithEvent: !this.options.showAllTimestamps,
+                moveFirstArrivalToTop: !this.options.showAllTimestamps,
+            });
             const expectedSupervisions = _.sumBy(tasks, (task: Task) => task.supervisions);
 
             if (!_.isEmpty(ReportEventFilters.notExcludedEvents(organizedTaskGroupEvents))) {
@@ -269,7 +272,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                     text: [
                         taskTypeHeader(taskType),
                         {
-                            text: !this.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '',
+                            text: !this.options.customerFacing ? ` - forventet antal tilsyn: ${expectedSupervisions}` : '',
                             color: 'red'
                         }
                     ]
@@ -286,7 +289,12 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
     }
 
 
-    organizeEvents(eventLogs: EventLog[], tasks: Task[]): EventLog[] {
+    organizeEvents(eventLogs: EventLog[], tasks: Task[], options: {
+        mergeArrivalWithEvent: boolean,
+        moveFirstArrivalToTop: boolean
+    }): EventLog[] {
+
+        const {mergeArrivalWithEvent, moveFirstArrivalToTop} = options;
 
         const taskEventLogs = ReportEventOrganizers.sortByTime(ReportEventFilters.reportEventsMatchingTasks(eventLogs, tasks))
 
@@ -329,11 +337,15 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         })
 
-        const allIncludedEventLogs = ReportEventFilters.notExcludedEvents(taskEventLogs);
-        const organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(allIncludedEventLogs);
-        const mergedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
+        let organizedEvents = ReportEventFilters.notExcludedEvents(taskEventLogs);
+        if (moveFirstArrivalToTop) {
+            organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(organizedEvents);
+        }
+        if (mergeArrivalWithEvent) {
+            organizedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
+        }
 
-        return mergedEvents;
+        return organizedEvents;
     }
 
 

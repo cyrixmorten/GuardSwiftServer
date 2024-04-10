@@ -26,7 +26,10 @@ export class Client extends BaseClass {
     static readonly _useAltHeaderLogo = 'useAltHeaderLogo';
     static readonly _useCustomPosition = 'useCustomPosition';
 
+    static readonly _showAllTimestampsInReport = 'showAllTimestampsInReport';
+
     static readonly _taskRadius = 'taskRadius';
+
 
     constructor() {
         super(Client.className);
@@ -113,8 +116,16 @@ export class Client extends BaseClass {
         return this.get(Client._useAltHeaderLogo);
     }
 
-    set useAltHeaderLogo(useAltHeaderLogo: boolean) {
-        this.set(Client._useAltHeaderLogo, useAltHeaderLogo);
+    set useAltHeaderLogo(value: boolean) {
+        this.set(Client._useAltHeaderLogo, value);
+    }
+
+    get showAllTimestampsInReport(): boolean {
+        return this.get(Client._showAllTimestampsInReport);
+    }
+
+    set showAllTimestampsInReport(value: boolean) {
+        this.set(Client._showAllTimestampsInReport, value);
     }
 
     get useCustomPosition(): boolean {
