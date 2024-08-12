@@ -147,12 +147,12 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
                         }
                     }
 
-                    return eventLog.event !== "Andet" ? [
+                    return  [
                         createInitialsEntry(),
                         createTimestampEntry(),
                         createEventEntry(),
                         {text: eventLog.amount || '', alignment: 'center'},
-                    ] : undefined
+                    ]
                 }
 
                 const createPeopleRow = () => {
@@ -319,7 +319,7 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             });
 
 
-            const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE) && !event.getExcludeReason());
+            const firstIncludedArrival = _.find(events, (event) => event.matchingTaskEvent(TaskEvent.ARRIVE));
 
             if (firstIncludedArrival) {
                 firstIncludedArrival.setIncludeReason("Første ankomst for denne vægter");
@@ -337,13 +337,21 @@ export class RegularRaidReportBuilder extends BaseReportBuilder {
             })
         })
 
-        let organizedEvents = ReportEventFilters.notExcludedEvents(taskEventLogs);
+
+
+        const nonExcludedEvents = ReportEventFilters.notExcludedEvents(taskEventLogs);
+        const organizeStrategies: ((events: EventLog[]) => EventLog[])[] = [];
         if (moveFirstArrivalToTop) {
-            organizedEvents = ReportEventOrganizers.moveFirstArrivalToTop(organizedEvents);
+            organizeStrategies.push(ReportEventOrganizers.moveFirstArrivalToTop);
         }
         if (mergeArrivalWithEvent) {
-            organizedEvents = ReportEventOrganizers.mergeArrivalWithFirstOther(organizedEvents);
+           organizeStrategies.push(ReportEventOrganizers.mergeArrivalWithFirstOther);
         }
+
+        let organizedEvents = nonExcludedEvents;
+        _.forEach(organizeStrategies, (strategy) => {
+            organizedEvents = strategy(organizedEvents)
+        })
 
         return organizedEvents;
     }
